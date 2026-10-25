@@ -1,0 +1,28 @@
+{
+  "updatedAt": "2026-10-22T07:30:00+02:00",
+  "stations": [
+    { "id": "valley", "name": "Kitzbühel", "ele": 800, "temp": -2, "condition": "sun" },
+    { "id": "mid", "name": "Pengelstein", "ele": 1938, "temp": -7, "condition": "sun" },
+    { "id": "top", "name": "Ehrenbachhöhe", "ele": 1802, "temp": -6, "condition": "partly" }
+  ],
+  "wind": { "speed": 18, "gusts": 35, "dir": "NW" },
+  "snow": { "mountain": 145, "valley": 40, "fresh": 12, "lastSnowfall": "2026-10-21" },
+  "visibility": "good",
+  "freezingLevel": 900,
+  "sunrise": "07:34",
+  "sunset": "17:02",
+  "hourly": [
+    { "time": "09:00", "temp": -8, "condition": "sun" },
+    { "time": "11:00", "temp": -6, "condition": "sun" },
+    { "time": "13:00", "temp": -4, "condition": "partly" },
+    { "time": "15:00", "temp": -5, "condition": "cloud" },
+    { "time": "17:00", "temp": -7, "condition": "snow" }
+  ],
+  "avalanche": {
+    "level": 2,
+    "levelAbove": 3,
+    "treeline": 2000,
+    "problems": ["wind_slab", "new_snow"],
+    "source": "https://lawinen.report"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "FAM-STROBL": {
+    "name": "Familie Strobl",
+    "members": [
+      { "chip": "CHIP-0042", "name": "Tobias", "color": "#2f9be0" },
+      { "chip": "CHIP-0043", "name": "Lena", "color": "#f2a33a", "kid": true },
+      { "chip": "CHIP-0044", "name": "Mama", "color": "#8a5cf6" }
+    ]
+  }
+}

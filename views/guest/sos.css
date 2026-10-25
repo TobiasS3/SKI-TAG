@@ -1,0 +1,598 @@
+/* SOS-Notruf: Knopf, Countdown, aktiver Notruf */
+
+/* --- Der Knopf ------------------------------------------------------------------ */
+.sos-wrap {
+  position: absolute;
+  left: var(--sp-3);
+  /* gleitet mit dem Bereich mit, höchstens bis zur halben Stufe (--sheet-cap) */
+  bottom: calc(min(var(--sheet-h, 132px), var(--sheet-cap, 9999px)) + var(--sp-3));
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.sos-btn {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 20px;
+  border: 3px solid #fff;
+  background: var(--sos);
+  color: #fff;
+  box-shadow: var(--shadow-2);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform var(--t-med) var(--ease-spring), border-radius var(--t-med) var(--ease);
+}
+
+.sos-btn:active,
+.is-holding .sos-btn {
+  transform: scale(0.94);
+}
+
+/* Beim Halten füllt sich der Knopf von unten – Fortschritt ohne Leuchten */
+.sos-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--sos-deep);
+  transform: scaleY(var(--f, 0));
+  transform-origin: bottom;
+}
+
+.sos-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 1.1rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.sos-label::after {
+  content: attr(data-sub);
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.is-holding .sos-label {
+  font-size: 1.7rem;
+}
+
+.is-holding .sos-label::after {
+  display: none;
+}
+
+/* Ring wird im kleinen Knopf nicht mehr gebraucht */
+.sos-btn .sos-ring {
+  display: none;
+}
+
+.sos-count-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.sos-hint {
+  padding: 8px 12px;
+  border-radius: var(--r-pill);
+  background: var(--night);
+  color: #fff;
+  font-size: var(--fs-s);
+  font-weight: 650;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity var(--t-med), transform var(--t-med) var(--ease);
+  pointer-events: none;
+  order: 2;
+}
+
+.is-holding .sos-hint,
+.show-tip .sos-hint {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- Countdown (Vollbild) -------------------------------------------------------- */
+.sos-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3500;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-5);
+  background: var(--night);
+  color: #fff;
+  animation: fade-in var(--t-med) var(--ease) both;
+}
+
+.sos-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  width: min(420px, 100%);
+  text-align: center;
+}
+
+.sos-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: var(--sos);
+  font-weight: 800;
+}
+
+.sos-kicker svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sos-title {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 8.5vw, 3rem);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.sos-count-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 200px;
+  height: 200px;
+}
+
+.sos-count-ring {
+  position: absolute;
+  inset: 0;
+}
+
+.sos-count-ring .ring-bg {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 4;
+}
+
+.sos-count-ring .ring-bar {
+  fill: none;
+  stroke: var(--sos);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.sos-count {
+  font-size: 7rem;
+  font-weight: 800;
+}
+
+.sos-count.tick {
+  animation: count-tick 1s var(--ease) both;
+}
+
+@keyframes count-tick {
+  from {
+    transform: scale(1.35);
+    opacity: 0.4;
+  }
+}
+
+.sos-text {
+  max-width: 34ch;
+  font-size: var(--fs-l);
+  opacity: 0.92;
+}
+
+.sos-cancel {
+  width: 100%;
+  background: #fff;
+  color: var(--ink);
+  font-size: 1.3rem;
+  min-height: 68px;
+}
+
+.sos-cancel:hover {
+  background: #ececee;
+}
+
+.sos-now {
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.8;
+}
+
+/* Senden: Funkwellen */
+.sos-sending {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 160px;
+  height: 160px;
+}
+
+.sos-sending i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--sos);
+  animation: wave 1.8s var(--ease) infinite;
+}
+
+.sos-sending i:nth-child(2) {
+  animation-delay: 0.6s;
+}
+
+.sos-sending i:nth-child(3) {
+  animation-delay: 1.2s;
+}
+
+.sos-sending span {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--sos);
+  color: #fff;
+  box-shadow: none;
+}
+
+.sos-sending svg {
+  width: 30px;
+  height: 30px;
+}
+
+@keyframes wave {
+  from {
+    transform: scale(0.35);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.sos-call {
+  background: var(--sos);
+  color: #fff;
+}
+
+/* --- Aktiver Notruf --------------------------------------------------------------- */
+.sos-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 940;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 4px var(--sos), inset 0 0 80px rgba(229, 50, 45, 0.35);
+  animation: sos-vignette 2s ease-in-out infinite;
+}
+
+@keyframes sos-vignette {
+  50% {
+    box-shadow: inset 0 0 0 4px rgba(229, 50, 45, 0.5), inset 0 0 40px rgba(229, 50, 45, 0.15);
+  }
+}
+
+.sos-active {
+  position: absolute;
+  left: var(--sp-3);
+  right: var(--sp-3);
+  top: calc(var(--safe-top) + var(--sp-3) + 68px);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-height: calc(100% - 220px);
+  overflow-y: auto;
+  padding: var(--sp-4);
+  border-radius: 24px;
+  background: var(--night);
+  color: var(--night-text);
+  box-shadow: 0 0 0 2px var(--sos), var(--shadow-3);
+  animation: modal-in var(--t-slow) var(--ease-spring) both;
+}
+
+.has-sos .search {
+  display: none;
+}
+
+.sos-active-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  color: inherit;
+  text-align: left;
+}
+
+.sos-active-head > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--night-muted);
+  transform: rotate(-90deg);
+  transition: transform var(--t-med) var(--ease);
+}
+
+/* Eingeklappt: nur Kopf und Helfer mit Ankunftszeit */
+.sos-active.is-min > :not(.sos-active-head):not(.sos-helper) {
+  display: none;
+}
+
+.sos-active.is-min .sos-active-head > svg {
+  transform: rotate(90deg);
+}
+
+.sos-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 8px;
+  border-radius: var(--r-pill);
+  background: var(--sos);
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--fs-s);
+}
+
+.sos-live i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  animation: rec 1s ease-in-out infinite;
+}
+
+.sos-id {
+  margin-left: auto;
+  color: var(--night-muted);
+  font-size: 0.95rem;
+}
+
+.sos-active-title {
+  font-family: var(--font-head);
+  font-size: 1.8rem;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.sos-helper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--r-m);
+  background: var(--night-2);
+}
+
+.sos-helper-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--sos);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+}
+
+.sos-helper-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sos-helper-text small {
+  color: var(--night-muted);
+}
+
+.sos-eta {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.sos-eta .num {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.sos-eta small {
+  color: var(--night-muted);
+  font-weight: 700;
+}
+
+.sos-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--night-3);
+  overflow: hidden;
+}
+
+.sos-progress i {
+  display: block;
+  height: 100%;
+  width: calc(var(--f, 0) * 100%);
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--sos), #ff8a80);
+  transition: width 1s linear;
+}
+
+.sos-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: var(--fs-s);
+  color: var(--night-muted);
+}
+
+.sos-advice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-weight: 600;
+}
+
+.sos-advice svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--glow);
+  margin-top: 1px;
+}
+
+.sos-coords {
+  padding: 8px 12px;
+  border-radius: var(--r-s);
+  background: var(--night-2);
+  color: var(--glow);
+  font-size: 1.15rem;
+  user-select: all;
+}
+
+.sos-calls {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--sp-2);
+}
+
+.sos-calls .btn {
+  padding: 0 12px;
+  font-size: var(--fs-s);
+}
+
+.sos-calls .btn-quiet {
+  background: var(--night-2);
+  color: #fff;
+}
+
+.sos-active .sos-call {
+  background: var(--sos);
+  color: #fff;
+}
+
+.sos-ok {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--night-muted);
+  font-weight: 650;
+}
+
+.sos-ok svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sos-target {
+  animation: sos-target 1.6s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes sos-target {
+  50% {
+    stroke-opacity: 0.3;
+    fill-opacity: 0.25;
+  }
+}
+
+
+
+@media (min-width: 900px), (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .sos-wrap {
+    left: auto;
+    right: var(--sp-4);
+    bottom: var(--sp-5);
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+
+  .sos-hint {
+    transform: translateX(8px);
+  }
+
+  .sos-active {
+    left: auto;
+    right: var(--sp-4);
+    top: var(--sp-4);
+    width: 380px;
+    max-height: calc(100% - 140px);
+  }
+}
+
+/* Bereich aufgeklappt: SOS bleibt sichtbar und sitzt über dem Bereich (etwas kleiner).
+   Beim Ziehen folgt er dem Finger ohne Verzögerung. */
+@media (max-width: 899px) and (orientation: portrait), (max-width: 899px) and (min-height: 521px), (max-width: 639px) {
+  .sos-wrap,
+  .map-controls {
+    transition: bottom var(--t-slow) var(--ease), opacity var(--t-med) var(--ease);
+  }
+
+  .sheet-dragging .sos-wrap,
+  .sheet-dragging .map-controls {
+    transition: opacity var(--t-med) var(--ease);
+  }
+
+  .guest:has(.sheet.is-expanded) .sos-btn {
+    width: 54px;
+    height: 54px;
+  }
+
+  /* Bereich offen: Kartenknöpfe als eine Reihe nur mit Symbolen – passt unter die Suche */
+  .guest:has(.sheet.is-expanded) .map-controls {
+    flex-direction: row;
+    align-items: flex-end;
+    bottom: calc(min(var(--sheet-h, 132px), var(--sheet-cap, 9999px)) + var(--sp-3));
+  }
+
+  /* Menü offen → Knöpfe vor den Bereich, sonst läge das Menü dahinter */
+  .guest:has(.focus-menu:not([hidden])) .map-controls {
+    z-index: 1150;
+  }
+
+  .guest:has(.sheet.is-expanded) .map-controls .style-btn {
+    width: 46px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .guest:has(.sheet.is-expanded) .map-controls .style-name {
+    display: none;
+  }
+
+  /* … und das Filter-Menü klappt nach unten über den Bereich statt in die Suche */
+  .guest:has(.sheet.is-expanded) .focus-menu {
+    top: calc(100% + 8px);
+    bottom: auto;
+    z-index: 1200;
+  }
+}

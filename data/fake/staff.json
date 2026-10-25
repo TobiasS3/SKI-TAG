@@ -1,0 +1,10 @@
+[
+  { "id": "ST-01", "name": "Markus", "role": "Pistenrettung", "station": "Hahnenkamm Bergstation", "lat": 47.42681, "lng": 12.37252 },
+  { "id": "ST-02", "name": "Sandra", "role": "Pistenrettung", "station": "Ehrenbachhöhe", "lat": 47.41864, "lng": 12.35932 },
+  { "id": "ST-03", "name": "Florian", "role": "Liftpersonal", "station": "Steinbergkogel", "lat": 47.40226, "lng": 12.36743 },
+  { "id": "ST-04", "name": "Johanna", "role": "Pistenrettung", "station": "Pengelstein", "lat": 47.3951, "lng": 12.33167 },
+  { "id": "ST-05", "name": "Thomas", "role": "Liftpersonal", "station": "3S Bahn Talstation", "lat": 47.38924, "lng": 12.34695 },
+  { "id": "ST-06", "name": "Lukas", "role": "Pistenrettung", "station": "Wurzhöhe", "lat": 47.3656, "lng": 12.38056 },
+  { "id": "ST-07", "name": "Eva", "role": "Pistenrettung", "station": "Ganslern", "lat": 47.44221, "lng": 12.37601 },
+  { "id": "ST-08", "name": "Peter", "role": "Liftpersonal", "station": "Fleckalm Bergstation", "lat": 47.41793, "lng": 12.35784 }
+]

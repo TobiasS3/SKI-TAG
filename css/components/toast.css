@@ -1,0 +1,50 @@
+/* Kurzer Hinweis oben am Bildschirm */
+
+.toast-stack {
+  position: fixed;
+  top: calc(var(--safe-top) + 72px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: grid;
+  gap: var(--sp-2);
+  width: min(420px, calc(100% - 32px));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 12px 16px;
+  border-radius: var(--r-m);
+  background: var(--ink);
+  color: #fff;
+  font-weight: 550;
+  box-shadow: var(--shadow-float);
+  animation: toast-in var(--t-med) var(--ease-spring) both;
+}
+
+.toast svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.toast.is-leaving {
+  animation: toast-out var(--t-med) var(--ease) forwards;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}

@@ -1,0 +1,60 @@
+/* Popup-Fenster */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: grid;
+  place-items: end center;
+  padding: var(--sp-4);
+  padding-bottom: calc(var(--sp-4) + var(--safe-bottom));
+  background: rgba(0, 0, 0, 0.38);
+  animation: fade-in var(--t-med) var(--ease) both;
+}
+
+@media (min-width: 640px) {
+  .modal-backdrop {
+    place-items: center;
+  }
+}
+
+.modal {
+  width: min(440px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  padding: var(--sp-5);
+  border-radius: var(--r-l);
+  background: var(--paper);
+  box-shadow: var(--shadow-float);
+  animation: modal-in var(--t-med) var(--ease-spring) both;
+}
+
+.modal h2 {
+  margin-bottom: var(--sp-2);
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+.modal-actions .btn {
+  flex: 1;
+  white-space: normal;
+  line-height: 1.2;
+  padding: 8px 16px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+}

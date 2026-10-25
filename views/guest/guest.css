@@ -1,0 +1,4173 @@
+/* Gäste-Ansicht – Grau/Weiß/Schwarz mit Schatten, Akzente Orange (Route), Blau (du), Rot (SOS) */
+
+.guest {
+  position: absolute;
+  inset: 0;
+}
+
+/* ================================================================================
+   Kopfleiste
+   ================================================================================ */
+.topbar {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3));
+  left: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 60px;
+  padding: 0 8px 0 10px;
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+
+.top-logo {
+  width: 34px;
+  height: 34px;
+  flex: none;
+}
+
+.top-time {
+  display: flex;
+  flex-direction: column;
+  margin-left: 4px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* „Noch offen“ – klein darüber, mit grünem Punkt solange die Lifte laufen */
+.top-left-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.top-left-label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.is-open .top-left-label::before {
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(22, 180, 107, 0.18);
+}
+
+/* Die Restzeit: groß und fett */
+.top-left-value {
+  margin-top: 3px;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.top-left-value small {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+
+.is-after .top-left-value {
+  color: var(--ink-3);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 42px;
+  padding: 0 11px;
+  border-radius: 14px;
+  background: var(--ice);
+  font-weight: 650;
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast);
+}
+
+.pill:hover {
+  background: #e7e7eb;
+}
+
+.pill:active {
+  transform: scale(0.94);
+}
+
+.pill svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pill .num {
+  font-size: 1.25rem;
+}
+
+.pill-aval > svg {
+  color: var(--ink-2);
+}
+
+.aval-mini {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--c);
+  color: var(--ink);
+  font-size: 0.95rem !important;
+}
+
+.menu-wrap {
+  position: relative;
+}
+
+.avatar-btn {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 250px;
+  padding: 8px;
+  border-radius: var(--r-l);
+  background: var(--paper);
+  box-shadow: var(--shadow-3);
+  animation: modal-in var(--t-med) var(--ease-spring) both;
+  transform-origin: top right;
+}
+
+.menu-who {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px 10px;
+}
+
+.menu-who small {
+  color: var(--ink-3);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: var(--ice);
+}
+
+.menu-item svg {
+  width: 20px;
+  height: 20px;
+  color: var(--ink-2);
+}
+
+.menu-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--night);
+  color: #fff;
+}
+
+.menu-chip > span:nth-child(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-chip strong {
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+}
+
+.menu-chip small {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.menu-chip-art {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #3a3a42, #0b0b0d);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.menu-chip-art::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: var(--sos);
+}
+
+.menu-chip-bat {
+  font-size: 1rem;
+  color: var(--night-muted);
+}
+
+/* ================================================================================
+   Suche
+   ================================================================================ */
+.search {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3) + 68px);
+  left: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 1050;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 6px 0 16px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+
+.search-box > svg {
+  width: 20px;
+  height: 20px;
+  color: var(--ink-3);
+  flex: none;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: none;
+  font-size: 16px;
+  font-weight: 500;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--ink-3);
+}
+
+.search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-clear {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--ink-2);
+}
+
+.search-clear svg {
+  width: 16px;
+  height: 16px;
+}
+
+.search-results {
+  margin-top: 8px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: var(--r-l);
+  background: var(--paper);
+  box-shadow: var(--shadow-3);
+  animation: modal-in var(--t-med) var(--ease) both;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.search-item:hover,
+.search-item[aria-selected="true"] {
+  background: var(--ice);
+}
+
+.search-text,
+.quick-text,
+.member-text,
+.step-text,
+.place-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.search-text strong,
+.quick-text strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-text small,
+.quick-text small,
+.step-text small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.search-empty {
+  padding: 12px;
+  color: var(--ink-2);
+  font-size: var(--fs-s);
+}
+
+/* ================================================================================
+   Logos & Schilder
+   ================================================================================ */
+.place-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.place-logo.is-big {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+}
+
+.place-logo.has-img {
+  background: #ececef;
+  box-shadow: inset 0 0 0 1px var(--line), var(--shadow-1);
+}
+
+.place-logo.has-img img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+.place-logo.is-mono {
+  background: var(--c);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.place-logo.is-big.is-mono {
+  font-size: 1.35rem;
+}
+
+.place-logo.is-lift {
+  background: var(--ink);
+  color: #fff;
+}
+
+.place-logo svg {
+  width: 20px;
+  height: 20px;
+}
+
+.place-logo.is-big svg {
+  width: 28px;
+  height: 28px;
+}
+
+.place-logo.is-person {
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.disc {
+  border-radius: 50% !important;
+}
+
+.disc span {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.place-logo.is-big.disc span {
+  font-size: 1.35rem;
+}
+
+.disc.diff-easy, .dot.diff-easy, .diff-bar .diff-easy { background: var(--piste-easy); }
+.disc.diff-intermediate, .dot.diff-intermediate, .diff-bar .diff-intermediate { background: var(--piste-intermediate); }
+.disc.diff-advanced, .disc.diff-expert, .dot.diff-advanced, .diff-bar .diff-advanced { background: var(--piste-advanced); }
+.disc.diff-freeride, .dot.diff-freeride, .diff-bar .diff-freeride { background: var(--piste-freeride); }
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* ================================================================================
+   Kartenknöpfe
+   ================================================================================ */
+.map-controls {
+  position: absolute;
+  right: var(--sp-3);
+  bottom: calc(min(var(--sheet-h, 132px), var(--sheet-cap, 9999px)) + var(--sp-3) + 8px);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+}
+
+.locate-btn.is-on {
+  background: var(--sky);
+  color: #fff;
+}
+
+.style-btn {
+  width: auto;
+  gap: 6px;
+  padding: 0 14px 0 12px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.style-name {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+/* ================================================================================
+   Bereich: Grundbausteine
+   ================================================================================ */
+.sheet-pane > * + * {
+  margin-top: var(--sp-3);
+}
+
+.card {
+  padding: var(--sp-4);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.card-title {
+  margin-bottom: var(--sp-3);
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  font-size: var(--fs-s);
+  font-weight: 550;
+}
+
+.note svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.note-warn {
+  background: var(--sun-soft);
+  color: #7a3300;
+  box-shadow: none;
+}
+
+.note-alert {
+  background: #ffe9e9;
+  color: #8a1212;
+  box-shadow: none;
+  flex-wrap: wrap;
+}
+
+.note-alert span {
+  flex: 1;
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  background: var(--ice);
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+.link-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  background: var(--ice);
+  font-size: var(--fs-s);
+  font-weight: 650;
+  text-decoration: none;
+  color: var(--ink);
+  transition: background var(--t-fast);
+}
+
+.link-pill:hover {
+  background: #e5e5ea;
+}
+
+.link-pill svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-small {
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: var(--fs-s);
+  gap: 6px;
+}
+
+.btn-small svg {
+  width: 16px;
+  height: 16px;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-3);
+  text-align: center;
+  color: var(--ink-3);
+}
+
+.empty svg {
+  width: 34px;
+  height: 34px;
+}
+
+/* Instrumente: schwarze Kästen für Live-Werte */
+.instrument {
+  position: relative;
+  overflow: hidden;
+  padding: var(--sp-4);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #202026 0%, var(--night) 55%);
+  color: var(--night-text);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.instrument-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--night-muted);
+}
+
+/* Statistik-Kacheln */
+.day-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.stat {
+  padding: 12px;
+  background: var(--paper);
+}
+
+.stat dt {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat dd {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.stat .num {
+  font-size: 1.7rem;
+}
+
+.stat small {
+  color: var(--ink-3);
+  font-weight: 650;
+  font-size: 11px;
+}
+
+.instrument .day-stats {
+  background: var(--night-line);
+}
+
+.instrument .stat {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.instrument .stat dt,
+.instrument .stat small {
+  color: var(--night-muted);
+}
+
+.instrument .stat .num {
+  color: #fff;
+}
+
+/* ================================================================================
+   Mein Tag
+   ================================================================================ */
+.day-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.day-intro-art {
+  padding: var(--sp-3) var(--sp-3) 0;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.day-intro-art svg {
+  width: 100%;
+  height: auto;
+}
+
+.art-line {
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  animation: route-draw 2.4s var(--ease) 0.2s forwards;
+}
+
+.day-features {
+  display: grid;
+  gap: 8px;
+}
+
+.day-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 550;
+}
+
+.day-features svg {
+  width: 18px;
+  height: 18px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  stroke-width: 3;
+}
+
+.day-start {
+  margin-top: var(--sp-2);
+}
+
+.day-left {
+  text-align: center;
+}
+
+.day-live,
+.day-extras {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.day-instrument {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.day-rec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sun);
+}
+
+.day-rec i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 0 10px var(--sun);
+  animation: rec 1.6s ease-in-out infinite;
+}
+
+.day-chip {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+
+/* Tacho */
+.gauge {
+  position: relative;
+  width: min(280px, 100%);
+  margin: 0 auto;
+}
+
+.gauge svg {
+  width: 100%;
+  height: auto;
+}
+
+.gauge-bar {
+  transition: stroke-dashoffset 900ms var(--ease);
+  filter: drop-shadow(0 0 8px rgba(255, 106, 19, 0.35));
+}
+
+.gauge-tick {
+  stroke: var(--night-muted);
+  stroke-width: 1.5;
+  opacity: 0.5;
+}
+
+.gauge-read {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gauge-value {
+  font-size: 4.2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.gauge-unit {
+  font-size: var(--fs-s);
+  font-weight: 650;
+  color: var(--night-muted);
+}
+
+.day-under-gauge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.day-now {
+  min-width: 0;
+  color: var(--night-muted);
+  font-size: var(--fs-s);
+}
+
+.day-now strong {
+  color: #fff;
+}
+
+.day-alt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--night-2);
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.day-alt svg {
+  width: 16px;
+  height: 16px;
+  color: var(--night-muted);
+}
+
+/* Höhenprofil */
+.alt-chart {
+  margin: 0;
+}
+
+.alt-chart.is-empty {
+  padding: var(--sp-3) 0;
+  color: var(--ink-3);
+  font-size: var(--fs-s);
+}
+
+.alt-svg svg {
+  width: 100%;
+  height: 72px;
+}
+
+.alt-chart figcaption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--ink-3);
+}
+
+.alt-chart figcaption span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.alt-chart figcaption svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Pisten nach Farbe */
+.diff-bar-track {
+  display: flex;
+  gap: 3px;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.diff-bar-track i {
+  min-width: 6px;
+}
+
+.diff-bar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 10px;
+  font-size: var(--fs-s);
+  font-weight: 550;
+}
+
+.diff-bar-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.diff-bar-legend b {
+  font-size: 1.05rem;
+}
+
+/* Abfahrten */
+.run-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.run-list li {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+}
+
+.run-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.run-n {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.run-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.run-text strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-s);
+}
+
+.run-text small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.run-top {
+  font-size: 1.3rem;
+}
+
+.run-top small {
+  margin-left: 2px;
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+/* Abzeichen */
+.badges {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.badges li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--ice);
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--ink-3);
+}
+
+.badge-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #e2e2e7;
+}
+
+.badge-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.badges li.is-earned {
+  background: var(--ink);
+  color: #fff;
+}
+
+.badges li.is-earned .badge-icon {
+  background: var(--sun);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(255, 106, 19, 0.4);
+}
+
+/* Rückblick */
+.recap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.recap-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.recap-big {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.recap-km {
+  font-size: 5.2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.recap-unit {
+  font-weight: 650;
+  color: var(--night-muted);
+}
+
+.profile {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+}
+
+.profile span {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  transform-origin: bottom;
+  animation: bar-grow var(--t-slow) var(--ease-spring) both;
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.fav-lifts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-weight: 550;
+}
+
+.fav-lifts li + li {
+  border-top: 1px solid var(--line);
+}
+
+.fav-lifts svg {
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+}
+
+.fav-lifts span {
+  flex: 1;
+}
+
+.recap-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* ================================================================================
+   Route
+   ================================================================================ */
+.quick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  text-align: left;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast);
+}
+
+.quick-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+
+.quick-item > svg {
+  margin-left: auto;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+  flex: none;
+}
+
+/* „Zurück“ oben im Route-Tab: Ziel verwerfen, zurück zur Liste */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 14px 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  font-size: var(--fs-s);
+  font-weight: 700;
+}
+
+.back-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Ort: großes Titelbild mit Name, Infos, große Knöpfe */
+.place {
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+
+.place-cover {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #dfe8f5;
+}
+
+.place-cover img,
+.place-art,
+.place-art svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+/* Foto: unten abdunkeln, damit der Name lesbar ist */
+.place-cover.has-photo::after {
+  content: "";
+  position: absolute;
+  inset: 35% 0 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.62));
+  pointer-events: none;
+}
+
+.place-cover-text {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  color: var(--ink);
+}
+
+.has-photo .place-cover-text {
+  color: #fff;
+}
+
+.place-cover .place-logo {
+  flex: none;
+  box-shadow: 0 0 0 3px #fff, var(--shadow-2);
+}
+
+.place-cover-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.place-cover-name small {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.place-cover-name strong {
+  font-family: var(--font-head);
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.has-photo .place-cover-name strong {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+
+.place-credit {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  max-width: 70%;
+  overflow: hidden;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.38);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.place-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px 2px;
+}
+
+.place-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 11px;
+  border-radius: var(--r-pill);
+  background: var(--ice);
+  font-size: var(--fs-s);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.place-facts svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-3);
+}
+
+/* Große Knöpfe: Anrufen (schwarz), Webseite (hell) */
+.place-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 16px 16px;
+}
+
+.place-actions.n-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.place-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px 10px 10px;
+  border-radius: 16px;
+  background: var(--ice);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast);
+}
+
+.place-action:first-child:not(:only-child),
+.place-action[href^="tel:"] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.place-action:active {
+  transform: scale(0.97);
+}
+
+.place-action-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+
+.place-action[href^="tel:"] .place-action-icon {
+  background: var(--ok);
+  color: #fff;
+  box-shadow: none;
+}
+
+.place-action-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.place-action-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.place-action-text strong {
+  font-size: var(--fs-m);
+  font-weight: 750;
+}
+
+.place-action-text small {
+  overflow: hidden;
+  font-size: var(--fs-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+/* Person (Gruppe): ohne Titelbild */
+.place-plain .place-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 4px;
+}
+
+.place-plain .place-facts {
+  padding-bottom: 16px;
+}
+
+.place-kind {
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+/* Zusammenfassung */
+.route-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.route-time {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.route-big {
+  font-size: 3.4rem;
+  font-weight: 700;
+}
+
+.route-eta {
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--sun-soft);
+  color: var(--sun-deep);
+  font-size: var(--fs-s);
+  font-weight: 700;
+}
+
+.route-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.route-stats > div + div {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.route-stats dt {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-weight: 650;
+}
+
+.route-stats dd {
+  margin: 4px 0 0;
+  font-size: 1.45rem;
+}
+
+.nav-start {
+  font-size: 1.15rem;
+}
+
+/* Schritte als Linie mit Stationen */
+.steps {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.steps::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--sp-4) + 17px);
+  top: 30px;
+  bottom: 30px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--sun);
+}
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+}
+
+.step-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  border: 3px solid var(--paper);
+  background: var(--ink);
+  color: #fff;
+}
+
+.step-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.step-goal .step-icon {
+  background: var(--sun);
+}
+
+/* ================================================================================
+   Navigation
+   ================================================================================ */
+.nav-hud {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3) + 68px);
+  left: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 1060;
+  padding: 14px;
+  border-radius: 24px;
+  background: var(--night);
+  color: #fff;
+  box-shadow: var(--shadow-3);
+  animation: modal-in var(--t-slow) var(--ease-spring) both;
+}
+
+.nav-now {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nav-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--sun);
+  color: #fff;
+}
+
+.nav-icon.is-big {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(255, 106, 19, 0.35);
+}
+
+.nav-icon.disc {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9);
+}
+
+.nav-icon.is-big.disc span {
+  font-size: 1.5rem;
+}
+
+.nav-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-icon.is-big svg {
+  width: 30px;
+  height: 30px;
+}
+
+.nav-icon.is-ok {
+  background: var(--ok);
+  box-shadow: 0 8px 20px rgba(22, 180, 107, 0.4);
+}
+
+.nav-now-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nav-dist {
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.nav-now-text strong {
+  margin-top: 4px;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.nav-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--night-line);
+  color: var(--night-muted);
+  font-size: var(--fs-s);
+  font-weight: 600;
+}
+
+.nav-next .nav-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.nav-next .nav-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.nav-next .nav-icon.disc span {
+  font-size: 0.75rem;
+}
+
+.nav-next > svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-next-name {
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-bar {
+  position: absolute;
+  left: var(--sp-3);
+  right: var(--sp-3);
+  bottom: calc(var(--sp-3) + var(--safe-bottom));
+  z-index: 1060;
+  overflow: hidden;
+  padding: 0 14px 14px;
+  border-radius: 24px;
+  background: var(--night);
+  color: #fff;
+  box-shadow: var(--shadow-3);
+  animation: nav-bar-in var(--t-slow) var(--ease-out) both;
+}
+
+@keyframes nav-bar-in {
+  from {
+    transform: translateY(120%);
+  }
+}
+
+.nav-progress {
+  height: 4px;
+  margin: 0 -14px 12px;
+  background: var(--night-3);
+}
+
+.nav-progress i {
+  display: block;
+  height: 100%;
+  width: calc(var(--f) * 100%);
+  background: var(--sun);
+  box-shadow: 0 0 10px var(--sun);
+  transition: width 900ms var(--ease);
+}
+
+.nav-bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.nav-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nav-stat .num {
+  font-size: 1.5rem;
+}
+
+.nav-stat-main .num {
+  font-size: 2.1rem;
+  color: var(--sun);
+}
+
+.nav-stat small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--night-muted);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.nav-stop {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--night-3);
+  color: #fff;
+}
+
+.nav-stop svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-bar .btn-sun {
+  margin-top: 14px;
+}
+
+.is-navigating .search {
+  display: none;
+}
+
+.is-navigating:not(.nav-mini) .sheet {
+  transform: translateY(110%) !important;
+}
+
+.is-navigating:not(.nav-mini) .map-controls,
+.is-navigating:not(.nav-mini) .sos-wrap {
+  bottom: calc(118px + var(--safe-bottom)) !important;
+}
+
+/* Handy: vier Dinge in der Leiste – enger zusammen, Zielname darf gekürzt werden */
+.is-navigating .nav-bar-row {
+  gap: 10px;
+}
+
+.nav-bar-row .nav-stat {
+  min-width: 0;
+}
+
+.nav-bar-row .nav-stat small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Knopf „Karte“: Navigation einklappen */
+.nav-min {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 48px;
+  margin-left: auto;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: var(--night-3);
+  color: #fff;
+  font-size: var(--fs-s);
+  font-weight: 700;
+}
+
+.nav-min svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-min + .nav-stop {
+  margin-left: 0;
+}
+
+/* Eingeklappt: HUD + Leiste weg, oben ein Streifen zum Zurückkehren */
+.nav-mini .nav-hud,
+.nav-mini .nav-bar {
+  display: none;
+}
+
+.nav-pill {
+  display: none;
+}
+
+.nav-mini .nav-pill {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3) + 72px);
+  left: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 8px 0 16px;
+  border-radius: 20px;
+  background: var(--night);
+  color: #fff;
+  text-align: left;
+  box-shadow: var(--shadow-3);
+  animation: pane-in var(--t-med) var(--ease) both;
+}
+
+.nav-pill-live i {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sun);
+  animation: rec 1.6s ease-in-out infinite;
+}
+
+.nav-pill-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.nav-pill-text strong {
+  font-size: 1.15rem;
+  color: var(--sun);
+}
+
+.nav-pill-text small {
+  overflow: hidden;
+  font-size: var(--fs-xs);
+  color: var(--night-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-pill-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 42px;
+  margin-left: auto;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: var(--sun);
+  font-size: var(--fs-s);
+  font-weight: 800;
+}
+
+.nav-pill-back svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ================================================================================
+   Wetter
+   ================================================================================ */
+.wx-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4) 64px;
+  border-radius: 24px;
+  /* Himmel: kräftig blau oben, hell zum Horizont */
+  background: linear-gradient(180deg, #2f7cf0 0%, #6aaeff 60%, #bfe0ff 100%);
+  color: #fff;
+  box-shadow: var(--shadow-2);
+}
+
+/* Lichtstimmung je nach Wetter – immer hell und freundlich */
+.wx-hero.wx-partly {
+  background: linear-gradient(180deg, #4a83d6 0%, #84b5f0 60%, #cfe3fa 100%);
+}
+
+.wx-hero.wx-cloud,
+.wx-hero.wx-fog {
+  background: linear-gradient(180deg, #6f86a6 0%, #9db0c9 60%, #d7e0ec 100%);
+}
+
+.wx-hero.wx-snow {
+  background: linear-gradient(180deg, #7895c4 0%, #a9bfe0 60%, #e4edf9 100%);
+}
+
+.wx-hero.wx-rain,
+.wx-hero.wx-storm {
+  background: linear-gradient(180deg, #5b6f8c 0%, #8597b0 60%, #ced7e3 100%);
+}
+
+.wx-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Wetter in Bewegung: Schnee, Regen, Nebel, Wolken (Teilchen kommen aus weather-panel.js) */
+.wx-fx {
+  position: absolute !important;
+  inset: 0;
+  z-index: 0 !important;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wx-flake {
+  position: absolute;
+  top: -10px;
+  left: var(--x);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.9;
+  animation: wx-snow var(--d) linear var(--delay) infinite;
+}
+
+@keyframes wx-snow {
+  to {
+    transform: translate(var(--sway), 260px);
+  }
+}
+
+.wx-drop {
+  position: absolute;
+  top: -30px;
+  left: var(--x);
+  width: 1.5px;
+  height: 18px;
+  border-radius: 1px;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.85));
+  transform: rotate(12deg);
+  animation: wx-rain var(--d) linear var(--delay) infinite;
+}
+
+@keyframes wx-rain {
+  to {
+    transform: translate(-55px, 280px) rotate(12deg);
+  }
+}
+
+.wx-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  animation: wx-flash 7s linear infinite;
+}
+
+@keyframes wx-flash {
+  0%, 60%, 63%, 66%, 100% { opacity: 0; }
+  61.5%, 64.5% { opacity: 0.55; }
+}
+
+.wx-puff {
+  position: absolute;
+  top: var(--y);
+  left: -40%;
+  width: var(--w);
+  height: calc(var(--w) * 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, var(--o));
+  filter: blur(6px);
+  animation: wx-drift var(--d) linear var(--delay) infinite;
+}
+
+@keyframes wx-drift {
+  to {
+    transform: translateX(260%);
+  }
+}
+
+.wx-fog-band {
+  position: absolute;
+  left: -50%;
+  width: 200%;
+  height: 34px;
+  top: var(--y);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  filter: blur(10px);
+  animation: wx-fog var(--d) ease-in-out infinite alternate;
+}
+
+@keyframes wx-fog {
+  to {
+    transform: translateX(18%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wx-fx {
+    display: none;
+  }
+}
+
+.wx-hero-hills {
+  position: absolute !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70px;
+  z-index: 0 !important;
+}
+
+.wx-hero-hills svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.wx-where {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.wx-where svg {
+  width: 15px;
+  height: 15px;
+}
+
+.wx-temp {
+  display: block;
+  margin-top: 6px;
+  font-size: 4.6rem;
+  font-weight: 700;
+  text-shadow: 0 2px 12px rgba(20, 60, 140, 0.25);
+}
+
+.wx-cond {
+  font-weight: 700;
+  font-size: var(--fs-l);
+}
+
+.wx-feels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 4px;
+  font-size: var(--fs-s);
+  font-weight: 550;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.wx-hero-icon svg {
+  width: 84px;
+  height: 84px;
+  stroke-width: 1.4;
+  color: #fff;
+}
+
+.wx-sun .wx-hero-icon svg,
+.wx-partly .wx-hero-icon svg {
+  color: #ffe27a;
+}
+
+.wx-sun .wx-hero-icon svg {
+  animation: spin 50s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Höhenprofil */
+.wx-alt li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1.4fr) 22px minmax(40px, 0.7fr) 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+}
+
+.wx-alt li + li {
+  border-top: 1px solid var(--line);
+}
+
+.wx-alt svg {
+  width: 20px;
+  height: 20px;
+  color: var(--ink-2);
+}
+
+.wx-alt-ele {
+  color: var(--ink-3);
+  font-size: 0.95rem;
+}
+
+.wx-alt-name {
+  font-size: var(--fs-s);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-alt-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.wx-alt-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.wx-alt-t {
+  text-align: right;
+  font-size: 1.3rem;
+}
+
+.wx-hours {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.wx-hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0;
+  border-radius: 14px;
+  background: var(--ice);
+}
+
+.wx-hour small {
+  color: var(--ink-3);
+  font-weight: 650;
+  font-size: 11px;
+}
+
+.wx-hour svg {
+  width: 22px;
+  height: 22px;
+  color: var(--ink-2);
+}
+
+.wx-hour .num {
+  font-size: 1.2rem;
+}
+
+.wx-hour em {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.wx-hour em.is-wet {
+  color: var(--sky);
+}
+
+.wx-days li {
+  display: grid;
+  grid-template-columns: 64px 26px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.wx-days li + li {
+  border-top: 1px solid var(--line);
+}
+
+.wx-day {
+  font-weight: 650;
+}
+
+.wx-days svg {
+  width: 22px;
+  height: 22px;
+  color: var(--ink-2);
+}
+
+.wx-day-snow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--sky);
+}
+
+.wx-day-snow svg {
+  width: 14px;
+  height: 14px;
+  color: var(--sky);
+}
+
+.wx-day-range b {
+  font-size: 1.25rem;
+}
+
+.wx-day-range small {
+  color: var(--ink-3);
+  font-size: 1rem;
+}
+
+.wx-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.wx-fact {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 2px 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.wx-fact svg {
+  grid-row: span 2;
+  width: 20px;
+  height: 20px;
+  color: var(--ink);
+  margin-top: 1px;
+}
+
+.wx-fact dt {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ink-3);
+}
+
+.wx-fact dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wx-fact small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.wx-source {
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+/* Lawinengefahr */
+.aval {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.aval-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.aval-head .card-title {
+  margin: 0;
+}
+
+.aval-levels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+.aval-level,
+.aval-none {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aval-level > span:last-child,
+.aval-none p {
+  display: flex;
+  flex-direction: column;
+}
+
+.aval-level small,
+.aval-none small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* Raute wie im europäischen Lawinen-Symbol */
+.aval-badge {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--c);
+  transform: rotate(45deg) scale(0.85);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+.aval-badge .num {
+  transform: rotate(-45deg);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.aval-scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.aval-scale span {
+  height: 8px;
+  border-radius: 3px;
+  opacity: 0.35;
+}
+
+.aval-scale span.is-on {
+  opacity: 1;
+  transform: scaleY(1.6);
+}
+
+.aval-problems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ================================================================================
+   Gruppe
+   ================================================================================ */
+.group-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.radar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.radar-scale {
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--ink-3);
+}
+
+.radar {
+  position: relative;
+  width: min(300px, 100%);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.radar-svg,
+.radar-svg svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Heller Grund mit feinem Verlauf zur Mitte – wie eine Karte von oben */
+.radar-bg {
+  fill: var(--ice);
+}
+
+.radar-ring {
+  fill: none;
+  stroke: #d6d6dc;
+  stroke-width: 1;
+}
+
+.radar-ring.is-outer {
+  stroke: #c4c4cc;
+  stroke-width: 1.5;
+}
+
+.radar-ring-label {
+  fill: var(--ink-3);
+  font: 650 8.5px var(--font);
+}
+
+.radar-axis {
+  stroke: #dedee3;
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.radar-compass {
+  fill: var(--ink-3);
+  font: 800 10px var(--font);
+  text-anchor: middle;
+}
+
+.radar-compass.is-n {
+  fill: var(--ink);
+}
+
+/* Du in der Mitte */
+.radar-me-halo {
+  fill: rgba(47, 109, 255, 0.14);
+}
+
+.radar-me {
+  fill: var(--sky);
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+/* Linie von dir zur Person */
+.radar-line {
+  stroke: var(--c);
+  stroke-width: 2;
+  stroke-dasharray: 3 4;
+  opacity: 0.6;
+}
+
+.radar-dot {
+  cursor: pointer;
+}
+
+.radar-dot-hit {
+  fill: transparent;
+}
+
+.radar-dot-ring {
+  fill: #fff;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+}
+
+.radar-dot.is-selected .radar-dot-ring {
+  fill: var(--c);
+  opacity: 0.35;
+}
+
+.radar-dot-core {
+  fill: var(--c);
+}
+
+.radar-dot-initial {
+  fill: #fff;
+  font: 800 13px var(--font-head);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* Name + Entfernung unter dem Punkt, mit weißem Rand lesbar */
+.radar-dot-name {
+  fill: var(--ink);
+  font: 700 9.5px var(--font);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--ice);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.members {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.member {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  padding: 14px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  transition: box-shadow var(--t-fast), transform var(--t-fast) var(--ease);
+}
+
+.member.is-me {
+  cursor: default;
+}
+
+.member.is-selected {
+  box-shadow: 0 0 0 2px var(--c), var(--shadow-2);
+}
+
+.member.is-stale {
+  opacity: 0.6;
+}
+
+.member.is-buzzing {
+  animation: buzz 120ms linear 12;
+}
+
+.avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--c);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.3rem;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.avatar.is-kid {
+  outline: 2px dashed var(--c);
+  outline-offset: 3px;
+}
+
+/* Grüner Punkt = Chip sendet gerade */
+.avatar-signal {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  border: 3px solid var(--paper);
+}
+
+.member.is-moving .avatar-signal,
+.member.is-me .avatar-signal {
+  background: var(--ok);
+}
+
+.member-text {
+  gap: 2px;
+}
+
+.member-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag-kid {
+  background: color-mix(in srgb, var(--c) 18%, white);
+  color: var(--ink);
+}
+
+.chip-battery {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.chip-battery svg {
+  width: 20px;
+  height: 10px;
+}
+
+.chip-battery.is-low {
+  color: var(--sos);
+}
+
+.member-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+  font-size: var(--fs-s);
+}
+
+.member-status svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--c);
+}
+
+.member-status span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.member-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.member-actions .btn {
+  padding: 0 6px;
+}
+
+.group-call p {
+  margin-top: var(--sp-2);
+  text-align: center;
+}
+
+@keyframes buzz {
+  25% { transform: translateX(-3px) rotate(-1deg); }
+  75% { transform: translateX(3px) rotate(1deg); }
+}
+
+/* ================================================================================
+   Kopfleiste: Lifte- und Wetter-Knopf
+   ================================================================================ */
+.pill-lifts small {
+  margin-left: -3px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.pill-lifts.is-off .num {
+  color: var(--ink-3);
+}
+
+.pill-weather .aval-mini {
+  margin-left: 3px;
+}
+
+/* ================================================================================
+   Kartenfilter: Alles / Nur Route / Gefahren
+   ================================================================================ */
+.focus-wrap {
+  position: relative;
+}
+
+.focus-btn.is-on {
+  background: var(--ink);
+  color: #fff;
+}
+
+.focus-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: 260px;
+  padding: 6px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-3);
+  animation: pane-in var(--t-med) var(--ease) both;
+}
+
+.focus-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 14px;
+  text-align: left;
+}
+
+.focus-item:hover:not(:disabled) {
+  background: var(--ice);
+}
+
+.focus-item:disabled {
+  opacity: 0.45;
+}
+
+.focus-item > svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.focus-item > svg:last-child {
+  margin-left: auto;
+}
+
+.focus-item span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.focus-item small {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.focus-item[aria-checked="true"] {
+  background: var(--ice);
+}
+
+/* Schalter in einer Zeile (z. B. „Nur Route zeigen“) */
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 16px;
+  background: var(--ice);
+  text-align: left;
+}
+
+.switch-row > svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--ink-2);
+}
+
+.switch-row > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.switch-row strong {
+  font-size: var(--fs-s);
+}
+
+.switch-row small {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 28px;
+  margin-left: auto;
+  border-radius: 14px;
+  background: #cfcfd6;
+  transition: background var(--t-med) var(--ease);
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform var(--t-med) var(--ease-spring);
+}
+
+.switch-row.is-on .switch {
+  background: var(--ink);
+}
+
+.switch-row.is-on .switch::after {
+  transform: translateX(18px);
+}
+
+/* ================================================================================
+   Navigation: Vorschau im Route-Tab
+   ================================================================================ */
+.nav-preview-head .title {
+  margin-top: 4px;
+  font-size: 1.5rem;
+}
+
+.nav-preview-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sun-deep);
+}
+
+.nav-preview-live i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sun);
+  animation: rec 1.6s ease-in-out infinite;
+}
+
+.nav-progress.is-light {
+  height: 6px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--ice);
+}
+
+.nav-progress.is-light i {
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+.step.is-done {
+  opacity: 0.4;
+}
+
+.step.is-current::after {
+  content: "";
+  position: absolute;
+  inset: 2px -10px;
+  z-index: -1;
+  border-radius: 14px;
+  background: var(--sun-soft);
+}
+
+.step.is-current .step-text strong {
+  color: var(--sun-deep);
+}
+
+.steps {
+  isolation: isolate;
+}
+
+/* ================================================================================
+   Lifte: Status-Liste
+   ================================================================================ */
+.lifts-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.lifts-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+
+.lifts-count .num {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.lifts-count small {
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+.lifts-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.lifts-meter i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--ok);
+}
+
+.lift-rows li + li {
+  border-top: 1px solid var(--line);
+}
+
+.lift-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 0;
+  text-align: left;
+}
+
+.lift-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ice);
+}
+
+.lift-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.lift-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lift-text strong {
+  overflow: hidden;
+  font-size: var(--fs-s);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lift-text small {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.lift-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  background: #e6f7ee;
+  color: #0b7a47;
+  font-size: var(--fs-xs);
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.lift-state::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.is-closing .lift-state,
+.is-hold .lift-state {
+  background: var(--sun-soft);
+  color: var(--sun-deep);
+}
+
+.is-later .lift-state,
+.is-done .lift-state,
+.is-closed .lift-state {
+  background: var(--ice);
+  color: var(--ink-2);
+}
+
+.is-done .lift-icon,
+.is-closed .lift-icon {
+  opacity: 0.45;
+}
+
+/* ================================================================================
+   „Tag starten“: Gondel fährt ein, hält, fährt weiter (views/guest/day-start.js)
+   ================================================================================ */
+.dg {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  overflow: hidden;
+  background: #7fb4ff;
+  cursor: pointer;
+  animation: fade-in 250ms ease both;
+}
+
+.dg.is-out {
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.dg-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+
+/* Am Seil entlang (y = 645 − 1,1·x): einfahren, halten, beschleunigt weiter */
+.dg-cabin {
+  animation: dg-ride 3.4s both;
+}
+
+@keyframes dg-ride {
+  0% {
+    transform: translate(-120px, 777px);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  38% {
+    transform: translate(200px, 425px);
+  }
+  60% {
+    transform: translate(200px, 425px);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.6);
+  }
+  100% {
+    transform: translate(560px, 29px);
+  }
+}
+
+/* Pendeln um die Klemme: beim Bremsen nach vorn, dann ausschwingen, beim Anfahren nach hinten */
+.dg-swing {
+  animation: dg-swing 3.4s ease-in-out both;
+}
+
+@keyframes dg-swing {
+  0% { transform: rotate(-3deg); }
+  34% { transform: rotate(-2deg); }
+  42% { transform: rotate(7deg); }
+  48% { transform: rotate(-4deg); }
+  54% { transform: rotate(2deg); }
+  60% { transform: rotate(0deg); }
+  72% { transform: rotate(-7deg); }
+  100% { transform: rotate(-4deg); }
+}
+
+/* Leichtes Mitziehen der Landschaft – wirkt wie eine Kamerafahrt */
+.dg-far {
+  animation: dg-pan 3.4s ease-in-out both;
+}
+
+.dg-near,
+.dg-tower {
+  animation: dg-pan-near 3.4s ease-in-out both;
+}
+
+@keyframes dg-pan {
+  to { transform: translateX(-14px); }
+}
+
+@keyframes dg-pan-near {
+  to { transform: translateX(-36px); }
+}
+
+.dg-snow circle {
+  animation: dg-snow 3.4s linear both;
+}
+
+.dg-snow circle:nth-child(3n) {
+  animation-duration: 2.6s;
+}
+
+.dg-snow circle:nth-child(3n + 1) {
+  animation-duration: 3s;
+}
+
+@keyframes dg-snow {
+  to {
+    transform: translate(-30px, 920px);
+  }
+}
+
+.dg-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(9% + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--ink);
+  text-align: center;
+  animation: dg-text 600ms var(--ease-spring) 1.2s both;
+}
+
+.dg-text small {
+  font-size: var(--fs-s);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.dg-text strong {
+  font-family: var(--font-head);
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+@keyframes dg-text {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/* Quer (Computer, Handy quer): Szene als Hochformat-Karte, Text daneben */
+@media (min-aspect-ratio: 4/5) {
+  .dg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(24px, 5vw, 72px);
+    padding: 4vh 6vw;
+    background: linear-gradient(180deg, #2f6fe0 0%, #7fb4ff 55%, #e8f2ff 100%);
+  }
+
+  .dg-art {
+    position: relative;
+    inset: auto;
+    flex: none;
+    width: auto;
+    height: min(92vh, 860px);
+    aspect-ratio: 1 / 2;
+    border-radius: 28px;
+    box-shadow: var(--shadow-3);
+  }
+
+  .dg-text {
+    position: static;
+    align-items: flex-start;
+    max-width: 380px;
+    color: #fff;
+    text-align: left;
+  }
+
+  .dg-text small {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .dg-text strong {
+    font-size: clamp(1.6rem, 4vw, 3rem);
+    text-shadow: 0 2px 16px rgba(20, 60, 140, 0.3);
+  }
+}
+
+/* ================================================================================
+   Mein Tag im Vollbild
+   ================================================================================ */
+.day-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.guest.day-full .sheet {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  z-index: 940; /* unter SOS (950) – Notruf bleibt erreichbar */
+  padding-top: var(--safe-top);
+  border-radius: 0;
+  transform: none !important;
+  animation: pane-in var(--t-med) var(--ease) both;
+}
+
+.day-full .sheet-handle,
+.day-full .sheet-tabs,
+.day-full .topbar,
+.day-full .search,
+.day-full .map-controls {
+  display: none;
+}
+
+.day-full .sheet-content {
+  padding-bottom: 120px; /* Platz für den SOS-Knopf */
+}
+
+.day-full .sheet-content > * {
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.guest.day-full .sos-wrap {
+  bottom: calc(var(--sp-4) + var(--safe-bottom)) !important;
+}
+
+/* ================================================================================
+   Tag beendet: Animation + Übersicht (views/guest/day-end.js)
+   ================================================================================ */
+.day-end {
+  position: fixed;
+  inset: 0;
+  z-index: 2400; /* über allem, aber unter Dialogen (2500) und Meldungen */
+  background: var(--night);
+}
+
+.day-over .sos-wrap,
+.day-over .nav-hud,
+.day-over .nav-bar,
+.day-over .nav-pill {
+  display: none;
+}
+
+/* --- Animation: Strecke zeichnet sich, Zahlen zählen hoch --- */
+@keyframes day-go-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+}
+
+.day-end-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  height: 100%;
+  padding: var(--sp-5);
+  color: #fff;
+  text-align: center;
+  transition: opacity 450ms ease, transform 450ms ease;
+}
+
+.day-end.is-leaving .day-end-intro {
+  opacity: 0;
+  transform: scale(1.04);
+}
+
+.day-end-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.1);
+  font-size: var(--fs-s);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  animation: day-go-pop 500ms var(--ease-spring) both;
+}
+
+.day-end-kicker i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.day-end-trace {
+  width: min(340px, 86vw);
+}
+
+.day-end-trace svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.trace-line,
+.trace-shadow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: trace-draw 2s cubic-bezier(0.45, 0.05, 0.4, 1) forwards;
+}
+
+.trace-line {
+  stroke-width: 4;
+}
+
+.trace-shadow {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 12;
+}
+
+@keyframes trace-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.trace-dot {
+  fill: #fff;
+  stroke: var(--sky);
+  stroke-width: 3;
+}
+
+.day-end-count {
+  display: flex;
+  gap: var(--sp-6);
+}
+
+.day-end-count > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.day-end-count .num {
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.day-end-count small {
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--night-muted);
+}
+
+.day-end-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 7vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  animation: day-go-pop 600ms var(--ease-spring) 1.6s both;
+}
+
+/* --- Übersicht: Karte oben, Zahlen darunter --- */
+.day-end.is-ready {
+  overflow-y: auto;
+  background: var(--snow);
+}
+
+.day-end-page {
+  min-height: 100%;
+  animation: fade-in 500ms ease both;
+}
+
+.day-end-map {
+  position: relative;
+  height: max(280px, 46vh);
+  background: #e9eef5;
+}
+
+.day-end-top {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3));
+  left: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+
+.day-end-top > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.day-end-top small {
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--ink-3);
+}
+
+.day-end-top strong {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+}
+
+.day-end-body {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: -24px auto 0;
+  padding: 40px var(--sp-4) calc(var(--sp-6) + var(--safe-bottom));
+  border-radius: 28px 28px 0 0;
+  background: var(--snow);
+}
+
+.day-end-body .recap > * + * {
+  margin-top: var(--sp-3);
+}
+
+.day-end-note {
+  margin-top: var(--sp-4);
+}
+
+.day-end-test {
+  margin-top: var(--sp-3);
+}
+
+@media (min-width: 900px), (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  /* Großer Bildschirm: Karte links fest, Zahlen rechts scrollen */
+  .day-end-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 520px;
+    height: 100%;
+  }
+
+  .day-end-map {
+    height: 100%;
+  }
+
+  .day-end-top {
+    right: auto;
+    width: min(420px, calc(100% - 32px));
+  }
+
+  .day-end-body {
+    overflow-y: auto;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .day-end.is-ready {
+    overflow: hidden;
+  }
+}
+
+/* ================================================================================
+   Status-Tab: Umschalter Lifte | Pisten
+   ================================================================================ */
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.seg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.seg-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.seg-btn[aria-selected="true"] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.lift-icon.disc span {
+  font-size: 0.85rem;
+}
+
+/* ================================================================================
+   Letzter Lift: Hinweis unter der Suche
+   ================================================================================ */
+.lastlift {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3) + 136px);
+  left: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 1090;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 8px 10px 12px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-2), inset 0 0 0 2px var(--sun);
+  animation: pane-in var(--t-med) var(--ease) both;
+}
+
+.lastlift-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--sun);
+  color: #fff;
+}
+
+.lastlift-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.lastlift-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.lastlift-text strong {
+  font-size: var(--fs-s);
+}
+
+.lastlift-text small {
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+
+.lastlift-go {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+}
+
+.lastlift-go svg,
+.lastlift-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.lastlift-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--ink-3);
+}
+
+.lastlift.is-late {
+  box-shadow: var(--shadow-2), inset 0 0 0 2px var(--ink);
+}
+
+.lastlift.is-late .lastlift-icon {
+  background: var(--ink);
+}
+
+.is-navigating .lastlift,
+.day-full .lastlift,
+.day-over .lastlift {
+  display: none;
+}
+
+/* ================================================================================
+   Treffpunkt
+   ================================================================================ */
+.meet-btn svg,
+.meet-here > svg {
+  width: 18px;
+  height: 18px;
+}
+
+.meet-here {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 16px;
+  background: #e6f7ee;
+  color: #0b7a47;
+}
+
+.meet-here > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.meet-here small {
+  color: var(--ink-2);
+}
+
+.meet-pick {
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.meet-pick .choice-row {
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.meet-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meet-pick > .btn-small {
+  align-self: flex-start;
+}
+
+.meet-own {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.meet-own-row {
+  display: flex;
+  gap: 8px;
+}
+
+.meet-time-input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--ice);
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+
+.meet-time-input:focus {
+  outline: none;
+  border-color: var(--ink);
+  background: var(--paper);
+}
+
+.meet-delete {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(11, 122, 71, 0.12);
+  color: #0b7a47;
+}
+
+.meet-delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+.meet-card {
+  border-radius: 20px;
+}
+
+.meet-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+.meet-empty svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ok);
+}
+
+.meet-card.is-set {
+  padding: var(--sp-4);
+  background: var(--paper);
+  box-shadow: var(--shadow-1), inset 0 0 0 2px var(--ok);
+}
+
+.meet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.meet-pin {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--ok);
+  color: #fff;
+}
+
+.meet-pin svg {
+  width: 22px;
+  height: 22px;
+}
+
+.meet-title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.meet-title small,
+.meet-time small {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.meet-title strong {
+  overflow: hidden;
+  font-size: var(--fs-l);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meet-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+
+.meet-time strong {
+  font-size: 1.6rem;
+}
+
+.meet-list {
+  margin-top: 12px;
+}
+
+.meet-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.meet-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.meet-list .avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  box-shadow: none;
+}
+
+.meet-who {
+  flex: 1;
+  font-weight: 650;
+}
+
+.meet-eta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+.meet-eta em {
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-style: normal;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+}
+
+.is-ok .meet-eta em,
+.is-there .meet-eta {
+  background: #e6f7ee;
+  color: #0b7a47;
+}
+
+.is-there .meet-eta {
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-weight: 800;
+  font-size: var(--fs-xs);
+}
+
+.is-tight .meet-eta em {
+  background: var(--sun-soft);
+  color: var(--sun-deep);
+}
+
+.is-late .meet-eta em {
+  background: var(--ink);
+  color: #fff;
+}
+
+.meet-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.meet-actions .btn {
+  flex: 1;
+}
+
+/* ================================================================================
+   Gruppe: Rangliste + Freund dazuholen
+   ================================================================================ */
+.race-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.race-cats {
+  margin-bottom: 10px;
+}
+
+.race-list li {
+  display: grid;
+  grid-template-columns: 22px 30px minmax(0, 0.9fr) minmax(40px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.race-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.race-pos {
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: var(--ink-3);
+}
+
+.race-pos svg {
+  width: 20px;
+  height: 20px;
+  color: #e0a100;
+}
+
+.race-list .avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  box-shadow: none;
+}
+
+.race-name {
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.race-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ice);
+}
+
+.race-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--c);
+  transition: width var(--t-slow) var(--ease);
+}
+
+.race-val {
+  min-width: 56px;
+  text-align: right;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.race-val small {
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+
+.race-list li.is-lead .race-val {
+  color: var(--ink);
+}
+
+.race-record {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff6db;
+  font-size: var(--fs-s);
+}
+
+.race-record svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #e0a100;
+}
+
+.friend-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.friend-card:has(.friend-mine) {
+  padding: var(--sp-4);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.friend-card > .btn-small {
+  align-self: flex-start;
+}
+
+.friend-mine {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 2px 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+}
+
+.friend-mine small {
+  grid-column: 1 / -1;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--night-muted);
+}
+
+.friend-mine strong {
+  font-size: 2.2rem;
+  letter-spacing: 0.12em;
+}
+
+.friend-mine .muted {
+  color: var(--night-muted);
+  font-size: var(--fs-xs);
+}
+
+.friend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.friend-row {
+  display: flex;
+  gap: 8px;
+}
+
+.friend-input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--ice);
+  font-size: 1.6rem;
+  letter-spacing: 0.3em;
+}
+
+.friend-input:focus {
+  outline: none;
+  border-color: var(--ink);
+  background: var(--paper);
+}
+
+.friend-error {
+  min-height: 1em;
+  font-size: var(--fs-s);
+  color: var(--sos-deep);
+}
+
+/* ================================================================================
+   Tagesfilm (views/guest/day-film.js)
+   ================================================================================ */
+.film-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-bottom: var(--sp-3);
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #2f6dff, #7a5cff 55%, #ff6a13);
+  color: #fff;
+  text-align: left;
+  box-shadow: var(--shadow-2);
+}
+
+.film-cta > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.film-cta strong {
+  font-size: var(--fs-l);
+}
+
+.film-cta small {
+  opacity: 0.9;
+}
+
+.film-cta-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.film-cta-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.film {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: calc(var(--safe-top) + var(--sp-4)) var(--sp-4) calc(var(--safe-bottom) + var(--sp-4));
+  background: var(--night);
+  animation: fade-in var(--t-med) ease both;
+}
+
+.film-frame {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+
+.film-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: 22px;
+  box-shadow: var(--shadow-3);
+}
+
+.film-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(420px, 100%);
+}
+
+.film-status {
+  min-height: 1.2em;
+  color: var(--night-muted);
+  font-size: var(--fs-s);
+  text-align: center;
+}
+
+.film-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.film .btn-quiet {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* ================================================================================
+   Großer Bildschirm
+   ================================================================================ */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .topbar {
+    left: var(--sp-4);
+    right: auto;
+    width: 420px;
+    top: var(--sp-4);
+  }
+
+  .search {
+    top: var(--sp-4);
+    left: calc(420px + var(--sp-4) * 2);
+    right: auto;
+    width: min(440px, calc(100% - 420px - var(--sp-4) * 3));
+  }
+
+  .search-box {
+    height: 60px;
+    border-radius: 22px;
+  }
+
+  /* SOS ganz rechts unten, Kartenknöpfe links daneben */
+  .map-controls {
+    bottom: var(--sp-5);
+    right: calc(var(--sp-4) + 88px);
+  }
+
+  .lastlift {
+    top: calc(var(--sp-4) + 72px);
+    left: calc(420px + var(--sp-4) * 2);
+    right: auto;
+    width: min(440px, calc(100% - 420px - var(--sp-4) * 3));
+  }
+
+  .nav-hud {
+    top: var(--sp-4);
+    left: calc(420px + var(--sp-4) * 2);
+    right: auto;
+    width: 440px;
+  }
+
+  .nav-bar {
+    left: calc(420px + var(--sp-4) * 2);
+    right: auto;
+    width: 440px;
+    bottom: var(--sp-4);
+  }
+
+  .is-navigating .sheet {
+    transform: none !important;
+  }
+
+  .nav-min {
+    display: none;
+  }
+
+  .is-navigating .map-controls,
+  .is-navigating .sos-wrap {
+    bottom: var(--sp-5) !important;
+  }
+}
+
+/* Handy: Logo weglassen, damit Restzeit, Lifte und Wetter in die Leiste passen */
+@media (max-width: 899px) and (orientation: portrait), (max-width: 899px) and (min-height: 521px), (max-width: 639px) {
+  .top-logo {
+    display: none;
+  }
+}
+
+@media (max-width: 370px) {
+  .pill-lifts small,
+  .pill-weather .aval-mini {
+    display: none;
+  }
+}

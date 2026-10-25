@@ -1,0 +1,261 @@
+{
+ "Almrauschbar": {
+  "website": "https://www.almrauschbar.com/",
+  "logo": "assets/places/web/almrauschbar-logo.png"
+ },
+ "Alpengasthof Melkalm": {
+  "website": "http://www.gasthof-melkalm.at",
+  "logo": "assets/places/web/alpengasthof-melkalm-logo.png"
+ },
+ "Alpenhaus": {
+  "website": "https://www.alpenhaus.at/",
+  "photo": "assets/places/web/alpenhaus.jpg",
+  "logo": "assets/places/web/alpenhaus-logo.png"
+ },
+ "Berggasthaus Resterhöhe": {
+  "website": "https://www.resterhoehe.at/",
+  "photo": "assets/places/web/berggasthaus-resterhoehe.jpg",
+  "logo": "assets/places/web/berggasthaus-resterhoehe-logo.png"
+ },
+ "Berghotel Breitmoos": {
+  "website": "https://www.breitmoos.at/",
+  "logo": "assets/places/web/berghotel-breitmoos-logo.png"
+ },
+ "BichlAlm": {
+  "website": "https://www.bichlalm.at/",
+  "logo": "assets/places/web/bichlalm-logo.png"
+ },
+ "Bärenbadalm": {
+  "website": "https://www.baerenbadalm.at/category/news/",
+  "error": "HTTP Error 404: Not Found"
+ },
+ "Ehrenbachhöhe": {
+  "website": "https://www.ehrenbachhoehe.at/",
+  "logo": "assets/places/web/ehrenbachhoehe-logo.png",
+  "photo": "assets/places/commons/ehrenbachhoehe.jpg",
+  "credit": {
+   "artist": "Daniel Pirch",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Ehrenbachh%C3%B6he_-_panoramio.jpg"
+  }
+ },
+ "Gaisbergalm / Gaisbergstüberl": {
+  "website": "https://gaisbergalm.info/"
+ },
+ "Gasthof Fleckalm": {
+  "website": "https://www.fleckalm.com/",
+  "logo": "assets/places/web/gasthof-fleckalm-logo.png"
+ },
+ "Gauxjochhütte": {
+  "website": "http://www.gauxjochhuette.at/",
+  "logo": "assets/places/web/gauxjochhuette-logo.png"
+ },
+ "Hochland Café Restaurant": {
+  "website": "https://www.hochland.net",
+  "photo": "assets/places/web/hochland-caf-restaurant.jpg",
+  "logo": "assets/places/web/hochland-caf-restaurant-logo.png"
+ },
+ "Kitzbüheler Horn Gipfelhaus": {
+  "website": "https://gipfelhaus.tirol/",
+  "photo": "assets/places/web/kitzbueheler-horn-gipfelhaus.jpg",
+  "logo": "assets/places/web/kitzbueheler-horn-gipfelhaus-logo.png"
+ },
+ "LaMonte Bistro & Restaurant": {
+  "website": "https://www.lamonte.at/de/bistro-kitzbuehel",
+  "error": "HTTP Error 404: Not Found"
+ },
+ "Lanna Thai Imbiss": {
+  "website": "https://www.lanna.at"
+ },
+ "Mooralm": {
+  "website": "https://www.mooralm.info/",
+  "logo": "assets/places/web/mooralm-logo.png"
+ },
+ "Oberlandhütte": {
+  "website": "https://www.davplus.de/oberlandhuette",
+  "error": "HTTP Error 404: Not Found",
+  "photo": "assets/places/commons/oberlandhuette.jpg",
+  "credit": {
+   "artist": "Mateus2019",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:AUT_%E2%80%94_Tirol_%E2%80%94_Bezirk_Kitzb%C3%BChel_%E2%80%94_Gemeinde_Kirchberg_in_Tirol_%E2%80%94_Aschau_%E2%80%94_Falkensteinweg_35_(Oberlandh%C3%BCtte)_2023-09-30_Mattes.jpg"
+  }
+ },
+ "Ochsalm": {
+  "website": "https://www.ochsalm.at/",
+  "logo": "assets/places/web/ochsalm-logo.png"
+ },
+ "Panoramaalm": {
+  "website": "https://www.panoramaalm.net/",
+  "logo": "assets/places/web/panoramaalm-logo.png"
+ },
+ "Pengelstein": {
+  "website": "http://www.bergbahn-kitzbuehel.at/de/restaurant-pengelstein.html",
+  "error": "HTTP Error 308: Permanent Redirect",
+  "photo": "assets/places/commons/pengelstein.jpg",
+  "credit": {
+   "artist": "Kuhni74",
+   "license": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Pengelstein-Ost-von-Jochberg-unten.jpg"
+  }
+ },
+ "Pinzgablick": {
+  "website": "https://www.pinzgablick.at/",
+  "photo": "assets/places/web/pinzgablick.jpg",
+  "logo": "assets/places/web/pinzgablick-logo.png"
+ },
+ "Pisten-Bistro Rohrerstadl": {
+  "website": "http://www.rohrerstadl.at/",
+  "logo": "assets/places/web/pisten-bistro-rohrerstadl-logo.png"
+ },
+ "Pizzaria sul Monte": {
+  "website": "http://www.pizzeria-sulmonte.com/",
+  "logo": "assets/places/web/pizzaria-sul-monte-logo.png"
+ },
+ "Restaurant Panoramabahn": {
+  "website": "https://www.panoramabahn.at/de/restaurant-panoramabahn.html",
+  "error": "HTTP Error 404: Not Found",
+  "photo": "assets/places/commons/restaurant-panoramabahn.jpg",
+  "credit": {
+   "artist": "Wald1siedel",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Panoramabahn_Kitzb%C3%BCheler_Alpen.JPG"
+  }
+ },
+ "Rosi´s Sonnbergstuben": {
+  "website": "https://www.sonnbergstuben.at/",
+  "logo": "assets/places/web/rosi-s-sonnbergstuben-logo.png"
+ },
+ "Saukaserstub'n": {
+  "website": "http://www.saukaserstube.at/",
+  "error": "<urlopen error [Errno 8] nodename nor servname provided, or not known>"
+ },
+ "Seehof": {
+  "website": "https://www.seehof.co.at",
+  "logo": "assets/places/web/seehof-logo.png"
+ },
+ "Sonnalm": {
+  "website": "https://www.sonnalm.net/"
+ },
+ "Sonnenbühel": {
+  "website": "https://www.sonnbuehel.at/"
+ },
+ "Steinbergkogel": {
+  "website": "http://steinbergkogl-kitzbuehel.at/",
+  "photo": "assets/places/web/steinbergkogel.jpg"
+ },
+ "Sunnseit": {
+  "website": "https://www.sunnseit.at/",
+  "logo": "assets/places/web/sunnseit-logo.png"
+ },
+ "The Londoner": {
+  "website": "http://londoner.at",
+  "photo": "assets/places/web/the-londoner.jpg",
+  "logo": "assets/places/web/the-londoner-logo.png"
+ },
+ "Toni Alm": {
+  "website": "https://www.toni-alm.at/",
+  "error": "The read operation timed out"
+ },
+ "Wagstätt-Alm": {
+  "website": "https://www.wagstaett-alm.at/",
+  "photo": "assets/places/web/wagstaett-alm.jpg",
+  "logo": "assets/places/web/wagstaett-alm-logo.png"
+ },
+ "Hahnenkammbahn": {
+  "photo": "assets/places/commons/hahnenkammbahn.jpg",
+  "credit": {
+   "artist": "Kim Skipper Eriksen",
+   "license": "CC BY 2.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Hahnenkammbahn_(19247946548).jpg"
+  }
+ },
+ "3S Bahn": {
+  "photo": "assets/places/commons/3s-bahn.jpg",
+  "credit": {
+   "artist": "Aisano",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Kitzb%C3%BChel,_Dreiseilbahn,_2.jpeg"
+  }
+ },
+ "Hornbahn I": {
+  "photo": "assets/places/commons/kitzbueheler-horn.jpg",
+  "credit": {
+   "artist": "Andrzej Otrębski",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Kitzbuheler_Horn_1.jpg"
+  }
+ },
+ "Hornbahn II": {
+  "photo": "assets/places/commons/kitzbueheler-horn.jpg",
+  "credit": {
+   "artist": "Andrzej Otrębski",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Kitzbuheler_Horn_1.jpg"
+  }
+ },
+ "Horngipfelbahn": {
+  "photo": "assets/places/commons/kitzbueheler-horn.jpg",
+  "credit": {
+   "artist": "Andrzej Otrębski",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Kitzbuheler_Horn_1.jpg"
+  }
+ },
+ "Pengelstein I": {
+  "photo": "assets/places/commons/pengelstein.jpg",
+  "credit": {
+   "artist": "Kuhni74",
+   "license": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Pengelstein-Ost-von-Jochberg.jpg"
+  }
+ },
+ "Pengelstein II": {
+  "photo": "assets/places/commons/pengelstein.jpg",
+  "credit": {
+   "artist": "Kuhni74",
+   "license": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Pengelstein-Ost-von-Jochberg.jpg"
+  }
+ },
+ "Hochkitzbühel bei Tomschy": {
+  "photo": "assets/places/commons/hahnenkamm-bergstation.jpg",
+  "credit": {
+   "artist": "Ironbernietyrol",
+   "license": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Bergstation_Hahnenkammbahn.jpg"
+  }
+ },
+ "Streif-Rennstrecke": {
+  "photo": "assets/places/commons/streif.jpg",
+  "credit": {
+   "artist": "Michael Fleischhacker",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Hahnekammrennen2011.jpg"
+  }
+ },
+ "Streif Familienabfahrt": {
+  "photo": "assets/places/commons/streif.jpg",
+  "credit": {
+   "artist": "Michael Fleischhacker",
+   "license": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Hahnekammrennen2011.jpg"
+  }
+ },
+ "Hornköpflhütte": {
+  "photo": "assets/places/commons/hornkoepflhuette.jpg",
+  "credit": {
+   "artist": "User:Mateus2019",
+   "license": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:AUT_%E2%80%94_Tirol_%E2%80%94_KB_%E2%80%94_Kitzb%C3%BChel_%E2%80%94_Ried_am_Horn_8_(Hornk%C3%B6pflh%C3%BCtte_%C2%B7_Au%C3%9Fenansicht)_2024-08-31_Mattes.jpg"
+  }
+ },
+ "Seidlalm": {
+  "photo": "assets/places/commons/seidlalm.jpg",
+  "credit": {
+   "artist": "Clemens Stockner",
+   "license": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Seidlalm_01.jpg"
+  }
+ }
+}

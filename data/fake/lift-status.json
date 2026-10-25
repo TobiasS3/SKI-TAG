@@ -1,0 +1,21 @@
+{
+  "updatedAt": "2026-10-22T08:15:00+02:00",
+  "default": { "open": "08:30", "close": "16:30" },
+  "lifts": {
+    "Hahnenkammbahn": { "open": "08:30", "close": "17:00", "note": "Talfahrt bis 17:00" },
+    "3S Bahn": { "open": "08:45", "close": "16:00" },
+    "Horngipfelbahn": { "open": "09:00", "close": "16:00" },
+    "Hornbahn I": { "open": "08:30", "close": "17:00", "note": "Talfahrt bis 17:00" },
+    "Panoramabahn Kitzbüheler Alpen I": { "open": "08:15", "close": "16:30" },
+    "Panoramabahn Kitzbüheler Alpen II": { "open": "08:15", "close": "16:15" },
+    "Gaisberg": { "open": "09:00", "close": "16:00" },
+    "Bichlalmlift": { "status": "closed", "reason": "season" },
+    "Talsen": { "status": "hold", "reason": "wind" },
+    "Usterkar": { "status": "closed", "reason": "snow" },
+    "Starthaus": { "open": "09:00", "close": "15:30" },
+    "Mini Streif": { "open": "09:00", "close": "15:30" },
+    "Märchenwald": { "open": "09:00", "close": "15:30" },
+    "Sun Kid Horn": { "open": "09:00", "close": "15:30" },
+    "Trattalmulde": { "open": "09:00", "close": "15:30" }
+  }
+}

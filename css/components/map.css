@@ -1,0 +1,277 @@
+/* Karte */
+
+.map {
+  position: absolute;
+  inset: 0;
+  background: #eef3f7;
+  font-family: var(--font);
+}
+
+/* Stil „Winter“: Gelände weiß-grau mit einem Hauch Eisblau – die farbigen Pisten leuchten darauf */
+.style-winter .map-tiles {
+  filter: grayscale(1) sepia(0.2) hue-rotate(180deg) saturate(1.6) brightness(1.12) contrast(0.9);
+}
+
+/* Stil „Gelände“: normale Topo-Karte, nur etwas ruhiger */
+.style-terrain .map-tiles {
+  filter: saturate(0.7) brightness(1.04) contrast(0.95);
+}
+
+.map {
+  transition: background var(--t-slow);
+}
+
+.style-winter.map {
+  background: #ececee;
+}
+
+/* Weicher Rand: die Karte läuft in Schnee aus */
+.map::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 450;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 62%, rgba(236, 236, 238, 0.6) 100%);
+}
+
+.friend-trail {
+  stroke-dasharray: 1 7;
+}
+
+/* Eigene Ebenen (Pisten, Lifte, Route) sind SVGs – nicht vom Reset verkleinern lassen */
+.leaflet-container svg {
+  max-width: none;
+}
+
+.leaflet-marker-icon svg {
+  max-width: 100%;
+}
+
+.leaflet-container a {
+  color: var(--sky-deep);
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px 0 0 0;
+}
+
+/* Route: zeichnet sich beim Erscheinen einmal ein.
+   Keine Dauer-Animationen auf Linien – die zwingen das Handy, ständig die ganze Ebene neu zu malen. */
+.route-core {
+  stroke-dasharray: 3000;
+  stroke-dashoffset: 3000;
+  animation: route-draw 1.4s var(--ease) forwards;
+}
+
+@keyframes route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-core {
+    stroke-dasharray: none;
+    animation: none;
+  }
+}
+
+.map-tip {
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: var(--shadow-float);
+}
+
+.map-tip::before {
+  display: none;
+}
+
+/* --- Kartenfilter --------------------------------------------------------------------
+   focus-route: nur die Route  ·  focus-track: nur die eigene Spur von heute
+   Pisten und Lifte (Canvas-Ebenen) bleiben ganz blass zur Orientierung, Kabinen weg,
+   Marker mit der Klasse „sk“ (Hütten, Schilder, Gipfel) verschwinden. */
+.map .sk,
+.leaflet-pistes-pane {
+  transition: opacity var(--t-med) var(--ease);
+}
+
+.focus-route .sk,
+.focus-track .sk,
+.focus-route .leaflet-cabins-pane,
+.focus-track .leaflet-cabins-pane {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.focus-route .leaflet-pistes-pane,
+.focus-track .leaflet-pistes-pane {
+  opacity: 0.13;
+  pointer-events: none;
+}
+
+.focus-route .leaflet-track-pane,
+.focus-track .leaflet-route-pane {
+  opacity: 0;
+}
+
+/* --- Gipfel und Bergstationen mit Höhe ------------------------------------------------- */
+.mk-peak {
+  pointer-events: none;
+}
+
+.mk-peak span {
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 8px 3px 7px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-1);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* kleine Spitze unten: zeigt auf den Gipfel */
+.mk-peak span::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.94);
+  border-bottom: 0;
+}
+
+.mk-peak b {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.mk-peak b::before {
+  content: "▲";
+  margin-right: 4px;
+  font-size: 8px;
+  color: var(--ink-2);
+}
+
+.mk-peak small {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.mk-peak.is-major b {
+  font-size: 11px;
+}
+
+/* Übersicht: nur der Name, Höhe erst beim Reinzoomen */
+.map:not(.z-mid) .mk-peak small {
+  display: none;
+}
+
+/* Kleine Gipfel erst beim Reinzoomen, ganz nah wieder weg (dann stehen die Stationsnamen da) */
+.map:not(.z-mid) .mk-peak:not(.is-major),
+.map.z-close .mk-peak {
+  display: none;
+}
+
+/* Kabinen-Leinwand: nur Deko, Klicks gehen durch zu Pisten und Liften */
+.cabins-canvas {
+  pointer-events: none;
+}
+
+/* Talbahnen: großes Schild an der Talstation, wie die Gipfelnamen – immer sichtbar */
+.mk-valley {
+  pointer-events: none;
+}
+
+.mk-valley span {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 7px;
+  border-radius: 10px;
+  background: var(--night);
+  color: #fff;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: translateX(-50%);
+}
+
+/* Platz rund um die Talstation – den wählt declutter() in js/map/layers.js */
+.mk-valley span[data-side="t"] {
+  top: auto;
+  bottom: 8px;
+}
+
+.mk-valley span[data-side="r"] {
+  top: 0;
+  left: 12px;
+  transform: translateY(-50%);
+}
+
+.mk-valley span[data-side="l"] {
+  top: 0;
+  left: auto;
+  right: 12px;
+  transform: translateY(-50%);
+}
+
+.mk-valley span[data-side]:not([data-side="b"])::before {
+  display: none;
+}
+
+/* kleine Spitze oben: zeigt auf die Talstation */
+.mk-valley span::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-bottom-color: var(--night);
+  border-top: 0;
+}
+
+.mk-valley svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: #ff5a5a;
+}
+
+.mk-valley b {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mk-valley span,
+.mk-peak span {
+  transition: opacity var(--t-med);
+}
+
+.mk-valley span.is-hidden,
+.mk-peak span.is-hidden {
+  opacity: 0;
+}

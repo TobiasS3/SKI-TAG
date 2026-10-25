@@ -1,0 +1,14 @@
+{
+  "updatedAt": "2026-10-23T07:45:00+02:00",
+  "groomedAt": "06:30",
+  "pistes": {
+    "Streif-Rennstrecke": { "status": "closed", "reason": "race" },
+    "Golf": { "status": "closed", "reason": "snow" },
+    "Raintal": { "groomed": false, "note": "moguls" },
+    "Direttissima": { "groomed": false, "note": "moguls" },
+    "Skiroute Giggling": { "groomed": false, "note": "route" },
+    "Skiroute 56 Schwarzkogel": { "groomed": false, "note": "route" },
+    "Bichlalm-Standard": { "status": "closed", "reason": "season" },
+    "Hagstein": { "note": "icy" }
+  }
+}

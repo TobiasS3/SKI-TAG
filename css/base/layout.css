@@ -1,0 +1,55 @@
+/* Grundlayout */
+
+body {
+  background: var(--snow);
+  overflow: hidden;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Wechsel zwischen Ansichten: kurz einblenden */
+#app > * {
+  animation: view-in var(--t-slow) var(--ease) both;
+}
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Platzhalter-Seite (Bergbahn, Skischule) */
+.soon {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--sp-3);
+  height: 100%;
+  padding: var(--sp-5);
+  text-align: center;
+}
+
+.soon p {
+  max-width: 36ch;
+}

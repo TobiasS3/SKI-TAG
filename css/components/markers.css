@@ -1,0 +1,460 @@
+/* Punkte auf der Karte */
+
+/* Du: großer blauer Punkt mit Anfangsbuchstaben, Richtungspfeil und Funk-Ring */
+.mk-me-dot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #5b8cff, var(--sky) 60%, #1f4fd6);
+  border: 4px solid #fff;
+  box-shadow: 0 4px 14px rgba(47, 109, 255, 0.55), 0 1px 3px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.mk-me-pulse {
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  background: rgba(47, 109, 255, 0.2);
+  animation: pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* Richtungspfeil: kleines Dreieck außen am Punkt, dreht sich mit der Fahrtrichtung */
+.mk-me-arrow {
+  position: absolute;
+  inset: -13px;
+  transform: rotate(var(--heading, 0deg));
+  transition: transform var(--t-slow) var(--ease), opacity var(--t-med);
+  opacity: 0;
+}
+
+.mk-me-arrow::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  margin-left: -8px;
+  border: 8px solid transparent;
+  border-top: 0;
+  border-bottom: 11px solid var(--sky);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.mk-me.has-heading .mk-me-arrow {
+  opacity: 1;
+}
+
+.mk-me-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--sky);
+  opacity: 0;
+}
+
+.mk-me.ping .mk-me-ping {
+  animation: ping 1.4s var(--ease) both;
+}
+
+@keyframes ping {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(3.6);
+    opacity: 0;
+  }
+}
+
+/* Gruppe: Punkt in eigener Farbe, Name darunter, kleines Lift-Symbol wenn im Lift */
+.mk-friend-dot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  transition: transform var(--t-med) var(--ease-spring);
+}
+
+.mk-friend.is-kid .mk-friend-dot {
+  outline: 2px dashed var(--c);
+  outline-offset: 2px;
+}
+
+.mk-friend-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: var(--c);
+  opacity: 0;
+}
+
+.mk-friend.is-moving .mk-friend-pulse,
+.mk-friend.is-lift .mk-friend-pulse {
+  animation: friend-pulse 2s var(--ease) infinite;
+}
+
+@keyframes friend-pulse {
+  from {
+    transform: scale(0.6);
+    opacity: 0.45;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.mk-friend-name {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--night);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.mk-friend-act {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--night);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transform: scale(0);
+  transition: transform var(--t-med) var(--ease-spring);
+}
+
+.mk-friend-act svg {
+  width: 13px;
+  height: 13px;
+}
+
+.mk-friend.is-lift .mk-friend-act {
+  transform: scale(1);
+}
+
+.mk-friend.is-selected .mk-friend-dot {
+  transform: scale(1.18);
+  box-shadow: 0 0 0 4px var(--c), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.mk-friend.is-buzzing .mk-friend-dot {
+  animation: buzz 120ms linear 12;
+}
+
+@keyframes buzz {
+  25% { transform: translateX(-3px) rotate(-6deg); }
+  75% { transform: translateX(3px) rotate(6deg); }
+}
+
+/* Bergstation: kleines Quadrat, Name ab Zoom 15 */
+.mk-station span {
+  position: absolute;
+  inset: 1px;
+  border-radius: 2px;
+  background: var(--night);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.mk-station b {
+  position: absolute;
+  left: 16px;
+  top: -3px;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--night);
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
+  opacity: 0;
+  transition: opacity var(--t-med);
+}
+
+/* Stationsnamen nicht mehr extra – der Name steht als Schild in der Mitte des Lifts */
+.mk-station b {
+  display: none;
+}
+
+/* Lift-Schild: schwarz mit Symbol – große Bahnen ab Zoom 13,5, Schlepplifte/Förderbänder ab 15 */
+.mk-lift {
+  display: none;
+  pointer-events: none;
+}
+
+.z-mid .mk-lift.is-main,
+.z-close .mk-lift {
+  display: block;
+}
+
+.mk-lift span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 6px;
+  border-radius: 8px;
+  background: var(--night);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, -50%);
+  transition: opacity var(--t-med);
+}
+
+.mk-lift svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+
+.mk-lift span.is-hidden {
+  opacity: 0;
+}
+
+/* Helfer beim Notruf */
+.mk-helper span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--sos);
+  color: #fff;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 14px rgba(229, 50, 45, 0.5);
+}
+
+.mk-helper svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mk-helper b {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--sos);
+  color: #fff;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Hütten: erst ab mittlerem Zoom sichtbar (sonst Gewimmel), Name ab Zoom 15 */
+.mk-hut {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-med);
+}
+
+.z-mid .mk-hut {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mk-station {
+  opacity: 0;
+  transition: opacity var(--t-med);
+}
+
+.z-mid .mk-station {
+  opacity: 1;
+}
+
+/* Hütten: kleines Schild, Name erst beim Reinzoomen */
+.mk-hut-badge {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform var(--t-fast) var(--ease-spring);
+}
+
+.mk-hut.has-logo .mk-hut-badge {
+  background: #ececef;
+}
+
+.mk-hut-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Logo da → Haus-Symbol verstecken (es bleibt als Ersatz, falls das Bild nicht lädt) */
+.mk-hut-badge img + svg {
+  display: none;
+}
+
+.mk-hut-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.mk-hut:hover .mk-hut-badge {
+  transform: scale(1.15);
+}
+
+.mk-label {
+  position: absolute;
+  left: 30px;
+  top: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink);
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-med);
+}
+
+.z-close .mk-label {
+  opacity: 1;
+}
+
+/* Überdeckt einen anderen Namen → ausblenden (siehe declutter in js/map/layers.js) */
+.mk-label.is-hidden,
+.mk-station b.is-hidden {
+  opacity: 0 !important;
+}
+
+/* Pistennummern: runde Schilder, erst ab Zoom 14 */
+.mk-disc {
+  opacity: 0;
+  transition: opacity var(--t-med);
+}
+
+.z-near .mk-disc {
+  opacity: 1;
+}
+
+.mk-disc span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: -0.02em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.diff-easy span { background: var(--piste-easy); }
+.diff-intermediate span { background: var(--piste-intermediate); }
+.diff-advanced span,
+.diff-expert span { background: var(--piste-advanced); }
+.diff-freeride span { background: var(--piste-freeride); }
+
+/* Ziel */
+.mk-goal span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--sun);
+  border: 3px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  animation: goal-drop var(--t-slow) var(--ease-spring) both;
+}
+
+.mk-goal svg {
+  width: 20px;
+  height: 20px;
+  transform: rotate(45deg);
+  color: var(--ink);
+}
+
+@keyframes goal-drop {
+  from {
+    transform: translateY(-30px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
+/* Treffpunkt der Gruppe: grüne Nadel mit Fahne, Schild daneben */
+.mk-meet-pin {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--ok);
+  border: 3px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  animation: goal-drop var(--t-slow) var(--ease-spring) both;
+}
+
+.mk-meet-pin svg {
+  width: 20px;
+  height: 20px;
+  transform: rotate(45deg);
+  color: #fff;
+}
+
+.mk-meet b {
+  position: absolute;
+  left: 44px;
+  top: 8px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: var(--ok);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}

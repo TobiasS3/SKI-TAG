@@ -1,0 +1,159 @@
+/* Ausklappbarer Bereich (Sheet) mit Tabs.
+   Höhe kommt aus js/components/panel.js als --sheet-h (klein / halb / ganz, beim Ziehen stufenlos). */
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  height: var(--sheet-h, 132px);
+  padding-bottom: var(--safe-bottom);
+  border-radius: 28px 28px 0 0;
+  background: var(--snow);
+  box-shadow: var(--shadow-sheet);
+  transition: height var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
+}
+
+.sheet.is-dragging {
+  transition: none;
+}
+
+/* Eingeklappt: nur Griff + Tabs, vom Inhalt nichts (beim Ziehen schon sichtbar) */
+.sheet[data-stage="peek"]:not(.is-dragging) .sheet-content {
+  visibility: hidden;
+  transition: visibility 0s var(--t-slow);
+}
+
+.sheet-handle {
+  display: grid;
+  place-items: center;
+  height: 22px;
+  flex: none;
+  touch-action: none;
+  cursor: grab;
+}
+
+.sheet-handle span {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.sheet-tabs {
+  position: relative;
+  touch-action: none; /* senkrecht ziehen = Bereich auf/zu */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  flex: none;
+  margin: 0 var(--sp-3);
+  padding: 4px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+/* Gleitender Hintergrund unter dem aktiven Tab */
+.sheet-tab-ink {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--tabs, 4));
+  border-radius: 12px;
+  background: var(--ink);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateX(calc(var(--tab-index, 0) * 100%));
+  transition: transform var(--t-med) var(--ease-spring);
+}
+
+.sheet-tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 6px 2px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--ink-2);
+  transition: color var(--t-fast);
+}
+
+.sheet-tab svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sheet-tab[aria-selected="true"] {
+  color: #fff;
+}
+
+.sheet-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 18px);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 0 0 2px var(--ice);
+  animation: rec 1.6s ease-in-out infinite;
+}
+
+@keyframes rec {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.sheet-content {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-4) var(--sp-4) var(--sp-6);
+}
+
+.sheet-pane {
+  animation: pane-in var(--t-med) var(--ease) both;
+}
+
+@keyframes pane-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Großer Bildschirm: fester Bereich links */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .sheet {
+    top: calc(var(--sp-4) + 72px);
+    left: var(--sp-4);
+    right: auto;
+    bottom: var(--sp-4);
+    width: 420px;
+    height: auto;
+    border-radius: 28px;
+    transform: none;
+  }
+
+  .sheet-handle {
+    display: none;
+  }
+
+  /* Links fest: Inhalt immer sichtbar (das Einklappen gibt es nur unten am Handy) */
+  .sheet[data-stage] .sheet-content {
+    visibility: visible !important;
+  }
+
+  .sheet-tabs {
+    margin-top: var(--sp-3);
+  }
+}

@@ -1,0 +1,132 @@
+/* Buttons – groß genug für Handschuhe (mind. 44 px) */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 48px;
+  padding: 0 var(--sp-5);
+  border-radius: var(--r-pill);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast), box-shadow var(--t-fast);
+  user-select: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #2a2a30;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+
+.btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-big {
+  min-height: 60px;
+  font-size: var(--fs-l);
+  padding: 0 var(--sp-6);
+}
+
+.btn-sun {
+  background: var(--sun);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(255, 106, 19, 0.3);
+}
+
+.btn-sun:hover {
+  background: var(--sun-deep);
+}
+
+.btn-quiet {
+  background: var(--ice);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.btn-quiet:hover {
+  background: #e8e8ec;
+}
+
+.btn-danger {
+  background: var(--sos);
+}
+
+.btn-danger:hover {
+  background: #c8221d;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* Runder Knopf nur mit Symbol (auf der Karte) */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+  color: var(--ink);
+  transition: transform var(--t-fast) var(--ease);
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+.icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Auswahl-Pillen (z. B. Routen-Einstellung) */
+.choice-row {
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.choice {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  font-size: var(--fs-s);
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: all var(--t-fast) var(--ease);
+}
+
+.choice[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

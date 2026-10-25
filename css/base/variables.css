@@ -1,0 +1,99 @@
+/* Farben, Schrift, Abstände – Farbe ändern? Nur hier.
+   Grundidee: Grau/Weiß/Schwarz mit echten Schatten.
+   Akzente sparsam: Orange = Route & Aktionen, Blau = du, Rot = nur SOS. */
+
+:root {
+  /* Flächen */
+  --snow: #efeff1;          /* Seitenhintergrund (hellgrau) */
+  --paper: #ffffff;         /* Karten, Bereiche */
+  --ice: #f2f2f4;           /* ruhige Füllflächen */
+  --line: #e1e1e5;
+  --ink: #0e0e10;           /* Text, schwarze Knöpfe */
+  --ink-2: #55555d;
+  --ink-3: #8e8e97;
+
+  /* Akzente */
+  --sky: #2f6dff;           /* du, Links, Info */
+  --sky-deep: #1f55d6;
+  --sky-soft: #e9efff;
+  --sun: #ff6a13;           /* Route, Aktionen */
+  --sun-deep: #d24f00;
+  --sun-soft: #fff0e6;
+  --sos: #ff2d2d;           /* nur Notruf */
+  --sos-deep: #d31616;
+  --ok: #16b46b;
+
+  /* Pistenfarben wie auf den Schildern in Österreich */
+  --piste-easy: #1f66d1;
+  --piste-intermediate: #e0242f;
+  --piste-advanced: #0e0e10;
+  --piste-freeride: #f08a24;
+
+  /* Schwarz: Instrumente (Tacho, Radar, Navigation, Notruf) */
+  --night: #0e0e10;
+  --night-2: #1a1a1e;
+  --night-3: #2a2a30;
+  --night-line: rgba(255, 255, 255, 0.08);
+  --night-text: #f4f4f6;
+  --night-muted: #9a9aa4;
+  --glow: #5b8cff;
+  --glow-soft: rgba(91, 140, 255, 0.18);
+
+  /* Schrift: Systemschriften (DSGVO – nichts von fremden Servern) */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-head: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Avenir Next Condensed", "DIN Condensed", "Roboto Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+
+  /* Schriftgrößen */
+  --fs-xs: 0.75rem;
+  --fs-s: 0.875rem;
+  --fs-m: 1rem;
+  --fs-l: 1.2rem;
+  --fs-xl: 1.6rem;
+  --fs-xxl: 2.4rem;
+  --fs-hero: clamp(2.8rem, 11vw, 5rem);
+
+  /* Abstände */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* Rundungen */
+  --r-s: 10px;
+  --r-m: 16px;
+  --r-l: 24px;
+  --r-xl: 32px;
+  --r-pill: 999px;
+
+  /* Schatten: mehrlagig, damit es nach echter Tiefe aussieht */
+  --shadow-1: 0 1px 1px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-3: 0 2px 6px rgba(0, 0, 0, 0.08), 0 24px 60px rgba(0, 0, 0, 0.22);
+  --shadow-float: var(--shadow-2);
+  --shadow-sheet: 0 -2px 10px rgba(0, 0, 0, 0.05), 0 -20px 50px rgba(0, 0, 0, 0.12);
+  --glass: rgba(255, 255, 255, 0.86);
+  --blur: saturate(1.4) blur(18px);
+
+  /* Bewegung */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --t-fast: 160ms;
+  --t-med: 300ms;
+  --t-slow: 560ms;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 1ms;
+    --t-med: 1ms;
+    --t-slow: 1ms;
+  }
+}

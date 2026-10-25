@@ -16,3 +16,9 @@ graphify-out/
 
 # Später mit Capacitor
 node_modules/
+
+# Playwright-Testbilder
+.playwright-mcp/
+
+# Bilder von Webseiten der Hütten (gehören den Hütten – nur lokal im Prototyp)
+assets/places/web/

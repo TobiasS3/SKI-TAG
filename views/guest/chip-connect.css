@@ -1,0 +1,226 @@
+/* Chip verbinden nach dem Login – schwarz, ruhig, präzise */
+
+.chip-connect {
+  position: fixed;
+  inset: 0;
+  z-index: 3200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  background: var(--night);
+  color: var(--night-text);
+}
+
+.chip-connect.is-leaving {
+  animation: cc-out 700ms ease forwards;
+}
+
+@keyframes cc-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.cc-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 230px;
+  height: 230px;
+  margin-bottom: var(--sp-3);
+}
+
+/* Funkringe – laufen ruhig nach außen */
+.cc-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  opacity: 0;
+  animation: cc-ring 2.4s var(--ease-out) infinite;
+}
+
+.cc-ring:nth-child(2) { animation-delay: 0.8s; }
+.cc-ring:nth-child(3) { animation-delay: 1.6s; }
+
+@keyframes cc-ring {
+  from {
+    transform: scale(0.42);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+}
+
+.is-connected .cc-ring {
+  border-color: rgba(22, 180, 107, 0.7);
+}
+
+/* Der Chip: dunkles Gehäuse, roter SOS-Knopf, Status-LED */
+.cc-chip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 36px;
+  background:
+    linear-gradient(145deg, #3a3a42 0%, #18181c 55%, #0b0b0d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+    0 30px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  animation: cc-in 700ms var(--ease-spring) both;
+}
+
+@keyframes cc-in {
+  from {
+    transform: scale(0.6) rotate(-8deg);
+    opacity: 0;
+  }
+}
+
+.cc-btn {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b, var(--sos) 55%, #b81010);
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.cc-led {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 0 10px var(--sun);
+  animation: rec 0.7s ease-in-out infinite;
+}
+
+.is-connected .cc-led {
+  background: var(--ok);
+  box-shadow: 0 0 12px var(--ok);
+  animation: none;
+}
+
+.cc-check {
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--ok);
+  color: #fff;
+  border: 4px solid var(--night);
+  transform: scale(0);
+  transition: transform 420ms var(--ease-spring);
+}
+
+.cc-check svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
+}
+
+.is-connected .cc-check {
+  transform: scale(1);
+}
+
+.cc-id {
+  font-size: 1.7rem;
+  letter-spacing: 0.12em;
+  color: #fff;
+}
+
+.cc-status {
+  font-size: var(--fs-s);
+  font-weight: 600;
+  color: var(--night-muted);
+}
+
+.is-connected .cc-status {
+  color: var(--ok);
+}
+
+/* Statuszeilen wie auf einem Gerätedisplay */
+.cc-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(320px, 100%);
+  min-height: 150px;
+  margin-top: var(--sp-3);
+}
+
+.cc-lines li {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--night-2);
+  font-size: var(--fs-s);
+  animation: cc-line 360ms var(--ease-out) both;
+}
+
+.cc-lines svg {
+  width: 16px;
+  height: 16px;
+  color: var(--ok);
+  stroke-width: 3;
+}
+
+.cc-lines span {
+  color: var(--night-muted);
+}
+
+.cc-lines b {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+@keyframes cc-line {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Gäste-Ansicht: verdeckt bis zum Aufdecken, dann Kreis aus der Mitte */
+.is-hidden-for-reveal {
+  visibility: hidden;
+}
+
+.is-revealing {
+  animation: reveal 900ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes reveal {
+  from {
+    clip-path: circle(0 at 50% 50%);
+  }
+  to {
+    clip-path: circle(150vmax at 50% 50%);
+  }
+}

@@ -1,0 +1,552 @@
+/* Startseite / Login: echtes Foto über den ganzen Bildschirm, weiße Code-Karte darüber */
+
+.login {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--night);
+  color: #fff;
+}
+
+/* --- Foto-Hintergrund ------------------------------------------------------------ */
+.hero {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #1a1a1e;
+  transition: transform 1000ms var(--ease-out), filter 900ms ease;
+}
+
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+/* Abdunkeln oben und unten, damit Schrift lesbar bleibt */
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 22%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.35) 38%, rgba(0, 0, 0, 0) 60%);
+}
+
+/* --- Kopfzeile ---------------------------------------------------------------------- */
+.login-top {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-4));
+  left: var(--sp-5);
+  right: var(--sp-5);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 500ms ease, transform 600ms var(--ease);
+}
+
+.login-logo {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
+}
+
+.login-brand {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
+
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: var(--fs-s);
+  font-weight: 650;
+}
+
+.lang-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- Text auf dem Foto ------------------------------------------------------------ */
+.login-intro {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 52vh;
+  padding: calc(var(--safe-top) + 90px) var(--sp-5) var(--sp-6);
+  transition: opacity 500ms ease, transform 600ms var(--ease);
+}
+
+.login-resort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin-bottom: var(--sp-3);
+  padding: 6px 12px 6px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.login-resort i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 0 0 3px rgba(255, 106, 19, 0.3);
+}
+
+.login-title {
+  font-family: var(--font-head);
+  font-size: var(--fs-hero);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+}
+
+.login-lead {
+  margin-top: var(--sp-3);
+  max-width: 30ch;
+  font-size: var(--fs-l);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+.hero-caption {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+}
+
+.hero-caption:hover {
+  color: #fff;
+}
+
+/* --- Weiße Karte mit dem Code ----------------------------------------------------- */
+.login-card {
+  position: relative;
+  z-index: 3;
+  padding: var(--sp-5) var(--sp-5) calc(var(--sp-6) + var(--safe-bottom));
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-3);
+  transition: transform 640ms cubic-bezier(0.7, 0, 0.84, 0), opacity 400ms ease 200ms;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.login-label {
+  font-weight: 700;
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+.code-pass {
+  position: relative;
+}
+
+.code-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 14px repeat(3, 1fr);
+  gap: 7px;
+}
+
+.code-slots::after {
+  content: "";
+  grid-column: 4;
+  grid-row: 1;
+  align-self: center;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.code-slot:nth-child(-n + 3) { grid-row: 1; }
+.code-slot:nth-child(4) { grid-column: 5; grid-row: 1; }
+.code-slot:nth-child(5) { grid-column: 6; grid-row: 1; }
+.code-slot:nth-child(6) { grid-column: 7; grid-row: 1; }
+
+.code-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 64px;
+  border-radius: 14px;
+  background: var(--ice);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast), transform var(--t-med) var(--ease-spring);
+}
+
+.code-slot.is-active {
+  background: var(--paper);
+  box-shadow: inset 0 0 0 2px var(--ink), 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.code-slot.is-filled {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+  animation: slot-pop var(--t-med) var(--ease-spring);
+}
+
+.code-slot.is-active::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 28px;
+  background: var(--ink);
+  animation: caret 1s steps(1) infinite;
+}
+
+.code-slot.is-active.is-filled::after {
+  display: none;
+}
+
+@keyframes slot-pop {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.code-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px; /* verhindert Zoom auf dem iPhone */
+  cursor: text;
+}
+
+.login-error {
+  font-size: var(--fs-s);
+  font-weight: 650;
+  color: var(--sos);
+}
+
+.login-error:empty {
+  display: none;
+}
+
+.has-error .code-slots {
+  animation: shake 420ms var(--ease);
+}
+
+.has-error .code-slot.is-filled {
+  background: var(--sos);
+}
+
+@keyframes shake {
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.login-submit {
+  justify-content: space-between;
+  padding: 0 22px 0 26px;
+}
+
+.login-submit svg {
+  width: 22px;
+  height: 22px;
+  transition: transform var(--t-med) var(--ease);
+}
+
+.login-submit:hover svg {
+  transform: translateX(4px);
+}
+
+.login-hint {
+  font-size: var(--fs-s);
+  color: var(--ink-3);
+  max-width: 44ch;
+}
+
+/* Anzeigetafel wie an der Talstation */
+.login-board {
+  display: flex;
+  margin: var(--sp-5) 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.board-cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.board-cell + .board-cell {
+  padding-left: var(--sp-3);
+  margin-left: var(--sp-3);
+  border-left: 1px solid var(--line);
+}
+
+.board-cell dt {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board-cell dd {
+  margin: 4px 0 0;
+  font-size: 1.45rem;
+  white-space: nowrap;
+}
+
+.login-demo {
+  margin-top: var(--sp-4);
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+.login-demo summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.login-demo-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.demo-code {
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 12px;
+  border-radius: var(--r-s);
+  background: var(--ice);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.demo-code .num {
+  font-size: var(--fs-m);
+  color: var(--ink);
+}
+
+/* --- Erfolg: Kaskade → wegfliegen → reinzoomen → Schwarzblende ----------------------- */
+.is-success .code-slot {
+  background: var(--ok);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(22, 180, 107, 0.35);
+  transform: translateY(-4px);
+  transition-delay: calc(var(--i) * 55ms);
+}
+
+.is-success .login-submit {
+  background: var(--ok);
+}
+
+.is-leaving .login-card {
+  transform: translateY(115%);
+  opacity: 0;
+}
+
+.is-leaving .login-intro,
+.is-leaving .login-top {
+  opacity: 0;
+  transform: translateY(-24px);
+}
+
+.is-leaving .hero {
+  transform: scale(1.4);
+  filter: brightness(0.35) saturate(1.3);
+}
+
+.login-iris {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--night);
+  pointer-events: none;
+  clip-path: circle(0 at var(--iris-x, 50%) var(--iris-y, 80%));
+  transition: clip-path 700ms cubic-bezier(0.65, 0, 0.35, 1) 180ms;
+}
+
+.is-leaving .login-iris {
+  clip-path: circle(160vmax at var(--iris-x, 50%) var(--iris-y, 80%));
+}
+
+/* --- Großer Bildschirm: Foto groß, Karte rechts schwebend ----------------------------- */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .login {
+    display: grid;
+    grid-template-columns: 1fr 440px;
+    align-items: center;
+    gap: var(--sp-7);
+    padding: 0 6vw 0 5vw;
+  }
+
+  .login-intro {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 0;
+    align-self: end;
+    padding: 0 0 7vh;
+  }
+
+  .login-title {
+    font-size: clamp(4rem, 7vw, 7rem);
+  }
+
+  .login-lead {
+    font-size: 1.35rem;
+  }
+
+  .login-card {
+    grid-column: 2;
+    grid-row: 1;
+    padding: var(--sp-6);
+    border-radius: var(--r-xl);
+  }
+
+  .login-top {
+    left: 5vw;
+    right: 6vw;
+    top: var(--sp-5);
+  }
+
+  .hero-shade {
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 20%),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.1) 55%, rgba(0, 0, 0, 0.25) 100%),
+      linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 45%);
+  }
+}
+
+
+
+/* --- Nach dem Login: Skifahrer carvt durchs Bild ------------------------------------- */
+.login-ski {
+  position: fixed;
+  inset: 0;
+  z-index: 11; /* über der Schwarz-Blende */
+  pointer-events: none;
+}
+
+.login-ski-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ski-line,
+.ski-spray {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: ski-draw 1.75s cubic-bezier(0.45, 0.05, 0.4, 1) forwards;
+}
+
+.ski-line {
+  stroke-width: 5;
+}
+
+/* Schnee-Spritzer: breites, weiches Band, das verblasst */
+.ski-spray {
+  stroke-width: 18;
+  animation-name: ski-draw, ski-fade;
+  animation-duration: 1.75s, 2s;
+  animation-timing-function: cubic-bezier(0.45, 0.05, 0.4, 1), ease-out;
+}
+
+@keyframes ski-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ski-fade {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0.1;
+  }
+}
+
+.login-skier {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 64px;
+  height: 64px;
+  offset-rotate: 0deg;
+  offset-anchor: 50% 85%;
+  animation: ski-ride 1.75s cubic-bezier(0.45, 0.05, 0.4, 1) forwards;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+}
+
+@keyframes ski-ride {
+  0% {
+    offset-distance: 0%;
+    transform: rotate(-8deg);
+  }
+  35% {
+    transform: rotate(14deg);
+  }
+  65% {
+    transform: rotate(-10deg);
+  }
+  100% {
+    offset-distance: 100%;
+    transform: rotate(6deg);
+  }
+}
