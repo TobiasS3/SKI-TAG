@@ -13,6 +13,7 @@ async function getJSON(path) {
 // Fake-Chips brauchen das Pistennetz – erst laden, wenn wirklich gebraucht.
 const fakeChip = () => import('./fake-chip.js');
 const fakeSims = new Map(); // chipId → laufender Fake-Chip
+const fakeOps = () => import('./fake-ops.js'); // Fake-Server für Bergbahn und Skischule
 
 export const api = {
   /** Code prüfen → { role, name, chip, group } oder null */
@@ -129,20 +130,18 @@ export const api = {
    */
   async sendSOS(chipId, pos) {
     if (config.fakeData) {
-      const staff = await getJSON('data/fake/staff.json');
-      const { distance } = await import('../map/geo.js');
-      const ranked = staff
-        .map((s) => ({ ...s, distance: distance(pos, [s.lat, s.lng]) }))
-        .sort((a, b) => a.distance - b.distance);
-      const nearest = ranked[0];
+      // Landet im Fake-Einsatz-Speicher → ein Bergbahn-Tab im selben Browser bekommt den Alarm
+      const { createAlarm } = await fakeOps();
+      const { alarm, staff } = await createAlarm({ type: 'sos', source: 'app', chip: chipId, pos });
       await wait(900); // Server braucht kurz
+      const distance = staff ? (await import('../map/geo.js')).distance(pos, [staff.lat, staff.lng]) : 0;
       return {
-        id: `SOS-${Date.now().toString(36).toUpperCase()}`,
+        id: alarm.id,
         sentAt: Date.now(),
-        staff: nearest,
-        distance: nearest.distance,
+        staff,
+        distance,
         // Pistenrettung mit Skidoo/Ski: ca. 20 km/h + 2 min Start
-        eta: 120 + nearest.distance / 5.5,
+        eta: 120 + distance / 5.5,
       };
     }
     const res = await fetch(`${config.serverUrl}/sos`, {
@@ -157,6 +156,8 @@ export const api = {
   /** Notruf zurücknehmen („Mir geht's gut“). */
   async cancelSOS(id) {
     if (config.fakeData) {
+      const { updateAlarm } = await fakeOps();
+      await updateAlarm(id, 'done', { outcome: 'cancelled' });
       await wait(400);
       return { ok: true };
     }
@@ -177,8 +178,33 @@ export const api = {
    * { updatedAt, default: { open, close }, lifts: { "Name": { open?, close?, status?, reason?, note? } } }
    * status: fehlt = nach Uhrzeit, "hold" = kurz gestoppt, "closed" = heute zu
    */
-  getLiftStatus: () =>
-    config.fakeData ? getJSON('data/fake/lift-status.json') : getJSON(`${config.serverUrl}/lifts`),
+  async getLiftStatus() {
+    if (!config.fakeData) return getJSON(`${config.serverUrl}/lifts`);
+    // Von der Bergbahn umgeschaltete Lifte (im Browser gespeichert) gehen vor
+    const status = await getJSON('data/fake/lift-status.json');
+    const lifts = { ...status.lifts };
+    for (const [name, entry] of Object.entries(load('lift-override', {}))) lifts[name] = { ...lifts[name], ...entry };
+    return { ...status, lifts };
+  },
+
+  /**
+   * Bergbahn schaltet einen Lift um: { status: 'hold' | 'closed', reason } oder null = läuft normal.
+   */
+  async setLiftStatus(name, entry) {
+    if (config.fakeData) {
+      const changed = load('lift-override', {});
+      // null = läuft wieder normal nach Uhrzeit
+      changed[name] = entry ? { ...entry, by: 'staff' } : { status: null, reason: null, by: 'staff' };
+      save('lift-override', changed);
+      return { ok: true };
+    }
+    const res = await fetch(`${config.serverUrl}/lifts/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    });
+    return { ok: res.ok };
+  },
 
   /**
    * Treffpunkt der Gruppe: { name, pos, node, time ("12:30" oder null), by (Name) } oder null.
@@ -224,7 +250,127 @@ export const api = {
     });
     return { ok: res.ok };
   },
+
+  // --- Bergbahn & Skischule ------------------------------------------------------------
+
+  /** Alle vermieteten Chips heute: [{ id, rental, kind: 'adult' | 'kid', point, since }] */
+  getChips: () =>
+    config.fakeData ? getJSON('data/fake/chips.json') : getJSON(`${config.serverUrl}/chips`),
+
+  /** Alle Chips am Berg live. cb([{ chip, lat, lng, alt, speed, kind, ref, battery, time }]) */
+  watchFleet(chips, cb) {
+    if (config.fakeData) return stopLater(fakeOps().then(({ watchFleet }) => watchFleet(chips, cb)));
+    const source = new EventSource(`${config.serverUrl}/chips/stream`);
+    source.onmessage = (msg) => cb(JSON.parse(msg.data));
+    return () => source.close();
+  },
+
+  /**
+   * Einsätze (SOS + Suchaufträge) live. cb({ alarms, staffState, staffPos })
+   * alarm: { id, type: 'sos' | 'search', source, chip, pos, at, status: 'new' | 'accepted' | 'onsite' | 'done',
+   *          staff, offered, offeredAt, acceptedAt, onsiteAt, doneAt, eta (s), outcome, log: [{ at, key, vars }] }
+   */
+  watchAlarms(cb, options = {}) {
+    if (config.fakeData) return stopLater(fakeOps().then(({ watchAlarms }) => watchAlarms(cb, options)));
+    const source = new EventSource(`${config.serverUrl}/alarms/stream`);
+    source.onmessage = (msg) => cb(JSON.parse(msg.data));
+    return () => source.close();
+  },
+
+  /** Einsatz weiterbringen: action = 'accept' | 'pass' | 'onsite' | 'done' | 'note' */
+  async alarmAction(id, action, extra = {}) {
+    if (config.fakeData) {
+      const { updateAlarm } = await fakeOps();
+      await wait(250);
+      return updateAlarm(id, action, extra);
+    }
+    const res = await fetch(`${config.serverUrl}/alarms/${id}/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(extra),
+    });
+    return res.ok ? res.json() : null;
+  },
+
+  /**
+   * Skischule bittet die Bergbahn, ein Kind zu suchen. Kein Notruf – ein Suchauftrag (orange).
+   * data: { chip, name, pos, by, phone, group }
+   */
+  async requestSearch(data) {
+    if (config.fakeData) {
+      const { createAlarm } = await fakeOps();
+      return (await createAlarm({ type: 'search', source: 'school', ...data })).alarm;
+    }
+    const res = await fetch(`${config.serverUrl}/alarms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'search', ...data }),
+    });
+    return res.ok ? res.json() : null;
+  },
+
+  /** Mitarbeiter im Dienst oder in Pause ('free' | 'break') – in Pause bekommt man keine Alarme */
+  async setStaffState(id, value) {
+    if (config.fakeData) return (await fakeOps()).setStaffState(id, value);
+    return fetch(`${config.serverUrl}/staff/${id}/state`, { method: 'PUT', body: value });
+  },
+
+  /** Vibrationssignal an einzelne Chips (Skischule: „Anpiepsen“, Bergbahn: Chip finden) */
+  async signalChips(chips) {
+    if (config.fakeData) {
+      (await fakeOps()).signal(chips);
+      return { ok: true };
+    }
+    const res = await fetch(`${config.serverUrl}/chips/signal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chips }),
+    });
+    return { ok: res.ok };
+  },
+
+  /** Skischule mit Gruppen, Kindern, Tagesplan */
+  async getSchool(id) {
+    if (config.fakeData) return (await getJSON('data/fake/school.json'))[id] || null;
+    return getJSON(`${config.serverUrl}/schools/${id}`);
+  },
+
+  /** Skikurs live: cb({ teacher, kids: [...], others: { gruppe: pos } }) */
+  watchCourse(school, groupId, cb) {
+    if (config.fakeData) return stopLater(fakeOps().then(({ watchCourse }) => watchCourse(school, groupId, cb)));
+    const source = new EventSource(`${config.serverUrl}/schools/groups/${groupId}/stream`);
+    source.onmessage = (msg) => cb(JSON.parse(msg.data));
+    return () => source.close();
+  },
+
+  /** Nachricht an alle Eltern der Gruppe (SMS/Push) */
+  async messageParents(groupId, text) {
+    if (config.fakeData) {
+      await wait(700);
+      return { ok: true };
+    }
+    const res = await fetch(`${config.serverUrl}/schools/groups/${groupId}/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    return { ok: res.ok };
+  },
 };
+
+/** Für Fake-Module, die erst geladen werden: Stopp-Funktion sofort zurückgeben, Stopp später ausführen. */
+function stopLater(promise) {
+  let stop = null;
+  let stopped = false;
+  promise.then((fn) => {
+    if (stopped) fn();
+    else stop = fn;
+  });
+  return () => {
+    stopped = true;
+    stop?.();
+  };
+}
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -1,0 +1,83 @@
+{
+  "_info": "Beispiel-Einsätze für die Bergbahn. ago = vor wie vielen Minuten (Test-Uhr). incoming kommt afterSec Sekunden nach dem Login rein. Helfer fahren wie der Fake-Chip im Zeitraffer (config.simSpeed).",
+  "today": [
+    {
+      "id": "SOS-9A1C",
+      "type": "sos",
+      "source": "chip",
+      "chip": "CHIP-0104",
+      "pos": [
+        47.41717,
+        12.35272
+      ],
+      "ago": 2,
+      "status": "accepted",
+      "staff": "ST-02",
+      "acceptedAgo": 0.05,
+      "battery": 64
+    },
+    {
+      "id": "SOS-8F3B",
+      "type": "sos",
+      "source": "chip",
+      "chip": "CHIP-0122",
+      "pos": [
+        47.36158,
+        12.38371
+      ],
+      "ago": 19,
+      "status": "onsite",
+      "staff": "ST-06",
+      "acceptedAgo": 18,
+      "onsiteAgo": 9,
+      "battery": 41
+    },
+    {
+      "id": "SOS-7D20",
+      "type": "sos",
+      "source": "chip",
+      "chip": "CHIP-0109",
+      "pos": [
+        47.39236,
+        12.33849
+      ],
+      "ago": 95,
+      "status": "done",
+      "staff": "ST-04",
+      "acceptedAgo": 94,
+      "onsiteAgo": 86,
+      "doneAgo": 61,
+      "outcome": "transport",
+      "battery": 88
+    },
+    {
+      "id": "SOS-6B11",
+      "type": "sos",
+      "source": "app",
+      "chip": "CHIP-0117",
+      "pos": [
+        47.42577,
+        12.36547
+      ],
+      "ago": 140,
+      "status": "done",
+      "staff": "ST-01",
+      "acceptedAgo": 139,
+      "onsiteAgo": 134,
+      "doneAgo": 125,
+      "outcome": "false",
+      "battery": 92
+    }
+  ],
+  "incoming": {
+    "type": "sos",
+    "source": "chip",
+    "chip": "CHIP-0113",
+    "pos": [
+      47.43086,
+      12.36922
+    ],
+    "afterSec": 14,
+    "battery": 77
+  }
+}

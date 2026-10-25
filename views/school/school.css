@@ -1,0 +1,897 @@
+/* Skischul-Ansicht. Grundgerüst (Kopfleiste, Bereich, Karte) wie Gast und Bergbahn,
+   Listen-Bausteine (.team-*, .ops-*) aus views/staff/staff.css. */
+
+/* ================================================================================
+   Kopfleiste: Gruppe + wie viele beisammen sind
+   ================================================================================ */
+.school-count {
+  text-align: left;
+  border-radius: 12px;
+  padding: 2px 4px;
+}
+
+.school-count:hover {
+  background: var(--ice);
+}
+
+.school-count .top-left-label {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.school-count.is-missing .top-left-label::before {
+  background: #ff8a00;
+  box-shadow: 0 0 0 3px rgba(255, 138, 0, 0.2);
+}
+
+.school-count.is-missing .top-left-value {
+  color: #d56f00;
+}
+
+.pill-pickup.is-soon {
+  background: var(--sun-soft);
+  color: var(--sun-deep);
+}
+
+.pill-gather {
+  background: var(--ink);
+  color: #fff;
+}
+
+.pill-gather:hover {
+  background: #2a2a30;
+}
+
+/* ================================================================================
+   Banner: Kind hängt hinten / SOS eines Kindes
+   ================================================================================ */
+.away-banner,
+.school-sos {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3) + 68px);
+  left: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 12px;
+  border-radius: 20px;
+  background: #ff8a00;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(255, 138, 0, 0.35);
+  animation: modal-in var(--t-med) var(--ease-spring) both;
+}
+
+.school-sos {
+  z-index: 1060;
+  background: var(--sos);
+  box-shadow: 0 10px 30px rgba(255, 45, 45, 0.4);
+}
+
+.has-away .school-sos {
+  top: calc(var(--safe-top) + var(--sp-3) + 68px + 72px);
+}
+
+.away-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.away-icon svg {
+  width: 22px;
+  height: 22px;
+  animation: rec 1s ease-in-out infinite;
+}
+
+.away-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.away-text strong {
+  font-weight: 800;
+}
+
+.away-text small {
+  font-size: 12.5px;
+  opacity: 0.92;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.away-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 13px;
+  background: #fff;
+  color: #c25e00;
+  font-weight: 800;
+  font-size: var(--fs-s);
+  transition: transform var(--t-fast) var(--ease);
+}
+
+.school-sos .away-btn {
+  color: var(--sos-deep);
+}
+
+.away-btn:active {
+  transform: scale(0.94);
+}
+
+.away-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.away-btn.is-quiet {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.school-sos-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.school-sos-live i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: rec 0.8s ease-in-out infinite;
+}
+
+/* Andere Gruppen der Skischule auf der Karte */
+.mk-group span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--c);
+  color: #fff;
+  border: 2.5px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.mk-group span svg {
+  width: 16px;
+  height: 16px;
+}
+
+.mk-group b {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.z-mid .mk-group b {
+  display: block;
+}
+
+/* ================================================================================
+   Gruppe: Durchzählen
+   ================================================================================ */
+.kc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: 16px;
+  border-radius: 24px;
+  background: var(--night);
+  color: var(--night-text);
+  box-shadow: var(--shadow-2);
+}
+
+.kc-count {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kc-big {
+  font-family: var(--font-display);
+  font-size: 3.6rem;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--ok);
+}
+
+.kc-big small {
+  font-size: 1.6rem;
+  color: var(--night-muted);
+}
+
+.kc.is-missing .kc-big {
+  color: #ff9d2e;
+}
+
+.kc-count > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kc-sub {
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.kc-last {
+  font-size: var(--fs-xs);
+  color: var(--night-muted);
+}
+
+.kc-faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kc-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 0 0 2px var(--night);
+  transition: transform var(--t-med) var(--ease-spring), opacity var(--t-med);
+}
+
+.kc-face.is-away {
+  box-shadow: 0 0 0 2px var(--night), 0 0 0 4px #ff8a00;
+}
+
+.kc-face i {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--night);
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 900;
+  transform: scale(0);
+  transition: transform var(--t-med) var(--ease-spring);
+}
+
+.kc.is-counting .kc-face {
+  opacity: 0.45;
+}
+
+.kc-face.is-ok,
+.kc-face.is-missing {
+  opacity: 1 !important;
+  transform: scale(1.08);
+}
+
+.kc-face.is-ok i {
+  background: var(--ok);
+  transform: scale(1);
+}
+
+.kc-face.is-ok i::before {
+  content: "✓";
+}
+
+.kc-face.is-missing i {
+  background: #ff8a00;
+  transform: scale(1);
+}
+
+.kc-face.is-missing i::before {
+  content: "!";
+}
+
+.kc-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+}
+
+.kc-btn {
+  padding: 0 12px;
+}
+
+.kc .btn:not(.btn-quiet) {
+  background: #fff;
+  color: var(--ink);
+}
+
+.kc .btn-quiet {
+  background: var(--night-3);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* ================================================================================
+   Gruppe: Kinder
+   ================================================================================ */
+.kid-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.kid {
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  transition: box-shadow var(--t-fast);
+}
+
+.kid.is-open {
+  box-shadow: 0 0 0 2px var(--c), var(--shadow-2);
+}
+
+.kid.is-away {
+  box-shadow: 0 0 0 2px #ff8a00, var(--shadow-1);
+}
+
+.kid.has-alarm {
+  box-shadow: 0 0 0 2px var(--sos), var(--shadow-1);
+}
+
+.kid.has-search {
+  box-shadow: 0 0 0 2px #ff8a00, var(--shadow-1);
+}
+
+.kid.has-search .kid-status {
+  color: #c25e00;
+  font-weight: 700;
+}
+
+.kid-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.kid-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.kid-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.kid-text strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kid-text strong svg {
+  width: 16px;
+  height: 16px;
+  color: #d56f00;
+}
+
+.kid-age {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.kid-status {
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kid.is-away .kid-status {
+  color: #c25e00;
+  font-weight: 700;
+}
+
+.kid.has-alarm .kid-status {
+  color: var(--sos-deep);
+  font-weight: 700;
+}
+
+.kid-bat {
+  flex: none;
+  font-size: var(--fs-s);
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.kid-bat.is-low {
+  color: var(--sun-deep);
+}
+
+.kid-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: 0 14px 14px;
+  animation: pane-in var(--t-med) var(--ease) both;
+}
+
+.kid-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--sun-soft);
+  color: #8a3b00;
+  font-size: var(--fs-s);
+  font-weight: 650;
+}
+
+.kid-note.is-medical {
+  background: #ffe9e9;
+  color: var(--sos-deep);
+}
+
+.kid-note svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+
+.kid-facts {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 6px;
+}
+
+.kid-facts div {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--ice);
+  min-width: 0;
+}
+
+.kid-facts dt {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ink-3);
+}
+
+.kid-facts dd {
+  margin: 0;
+  font-size: var(--fs-s);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.kid-parent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(22, 180, 107, 0.1);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.kid-parent > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.kid-parent small {
+  color: var(--ink-2);
+}
+
+.kid-parent-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--ok);
+  color: #fff;
+}
+
+.kid-parent-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ================================================================================
+   Kurs: Abholung, Tagesplan, Nachricht an Eltern
+   ================================================================================ */
+.pickup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 20px;
+  background: var(--night);
+  color: var(--night-text);
+  box-shadow: var(--shadow-2);
+}
+
+.pickup.is-soon {
+  background: var(--sun);
+}
+
+.pickup-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.pickup-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.pickup-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pickup-text small {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.pickup-left {
+  flex: none;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.plan {
+  list-style: none;
+  padding: 6px 0;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.plan-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 50px 34px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+}
+
+/* Linie zwischen den Punkten */
+.plan-item::before {
+  content: "";
+  position: absolute;
+  left: calc(14px + 50px + 8px + 16px);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+
+.plan-item:first-child::before {
+  top: 50%;
+}
+
+.plan-item:last-child::before {
+  bottom: 50%;
+}
+
+.plan-time {
+  font-size: var(--fs-s);
+  font-weight: 750;
+  color: var(--ink-2);
+}
+
+.plan-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--ink-2);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+.plan-dot svg {
+  width: 17px;
+  height: 17px;
+}
+
+.plan-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.plan-text strong {
+  font-size: var(--fs-s);
+  font-weight: 650;
+}
+
+.plan-text small {
+  color: var(--ink-3);
+}
+
+.plan-item.is-past {
+  opacity: 0.45;
+}
+
+.plan-item.is-now .plan-dot {
+  background: var(--sky);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--sky-soft);
+}
+
+.plan-item.is-now .plan-time,
+.plan-item.is-now strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.plan-now {
+  color: var(--sky) !important;
+  font-weight: 750;
+}
+
+.msg-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: 14px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.msg-lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+.msg-lead svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.msg-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.msg-form {
+  display: flex;
+  gap: 6px;
+}
+
+.msg-form .course-input {
+  flex: 1;
+  margin: 0;
+  background: var(--ice);
+  box-shadow: none;
+}
+
+/* ================================================================================
+   Skischule: Gruppen
+   ================================================================================ */
+.sc-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.sc-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+}
+
+.sc-logo svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sc-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sc-text small {
+  color: var(--ink-3);
+}
+
+.sc-badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--c);
+  color: #fff;
+}
+
+.sc-badge svg {
+  width: 20px;
+  height: 20px;
+}
+
+.team-text strong .ops-mine {
+  margin-left: 6px;
+  font-size: 11px;
+  vertical-align: 2px;
+}
+
+.sc-size {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 96px;
+  text-align: right;
+}
+
+.sc-size strong {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.sc-size small {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  line-height: 1.2;
+}
+
+.sc-help {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: var(--sp-4);
+  padding: 14px;
+  border-radius: 20px;
+  background: #ffe9e9;
+}
+
+.sc-help > span:nth-child(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sc-help small {
+  color: var(--ink-2);
+}
+
+.sc-help-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--sos);
+  color: #fff;
+}
+
+.sc-help-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ================================================================================
+   Großer Bildschirm: Banner neben dem Bereich
+   ================================================================================ */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .away-banner,
+  .school-sos {
+    top: var(--sp-4);
+    left: calc(420px + var(--sp-4) * 2);
+    right: auto;
+    width: min(480px, calc(100% - 420px - var(--sp-4) * 3));
+  }
+
+  .has-away .school-sos {
+    top: calc(var(--sp-4) + 76px);
+  }
+}
+
+@media (max-width: 370px) {
+  .away-btn span {
+    display: none;
+  }
+
+  .away-btn {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+}

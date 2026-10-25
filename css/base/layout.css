@@ -38,18 +38,3 @@ body {
 .spacer {
   flex: 1;
 }
-
-/* Platzhalter-Seite (Bergbahn, Skischule) */
-.soon {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--sp-3);
-  height: 100%;
-  padding: var(--sp-5);
-  text-align: center;
-}
-
-.soon p {
-  max-width: 36ch;
-}

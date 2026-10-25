@@ -1,4 +1,5 @@
-// Punkte auf der Karte: du selbst, deine Gruppe, Hütten, Ziel-Fahne.
+// Punkte auf der Karte: du selbst, deine Gruppe, Hütten, Ziel-Fahne – und für Bergbahn/Skischule:
+// Einsätze (roter Punkt), Mitarbeiter, Kinder im Skikurs.
 
 import { iconHTML } from '../components/icons.js';
 
@@ -84,6 +85,53 @@ export function goalMarker(pos) {
     }),
     zIndexOffset: 800,
     interactive: false,
+  });
+}
+
+/**
+ * Einsatz: großer roter Punkt mit Wellen (SOS) oder orange (Suche). label = „SOS · 3 min“.
+ * Zustand über Klassen: is-new (pulsiert stark), is-accepted, is-onsite, is-mine.
+ */
+export function alarmMarker(alarm, label) {
+  return L.marker(alarm.pos, {
+    icon: L.divIcon({
+      className: `mk-alarm is-${alarm.type}`,
+      html: `<span class="mk-alarm-wave"></span><span class="mk-alarm-wave"></span>
+             <span class="mk-alarm-dot">${iconHTML(alarm.type === 'search' ? 'search' : 'siren')}</span>
+             <b class="mk-alarm-label">${escape(label)}</b>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22],
+    }),
+    zIndexOffset: 2000,
+    title: alarm.id,
+  });
+}
+
+/** Mitarbeiter: dunkles Quadrat mit Anfangsbuchstaben, Ring in Statusfarbe (frei / Einsatz / Pause). */
+export function staffMarker(pos, staff, { me = false } = {}) {
+  return L.marker(pos, {
+    icon: L.divIcon({
+      className: `mk-staff${me ? ' is-me' : ''}`,
+      html: `<span class="mk-staff-dot">${escape(staff.name[0])}</span><b class="mk-staff-name">${escape(me ? staff.meLabel || staff.name : staff.name)}</b>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+    }),
+    zIndexOffset: me ? 1500 : 1100,
+    title: staff.name,
+  });
+}
+
+/** Kind im Skikurs: Punkt in eigener Farbe mit Namen. */
+export function kidMarker(pos, kid) {
+  return L.marker(pos, {
+    icon: L.divIcon({
+      className: 'mk-kid',
+      html: `<span class="mk-kid-dot" style="--c:${kid.color}">${escape(kid.name[0])}</span><b class="mk-kid-name">${escape(kid.name)}</b>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    }),
+    zIndexOffset: 950,
+    title: kid.name,
   });
 }
 

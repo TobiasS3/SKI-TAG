@@ -10,6 +10,7 @@ Nur `js/services/api.js` weiß, woher sie kommen.
 ```
 
 - `role`: `guest` | `staff` | `school` – bestimmt die Ansicht
+- Bergbahn: `staff` = eigene Mitarbeiter-ID (`"ST-01"`), Skischule: `school` + `group` (`"SKS-KITZ"`, `"BLAU"`)
 - Codes: 6 Zeichen, Großbuchstaben + Zahlen. Zugang gilt bis Mitternacht.
 
 ## Chip-Position (laufend)
@@ -58,6 +59,47 @@ Bis die Bergbahn echte Daten liefert: Beispieldaten. Später `GET /lifts` vom Se
 - Lifte ohne Eintrag haben die Zeiten aus `default`
 - `status` fehlt = läuft nach Uhrzeit · `hold` = kurz gestoppt · `closed` = heute zu
 - `reason`: `wind` | `snow` | `season` | `revision`, `note`: freier Text (z. B. „Talfahrt bis 17:00“)
+- Von der Bergbahn umgeschaltet (Tab „Lifte“): später `PUT /lifts/{name}`, Fake im Browser (`lift-override`)
+
+## Einsätze (Bergbahn) – `data/fake/alarms.json`
+
+Später `GET /alarms/stream` vom Server. Ein Einsatz:
+
+```json
+{ "id": "SOS-9A1C", "type": "sos", "source": "chip", "chip": "CHIP-0104", "pos": [47.41717, 12.35272],
+  "at": 1792310400000, "status": "accepted", "staff": "ST-02", "offered": ["ST-02"], "eta": 215,
+  "acceptedAt": 1792310460000, "onsiteAt": null, "doneAt": null, "outcome": null, "battery": 64,
+  "log": [{ "at": 1792310400000, "key": "created", "vars": {} }] }
+```
+
+- `type`: `sos` (roter Punkt) | `search` (orange – Suchauftrag der Skischule, kein Notruf)
+- `source`: `chip` (Knopf am Chip) | `app` (SOS aus der Gäste-App) | `school`
+- `status`: `new` → `accepted` → `onsite` → `done`. `new` wartet 60 s auf `staff`, dann der nächste freie
+- `outcome`: `transport` | `treated` | `false` | `cancelled` (Gast: „Mir geht’s gut“) | `found` | `handedOver`
+- Fake: Einsätze liegen im Browser (`localStorage`), damit ein Gast-Tab und ein Bergbahn-Tab sie teilen
+
+## Vermietete Chips – `data/fake/chips.json`
+
+```json
+{ "id": "CHIP-0113", "rental": "R-2077", "kind": "kid", "point": "Kassa Hornbahn", "since": "10:39" }
+```
+
+Anonym (DSGVO): kein Name, nur Mietbeleg. Positionen kommen live wie beim eigenen Chip.
+
+## Skischule – `data/fake/school.json`
+
+```json
+{ "SKS-KITZ": { "name": "Skischule Hahnenkamm", "phone": "…", "groups": {
+  "BLAU": { "name": "Bambini Blau", "teacher": "Anna", "teacherChip": "CHIP-0201", "radius": 120,
+            "pickup": { "time": "15:30", "place": "Talstation Hahnenkammbahn" },
+            "plan": [{ "time": "10:00", "kind": "meet", "text": "Treffpunkt …" }],
+            "kids": [{ "chip": "CHIP-0211", "name": "Emma", "age": 6, "level": "…",
+                       "parent": { "name": "Julia M.", "phone": "…" }, "note": "Allergie …" }] } } } }
+```
+
+- `radius`: Meter um den Lehrer – wer länger außerhalb ist, „hängt hinten“
+- `plan.kind`: `meet` | `lift` | `ski` | `hut`
+- Andere Gruppen brauchen nur `name`, `teacher`, `teacherChip`, `color`, `size`, `pickup`
 
 ## Skigebiet – `data/skimap/kitzski.json`
 

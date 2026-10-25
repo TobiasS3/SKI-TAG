@@ -1,0 +1,76 @@
+{
+  "SKS-KITZ": {
+    "name": "Skischule Hahnenkamm",
+    "phone": "+43 5356 00000",
+    "office": "Büro Talstation Hahnenkammbahn",
+    "groups": {
+      "BLAU": {
+        "name": "Bambini Blau",
+        "level": "Kinder · Anfänger",
+        "teacher": "Anna",
+        "teacherChip": "CHIP-0201",
+        "color": "#2f6dff",
+        "start": [47.42681, 12.37252],
+        "mode": "easyOnly",
+        "radius": 120,
+        "pickup": { "time": "15:30", "place": "Talstation Hahnenkammbahn" },
+        "plan": [
+          { "time": "10:00", "kind": "meet", "text": "Treffpunkt Talstation Hahnenkammbahn" },
+          { "time": "10:20", "kind": "lift", "text": "Hahnenkammbahn hoch" },
+          { "time": "10:45", "kind": "ski", "text": "Übungen am Hahnenkamm (Piste 36)" },
+          { "time": "11:45", "kind": "hut", "text": "Trinkpause Hochkitzbühel" },
+          { "time": "12:30", "kind": "hut", "text": "Mittagessen Hochkitzbühel" },
+          { "time": "13:30", "kind": "ski", "text": "Kurven fahren am Walde (Piste 21)" },
+          { "time": "15:00", "kind": "ski", "text": "Abfahrt ins Tal" },
+          { "time": "15:30", "kind": "meet", "text": "Abholung Talstation Hahnenkammbahn" }
+        ],
+        "kids": [
+          { "chip": "CHIP-0211", "name": "Emma", "age": 6, "level": "Pizza-Profi", "color": "#e8457a", "parent": { "name": "Julia M.", "phone": "+43 660 1110001" } },
+          { "chip": "CHIP-0212", "name": "Felix", "age": 7, "level": "Erste Kurven", "color": "#f2a33a", "parent": { "name": "Stefan B.", "phone": "+43 660 1110002" }, "drifter": true },
+          { "chip": "CHIP-0213", "name": "Mia", "age": 5, "level": "Pizza-Profi", "color": "#16b46b", "parent": { "name": "Sarah K.", "phone": "+43 660 1110003" }, "note": "Allergie: Nüsse. Notfall-Spray im Rucksack." },
+          { "chip": "CHIP-0214", "name": "Noah", "age": 7, "level": "Erste Kurven", "color": "#8a5cf6", "parent": { "name": "Daniel R.", "phone": "+43 660 1110004" } },
+          { "chip": "CHIP-0215", "name": "Lea", "age": 6, "level": "Erste Kurven", "color": "#00a3a3", "parent": { "name": "Nina H.", "phone": "+43 660 1110005" }, "note": "Spricht nur Englisch." },
+          { "chip": "CHIP-0216", "name": "Paul", "age": 6, "level": "Pizza-Profi", "color": "#d24f00", "parent": { "name": "Thomas W.", "phone": "+43 660 1110006" } },
+          { "chip": "CHIP-0217", "name": "Ida", "age": 5, "level": "Pizza-Profi", "color": "#c03fd1", "parent": { "name": "Lisa F.", "phone": "+43 660 1110007" }, "note": "Wird um 14:00 früher abgeholt." },
+          { "chip": "CHIP-0218", "name": "Ben", "age": 7, "level": "Erste Kurven", "color": "#5a7d1a", "parent": { "name": "Markus G.", "phone": "+43 660 1110008" } }
+        ]
+      },
+      "ROT": {
+        "name": "Kids Rot",
+        "level": "Kinder · Fortgeschritten",
+        "teacher": "Jakob",
+        "teacherChip": "CHIP-0202",
+        "phone": "+43 660 2220002",
+        "color": "#e0242f",
+        "start": [47.41864, 12.35932],
+        "mode": "avoidBlack",
+        "size": 7,
+        "pickup": { "time": "15:30", "place": "Talstation Fleckalmbahn" }
+      },
+      "GRUEN": {
+        "name": "Teens Grün",
+        "level": "Jugend · Könner",
+        "teacher": "Lisa",
+        "teacherChip": "CHIP-0203",
+        "phone": "+43 660 2220003",
+        "color": "#16b46b",
+        "start": [47.3951, 12.33167],
+        "mode": "fast",
+        "size": 6,
+        "pickup": { "time": "15:45", "place": "Talstation Pengelstein I" }
+      },
+      "PRIVAT": {
+        "name": "Privatstunde",
+        "level": "Erwachsene · Carving",
+        "teacher": "Max",
+        "teacherChip": "CHIP-0204",
+        "phone": "+43 660 2220004",
+        "color": "#8a5cf6",
+        "start": [47.3656, 12.38056],
+        "mode": "fast",
+        "size": 2,
+        "pickup": { "time": "13:00", "place": "Wurzhöhe" }
+      }
+    }
+  }
+}

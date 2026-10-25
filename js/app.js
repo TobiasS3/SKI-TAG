@@ -7,12 +7,13 @@ import { t } from './core/i18n.js';
 import { toast } from './components/toast.js';
 import { mountLogin } from '../views/login/login-view.js';
 import { mountGuest } from '../views/guest/guest-view.js';
-import { mountSoon } from './components/soon.js';
+import { mountStaff } from '../views/staff/staff-view.js';
+import { mountSchool } from '../views/school/school-view.js';
 
 addRoute('login', mountLogin);
 addRoute('guest', mountGuest);
-addRoute('staff', mountSoon); // kommt als Nächstes
-addRoute('school', mountSoon);
+addRoute('staff', mountStaff);
+addRoute('school', mountSchool);
 
 startRouter(document.getElementById('app'));
 

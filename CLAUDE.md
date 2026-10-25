@@ -54,8 +54,9 @@ Mögliche Partner-Bergbahn: KitzSki.
 - `assets/` – Icons, Bilder, Sounds (SOS-Ton); `docs/` – Konzept, Datenformat, Changelog
 
 ## Aktueller Stand
-- Start mit der **Mitarbeiter-Ansicht** (Karte, Chips, roter Punkt bei SOS, nächster Mitarbeiter)
-- Danach Gäste-Ansicht
+- Alle drei Ansichten laufen mit Fake-Daten: **Gast** (`views/guest/`), **Bergbahn-Leitstand** (`views/staff/`),
+  **Skischule** (`views/school/`)
+- Fake-Server für Einsätze/Chips/Skikurs: `js/services/fake-ops.js` (Einsätze im localStorage → Tabs teilen sie)
 
 ## Arbeitsweise
 - Lieber bestehenden Code schrittweise erweitern statt alles neu schreiben

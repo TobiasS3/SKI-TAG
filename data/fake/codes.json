@@ -1,6 +1,6 @@
 [
-  { "code": "K7M2X9", "role": "guest", "chip": "CHIP-0042", "name": "Tobias", "group": "FAM-STROBL" },
-  { "code": "L4N8P3", "role": "guest", "chip": "CHIP-0043", "name": "Lena", "group": "FAM-STROBL" },
-  { "code": "BERG27", "role": "staff", "name": "Bergbahn Team" },
-  { "code": "SKUL38", "role": "school", "name": "Skischule" }
+  {"code": "K7M2X9", "role": "guest", "chip": "CHIP-0042", "name": "Tobias", "group": "FAM-STROBL"},
+  {"code": "L4N8P3", "role": "guest", "chip": "CHIP-0043", "name": "Lena", "group": "FAM-STROBL"},
+  {"code": "BERG27", "role": "staff", "name": "Markus", "staff": "ST-01"},
+  {"code": "SKUL38", "role": "school", "name": "Anna", "school": "SKS-KITZ", "group": "BLAU", "chip": "CHIP-0201"}
 ]

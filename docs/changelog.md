@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-10-25 – Bergbahn-Leitstand und Skischule
+
+**Bergbahn** (Code `BERG27`)
+- **Live-Karte:** alle Miet-Chips als Punkte (Kinder lila, Akku schwach orange), Mitarbeiter mit Status-Ring
+  (frei / im Einsatz / Pause), Einsätze als **roter Punkt** mit Wellen
+- **Notruf für dich:** Vollbild mit Sirene, Vibration, Ort, Entfernung, Höhe, Akku – Annehmen oder Weitergeben.
+  Nach 60 s ohne Antwort geht der Alarm automatisch an den nächsten freien Kollegen
+- **Einsatz-Ablauf:** Eingang → Angenommen (Route über Pisten und Lifte) → Vor Ort → Abschließen mit Ergebnis.
+  Verlauf mit Uhrzeiten, Chip anpiepsen, Koordinaten kopieren, Leitstelle 140
+- **Team:** Dienst/Pause (in der Pause keine Alarme), Kollegen mit Entfernung und Anruf-Knopf
+- **Lifte umschalten:** läuft / Wind-Stopp / zu (mit Grund) – Gäste sehen es, Routen weichen aus. Wind und Böen oben
+- **Chips:** Suche nach Chip-Nr. oder Mietbeleg (Eltern an der Kassa), Spur, Folgen, Suchauftrag starten
+- **Tagesprotokoll** als CSV
+- Gast-SOS landet jetzt auch im Leitstand (zweiter Tab im selben Browser)
+
+**Skischule** (Code `SKUL38`)
+- **Kursgruppe live:** Kinder fahren dem Lehrer nach, Kreis „Gruppe beisammen“ (120 m), oben groß „7/8“
+- **Hängt hinten:** Kind länger außerhalb → orange Banner mit Entfernung und Richtung, Linie auf der Karte,
+  „Anpiepsen“ (Vibration am Chip) – erst danach „Bergbahn: Suche“ (orange Suchauftrag, kein Notruf)
+- **Durchzählen:** Kind für Kind abgehakt, wer fehlt, steht in der Meldung; **Alle anpiepsen** zum Sammeln
+- **Kinder:** Eltern-Telefon, Hinweise (Allergie, früher abgeholt, Sprache), Akku, SOS-Status
+- **Kurs:** Abholung mit Countdown, Tagesplan mit „Jetzt“, Nachricht an alle Eltern, Anwesenheitsliste (CSV)
+- **Skischule:** alle Gruppen live mit Lehrer und Ort, Büro anrufen
+
 ## 2026-10-23 (4) – Querformat, Fehler, neues Startvideo
 
 - **Startvideo:** Drohnenflug über Gondeln im Schnee in 4K-Qualität (Pexels), eigene Hochkant-Version fürs Handy – kein freies Kitzbühel-Video verfügbar

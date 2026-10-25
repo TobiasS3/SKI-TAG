@@ -458,3 +458,207 @@
   white-space: nowrap;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
+
+/* ================================================================================
+   Bergbahn & Skischule: Einsätze, Mitarbeiter, Kinder (js/map/markers.js)
+   ================================================================================ */
+
+/* Einsatz: der rote Punkt. Wellen laufen nach außen, solange niemand angenommen hat. */
+.mk-alarm {
+  --c: var(--sos);
+}
+
+.mk-alarm.is-search {
+  --c: #ff8a00;
+}
+
+.mk-alarm-dot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c);
+  border: 3px solid #fff;
+  color: #fff;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 30%, transparent), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.mk-alarm-dot svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mk-alarm-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid var(--c);
+  opacity: 0;
+  animation: alarm-wave 2s var(--ease-out) infinite;
+}
+
+.mk-alarm-wave + .mk-alarm-wave {
+  animation-delay: 1s;
+}
+
+.mk-alarm.is-new .mk-alarm-wave {
+  animation-duration: 1.2s;
+}
+
+.mk-alarm.is-new .mk-alarm-wave + .mk-alarm-wave {
+  animation-delay: 0.6s;
+}
+
+.mk-alarm.is-onsite .mk-alarm-wave {
+  animation: none;
+}
+
+.mk-alarm.is-onsite .mk-alarm-dot {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 40%, transparent), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.mk-alarm.is-selected .mk-alarm-dot {
+  transform: scale(1.18);
+  box-shadow: 0 0 0 5px #fff, 0 0 0 9px var(--c), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes alarm-wave {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.mk-alarm-label {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--c);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Mitarbeiter: Ring zeigt den Status */
+.mk-staff {
+  --ring: var(--ok);
+}
+
+.mk-staff.is-busy {
+  --ring: var(--sos);
+}
+
+.mk-staff.is-break {
+  --ring: #a8a8b2;
+}
+
+.mk-staff-dot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--night);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 14px;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 2.5px var(--ring), 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.mk-staff.is-me .mk-staff-dot {
+  background: linear-gradient(160deg, #5b8cff, var(--sky) 60%, #1f4fd6);
+}
+
+.mk-staff.is-break .mk-staff-dot {
+  opacity: 0.65;
+}
+
+.mk-staff-name,
+.mk-kid-name {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  display: none;
+}
+
+.z-near .mk-staff-name,
+.mk-staff.is-me .mk-staff-name,
+.mk-staff.is-busy .mk-staff-name {
+  display: block;
+}
+
+/* Kind im Skikurs */
+.mk-kid-dot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 12px;
+  border: 2.5px solid #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  transition: transform var(--t-med) var(--ease-spring);
+}
+
+.mk-kid-name {
+  top: 31px;
+  font-size: 10.5px;
+}
+
+.mk-kid.is-selected .mk-kid-name,
+.mk-kid.is-away .mk-kid-name {
+  display: block;
+}
+
+.mk-kid.is-away .mk-kid-dot {
+  box-shadow: 0 0 0 3px #ff8a00, 0 0 0 9px rgba(255, 138, 0, 0.25), 0 3px 8px rgba(0, 0, 0, 0.3);
+  animation: kid-away 1.2s ease-in-out infinite;
+}
+
+.mk-kid.is-away .mk-kid-name {
+  background: #ff8a00;
+  color: #fff;
+}
+
+.mk-kid.is-selected .mk-kid-dot {
+  transform: scale(1.3);
+}
+
+@keyframes kid-away {
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-alarm-wave,
+  .mk-kid.is-away .mk-kid-dot {
+    animation: none;
+  }
+}

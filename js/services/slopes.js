@@ -227,4 +227,45 @@ export function searchIndex() {
   return items;
 }
 
+/**
+ * Wo liegt ein Punkt? Nächste Piste oder nächster Lift – für Einsätze („Piste 21 Familienabfahrt, 1.540 m“).
+ * → { kind: 'piste' | 'lift', item, dist (m), ele (m) }
+ */
+export function placeAt(pos) {
+  let best = null;
+  for (const e of map.edges) {
+    if (e.kind === 'walk') continue;
+    for (let i = 0; i < e.coords.length; i += 2) {
+      const d = distance(pos, e.coords[i]);
+      if (!best || d < best.dist) best = { e, dist: d, f: e.coords.length > 1 ? i / (e.coords.length - 1) : 0 };
+    }
+  }
+  if (!best) return null;
+  const { e, f } = best;
+  return {
+    kind: e.kind,
+    item: e.kind === 'piste' ? map.pistes[e.ref] : map.lifts[e.ref],
+    dist: best.dist,
+    ele: Math.round(map.ele[e.a] + (map.ele[e.b] - map.ele[e.a]) * f),
+  };
+}
+
+/** Kurzer Name für einen Ort: „21 Streif Familienabfahrt“ oder „Hahnenkammbahn“ (null, wenn nichts in der Nähe) */
+export function placeLabel(pos) {
+  const p = placeAt(pos);
+  if (!p || p.dist > 400) return null;
+  const { item } = p;
+  if (p.kind === 'lift') return item.name;
+  if (item.name && item.ref) return `${item.ref} ${item.name}`;
+  return item.name || (item.ref ? `Piste ${item.ref}` : null);
+}
+
+/** Ort eines Chips: Der Chip meldet selbst, in welchem Lift / auf welcher Piste er ist (kind + ref). */
+export function chipPlace(p) {
+  if (p.kind === 'lift' && p.ref != null) return map.lifts[p.ref].name;
+  const piste = p.kind === 'piste' && p.ref != null ? map.pistes[p.ref] : null;
+  if (piste?.name) return piste.ref ? `${piste.ref} ${piste.name}` : piste.name;
+  return placeLabel([p.lat, p.lng]);
+}
+
 export const skimap = () => map;
