@@ -218,8 +218,14 @@
 }
 
 .z-mid .mk-lift.is-main,
-.z-close .mk-lift {
+.z-close .mk-lift,
+.mk-lift.is-route {
   display: block;
+}
+
+.mk-lift.is-route span {
+  font-size: 12px;
+  padding: 4px 9px 4px 7px;
 }
 
 .mk-lift span {
@@ -373,6 +379,18 @@
 
 .z-near .mk-disc {
   opacity: 1;
+}
+
+/* Schilder auf der Route (Pistennummer, Liftname): immer sichtbar, etwas größer */
+.mk-disc.is-route {
+  opacity: 1;
+}
+
+.mk-disc.is-route span {
+  width: 28px;
+  height: 28px;
+  font-size: 12.5px;
+  transform: translate(-2px, -2px);
 }
 
 .mk-disc span {

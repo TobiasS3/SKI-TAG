@@ -94,6 +94,48 @@
   transition: transform var(--t-fast) var(--ease), background var(--t-fast);
 }
 
+/* Kopfleiste: kleine Beschriftung über dem Wert („Status“, „Wetter“) */
+.topbar .pill {
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  height: 48px;
+  padding: 0 18px 0 9px;
+}
+
+/* Pfeil unten rechts nach außen: hier geht ein Fenster auf */
+.topbar .pill .pill-more {
+  position: absolute;
+  right: 5px;
+  bottom: 6px;
+  width: 11px;
+  height: 11px;
+  color: var(--ink-3);
+  stroke-width: 2.6;
+}
+
+.pill-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink-3);
+}
+
+.pill-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+}
+
+.pill-row svg {
+  flex: none;
+}
+
 .pill:hover {
   background: #e7e7eb;
 }
@@ -1437,6 +1479,10 @@
 }
 
 /* „Den Schildern folgen“ über der Wegbeschreibung */
+.route-start {
+  font-size: 1.15rem;
+}
+
 .steps-title {
   display: flex;
   align-items: center;
@@ -1449,6 +1495,32 @@
   width: 18px;
   height: 18px;
   color: var(--sun-deep);
+}
+
+.steps-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--sp-1) !important;
+}
+
+.steps-note svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  color: var(--ok);
+}
+
+/* Liftstatus in der Wegbeschreibung */
+.step-liftstate.is-open {
+  color: var(--ok);
+  font-weight: 650;
+}
+
+.step-liftstate.is-closing,
+.step-liftstate.is-hold {
+  color: var(--sun-deep);
+  font-weight: 700;
 }
 
 /* Schritte als Linie mit Stationen */
@@ -2435,6 +2507,216 @@
 
 .switch-row.is-on .switch::after {
   transform: translateX(18px);
+}
+
+/* ================================================================================
+   Person angetippt: Karte unten mit Hinfahren + Vibrieren (views/guest/group-panel.js)
+   ================================================================================ */
+.person-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 var(--sp-3) var(--sp-2);
+  padding: 10px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+  animation: pane-in var(--t-med) var(--ease) both;
+}
+
+.person-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.person-card-head .avatar {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 14px;
+}
+
+.person-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.person-card-text strong {
+  font-size: 1.15rem;
+}
+
+.person-card-text small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+.person-card-text small span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.person-card-text small svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+.person-card-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ice);
+}
+
+.person-card-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.person-card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.person-card-actions .btn {
+  justify-content: center;
+}
+
+/* ================================================================================
+   Route läuft: Leiste unten statt Tabs, markierter Schritt
+   ================================================================================ */
+.route-running .sheet-tabs {
+  display: none;
+}
+
+.route-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 var(--sp-3) var(--sp-1);
+  padding: 8px 8px 8px 10px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: #fff;
+}
+
+.route-bar-now {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  color: inherit;
+}
+
+.route-bar .step-icon {
+  width: 44px;
+  height: 44px;
+  border-color: var(--ink);
+}
+
+.route-bar .step-icon:not(.disc) {
+  background: #2c2c31;
+}
+
+.route-bar .step-icon.disc span {
+  font-size: 1.05rem;
+}
+
+.route-bar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.route-bar-text strong {
+  font-size: 1.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-bar-text small {
+  font-size: var(--fs-s);
+  color: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-bar-stop {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.route-bar-stop svg {
+  width: 18px;
+  height: 18px;
+}
+
+.route-run-head .title {
+  margin-top: 4px;
+  font-size: 1.5rem;
+}
+
+.route-run-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sun-deep);
+}
+
+.route-run-live i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sun);
+  animation: rec 1.6s ease-in-out infinite;
+}
+
+.steps {
+  isolation: isolate;
+}
+
+.step.is-done {
+  opacity: 0.4;
+}
+
+.step.is-current::after {
+  content: "";
+  position: absolute;
+  inset: 2px -10px;
+  z-index: -1;
+  border-radius: 14px;
+  background: var(--sun-soft);
+}
+
+.step.is-current .step-text strong {
+  color: var(--sun-deep);
 }
 
 /* ================================================================================

@@ -2,6 +2,7 @@
 //
 //   const sheet = createSheet({ tabs: [{ id: 'day', label: 'tab.day', icon: 'today' }, …] });
 //   sheet.body('day').append(…);  sheet.open('route');
+//   sheet.setTop(el)  – eigene Leiste über den Tabs (z. B. während einer Route), null = weg
 //
 // Am Handy zwei Stufen: klein (nur Griff + Tabs) · offen (so hoch wie openHeight() erlaubt –
 // darüber bleiben Kopfleiste, Suche, SOS und Kartenknöpfe frei).
@@ -51,15 +52,16 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
   );
 
   const handle = h('button', { class: 'sheet-handle', 'data-i18n-label': 'sheet.toggle' }, h('span'));
-  const el = h('aside', { class: 'sheet', style: { '--tabs': tabs.length } }, handle, tabBar, content);
+  const top = h('div', { class: 'sheet-top', hidden: true });
+  const el = h('aside', { class: 'sheet', style: { '--tabs': tabs.length } }, handle, top, tabBar, content);
 
   // --- Höhe -------------------------------------------------------------------------
   const isDesktop = isWide;
 
   function measure() {
     const safe = parseFloat(getComputedStyle(el).paddingBottom) || 0;
-    // klein = genau Griff + Tab-Leiste, nichts vom Inhalt
-    const peek = handle.offsetHeight + tabBar.offsetHeight + 10 + safe;
+    // klein = genau Griff + eigene Leiste + Tab-Leiste, nichts vom Inhalt
+    const peek = handle.offsetHeight + top.offsetHeight + tabBar.offsetHeight + 10 + safe;
     heights = {
       peek,
       half: Math.max(peek + 120, Math.round(openHeight()) + safe),
@@ -242,6 +244,12 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
     /** Sichtbare Höhe in px (für den Kartenrand) */
     visibleHeight: () => (isDesktop() ? 0 : heights[stage]),
     collapse: () => setStage('peek'),
+    setTop(node) {
+      top.replaceChildren(...(node ? [node] : []));
+      top.hidden = !node;
+      measure();
+      show(heights[stage]);
+    },
     destroy,
     /** Kleiner Punkt am Tab (z. B. „Aufzeichnung läuft“) */
     badge(id, on) {

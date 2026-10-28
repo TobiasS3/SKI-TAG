@@ -193,7 +193,7 @@ function declutter(map) {
   });
 
   const hutLabels = map.getZoom() >= 15 ? ', .mk-hut .mk-label' : '';
-  const labels = [...root.querySelectorAll(`.mk-lift.is-main span, .mk-lift:not(.is-main) span${hutLabels}`)];
+  const labels = [...root.querySelectorAll(`.mk-lift.is-main span, .mk-lift:not(.is-main):not(.is-route) span${hutLabels}`)];
   // 2. Lift- und Hüttennamen: sichtbare Talbahnen, Gipfel und Symbole zählen als belegt
   labels.forEach((el) => el.classList.remove('is-hidden'));
   const view = root.getBoundingClientRect();
@@ -329,15 +329,42 @@ function findPeaks(skimap) {
 const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /** Route: orange Linie mit schwarzem Rand und feinen weißen Strichen. */
-export function drawRoute(map, coords) {
+export function drawRoute(map, coords, steps = []) {
   const group = L.layerGroup([
     L.polyline(coords, { pane: 'route', color: '#fff', weight: 13, opacity: 1, interactive: false }),
     L.polyline(coords, { pane: 'route', color: '#0e0e10', weight: 9.5, opacity: 0.95, interactive: false }),
     L.polyline(coords, { pane: 'route', color: '#ff6a13', weight: 6, opacity: 1, interactive: false, className: 'route-core' }),
     L.polyline(coords, { pane: 'route', color: '#fff', weight: 2, opacity: 0.95, dashArray: '2 14', interactive: false, className: 'route-flow' }),
   ]);
+  // Schilder auf der Route: Liftname bzw. Pistennummer – nur das, was du wirklich fährst
+  for (const step of steps) {
+    const sign = routeSign(step);
+    if (sign) group.addLayer(sign);
+  }
   group.addLayer(goalMarker(coords[coords.length - 1]));
   return group.addTo(map);
+}
+
+function routeSign(step) {
+  const pos = pointAlong(step.coords, lineLength(step.coords) / 2);
+  const opts = { pane: 'route', interactive: false, keyboard: false };
+  if (step.kind === 'lift') {
+    const icon = step.item.type === 'gondola' || step.item.type === 'cable_car' ? 'gondola' : 'lift';
+    return L.marker(pos, {
+      ...opts,
+      icon: L.divIcon({ className: 'mk-lift is-route', html: `<span>${iconHTML(icon)}${escapeHTML(step.item.name)}</span>`, iconSize: [0, 0] }),
+    });
+  }
+  if (!step.item.ref) return null;
+  return L.marker(pos, {
+    ...opts,
+    icon: L.divIcon({
+      className: `mk-disc is-route diff-${step.item.diff}`,
+      html: `<span>${escapeHTML(step.item.ref)}</span>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    }),
+  });
 }
 
 /** Farbe nach Tempo (km/h) für die eigene Spur. */

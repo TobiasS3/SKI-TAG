@@ -1,5 +1,7 @@
 // Gruppe/Familie: Wer ist wo? Radar, Live-Status, Spuren auf der Karte.
 // „Vibrieren“ statt Notruf, wenn jemand verloren gegangen ist.
+// Person antippen (Karte, Radar, „Zeigen“) → Karte zoomt nah ran, unten eine Karte mit
+// „Hinfahren“ und „Vibrieren“.
 
 import { h, replace, isWide } from '../../js/utils/dom.js';
 import { t, getLang } from '../../js/core/i18n.js';
@@ -32,6 +34,9 @@ export function mountGroup(el, ctx, group) {
   const mapItems = new Map();  // chip → { marker, trail, coords }
   let selected = null;
   let link = null;             // gestrichelte Linie du → ausgewählte Person
+  let carded = null;           // Person mit offener Karte (Hinfahren / Vibrieren)
+  let tracking = false;        // Karte folgt ihr, bis du selbst die Karte verschiebst
+  let trackFrom = 0;
 
   // --- Positionen empfangen ---------------------------------------------------------
   const race = mountRace(ctx, session.group, members);
@@ -59,6 +64,8 @@ export function mountGroup(el, ctx, group) {
       markerEl.classList.toggle('is-lift', p.kind === 'lift' && p.speed > 0.5);
       markerEl.classList.toggle('is-moving', p.kind === 'piste' && p.speed > 0.5);
     }
+    // Ausgewählte Person in der Mitte halten (erst wenn der Hinflug fertig ist)
+    if (tracking && carded?.chip === m.chip && Date.now() > trackFrom) ctx.panTo(pos);
     schedule();
   }
 
@@ -265,6 +272,7 @@ export function mountGroup(el, ctx, group) {
   function update() {
     renderMeeting(); // rechnet auch die Erinnerung „jetzt losfahren“ – läuft daher immer
     updateLink();
+    if (carded && personCard.isConnected) renderCard();
     if (!shown()) return;
     const me = ctx.me.pos;
     let warn = null;
@@ -314,14 +322,61 @@ export function mountGroup(el, ctx, group) {
     selected = selected === chip && !fly ? null : chip;
     const l = live.get(chip);
     if (fly && l) {
-      // Bereich einklappen, damit die Karte groß ist – dann Person (und dich) zeigen
+      // Karte mit Aktionen unten, Bereich einklappen – dann nah an die Person ran
       if (ctx.sheet.current() !== 'group') ctx.sheet.select('group');
+      showCard(members.find((x) => x.chip === chip));
       ctx.sheet.collapse();
-      ctx.fit(L.latLngBounds([[l.p.lat, l.p.lng], ctx.me.pos || [l.p.lat, l.p.lng]]), 16);
+      ctx.focus([l.p.lat, l.p.lng], 17);
     }
     mapItems.forEach((item, c) => item.marker.getElement()?.classList.toggle('is-selected', c === selected));
     update();
   }
+
+  // --- Personen-Karte unten: Hinfahren + Vibrieren ------------------------------------
+  const personCard = h('div', { class: 'person-card' });
+
+  function showCard(m) {
+    // Während einer Route bleibt unten das Schild stehen – dann nur hinzoomen
+    if (ctx.page.classList.contains('route-running')) return;
+    carded = m;
+    tracking = true;
+    trackFrom = Date.now() + 1200;
+    renderCard();
+    ctx.sheet.setTop(personCard);
+  }
+
+  function hideCard() {
+    if (!carded) return;
+    carded = null;
+    tracking = false;
+    if (personCard.isConnected) ctx.sheet.setTop(null);
+    selected = null;
+    mapItems.forEach((item) => item.marker.getElement()?.classList.remove('is-selected'));
+    updateLink();
+  }
+
+  function renderCard() {
+    const m = carded;
+    const p = live.get(m.chip)?.p;
+    const act = activity(p);
+    const where = p && ctx.me.pos ? (() => {
+      const pos = [p.lat, p.lng];
+      return `${distance(geoDistance(ctx.me.pos, pos))} ${compass(bearing(ctx.me.pos, pos), getLang())}`;
+    })() : null;
+    replace(personCard,
+      h('div', { class: 'person-card-head', style: { '--c': m.color } },
+        h('span', { class: `avatar${m.kid ? ' is-kid' : ''}` }, m.name[0]),
+        h('span', { class: 'person-card-text' },
+          h('strong', {}, m.name),
+          h('small', {}, icon(act.icon), h('span', {}, where ? `${act.text} · ${where}` : act.text))),
+        h('button', { class: 'person-card-close', 'aria-label': t('close'), onclick: hideCard }, icon('close'))),
+      h('div', { class: 'person-card-actions' },
+        h('button', { class: 'btn btn-quiet', onclick: () => { hideCard(); routeTo(m); } }, icon('route'), t('group.routeTo')),
+        h('button', { class: 'btn btn-sun', onclick: () => signal([m]) }, icon('vibrate'), t('group.signal'))));
+  }
+  const stopTracking = () => { tracking = false; };
+  ctx.map.on('click', hideCard);
+  ctx.map.on('dragstart', stopTracking);
 
   function updateLink() {
     const l = selected && live.get(selected);
@@ -499,6 +554,8 @@ export function mountGroup(el, ctx, group) {
         item.trail.remove();
       });
       link?.remove();
+      ctx.map.off('click', hideCard);
+      ctx.map.off('dragstart', stopTracking);
     },
   };
 }

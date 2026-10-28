@@ -110,6 +110,10 @@ export async function mountGuest(root, session) {
       map.flyToBounds(bounds, { ...mapPadding(), maxZoom, duration: reducedMotion() ? 0 : 0.9 });
     },
     follow: (on, zoom) => follow(on, zoom),
+    /** Karte sanft mitziehen, sodass pos in der Mitte des sichtbaren Teils bleibt */
+    panTo(pos) {
+      map.panTo(centerFor(pos, map.getZoom()), { animate: true, duration: 0.8 });
+    },
   };
 
   function mapPadding() {
@@ -289,6 +293,7 @@ export async function mountGuest(root, session) {
   /** Tag beendet → ab jetzt nur noch die Übersicht */
   ctx.endDay = (day, { animate = false } = {}) => {
     closeInfo?.();
+    routePanel.stop();
     dayEnd?.destroy();
     dayEnd = showDayEnd(page, { day, skimap, animate, onLogout: logout, onReset: config.fakeData ? resetDay : null });
   };
@@ -312,6 +317,7 @@ export async function mountGuest(root, session) {
     setClosedPistes([...shut]);
   }
   groupName = group?.name ?? null;
+  ctx.liftStatus = liftStatus; // Route-Tab zeigt bei jedem Lift, ob und bis wann er fährt
 
   // --- Treffpunkt der Gruppe ----------------------------------------------------------
   let meetLayer = null;
@@ -380,7 +386,9 @@ export async function mountGuest(root, session) {
       };
       setClosedLifts(skimap.lifts.map((l, i) => (passable(l) ? null : i)).filter((i) => i != null));
       const running = lifts.filter((x) => isRunning(liftState(liftStatus, x.lift.name, now))).length;
-      liftsBtn.replaceChildren(icon('gondola'), h('span', { class: 'num' }, String(running)), h('small', { class: 'num' }, `/${lifts.length}`));
+      liftsBtn.replaceChildren(h('span', { class: 'pill-label' }, t('tab.status')),
+        h('span', { class: 'pill-row' }, icon('gondola'), h('span', { class: 'num' }, String(running)), h('small', { class: 'num' }, `/${lifts.length}`)),
+        icon('maximize', 'pill-more'));
       liftsBtn.setAttribute('aria-label', t('lifts.aria', { n: running, total: lifts.length }));
       liftsBtn.classList.toggle('is-off', running === 0);
     } else {
@@ -394,8 +402,10 @@ export async function mountGuest(root, session) {
     const top = mountainStation(weather);
     const a = weather.avalanche;
     const lvl = a?.current ? a.levelAbove : null;
-    weatherBtn.replaceChildren(icon(top.condition), h('span', { class: 'num' }, temp(top.temp)),
-      h('span', { class: 'aval-mini num', style: { '--c': AVAL_COLORS[lvl || 0] }, title: t('aval.title') }, lvl ?? '–'));
+    weatherBtn.replaceChildren(h('span', { class: 'pill-label' }, t('tab.weather')),
+      h('span', { class: 'pill-row' }, icon(top.condition), h('span', { class: 'num' }, temp(top.temp)),
+        h('span', { class: 'aval-mini num', style: { '--c': AVAL_COLORS[lvl || 0] }, title: t('aval.title') }, lvl ?? '–')),
+      icon('maximize', 'pill-more'));
     weatherBtn.setAttribute('aria-label', `${t('weather.title')}: ${temp(top.temp)}, ${t(`cond.${top.condition}`)}. `
       + (lvl ? `${t('aval.title')}: ${lvl}, ${t(`aval.level.${lvl}`)}` : `${t('aval.title')}: ${t('aval.noReport')}`));
   }

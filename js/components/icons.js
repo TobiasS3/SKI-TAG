@@ -64,6 +64,7 @@ const PATHS = {
   alert: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
   shield: '<path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
   expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  maximize: '<path d="M21 13v8h-8M21 21 10 10"/>',
 };
 
 export function icon(name, className = '') {

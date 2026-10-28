@@ -1,17 +1,21 @@
 // Route-Tab: Ziel wählen, Einstellung (schwarze Pisten meiden/bevorzugen …), Route anzeigen.
-// Keine Live-Navigation: Die Route einmal anschauen, dann den Schildern folgen –
-// deshalb steht die Wegbeschreibung mit Liftnamen und Pistennummern im Mittelpunkt.
+// Im Mittelpunkt steht die Wegbeschreibung mit Liftnamen und Pistennummern – den Schildern folgen.
+//
+// „Route starten“: Karte folgt dir, unten statt der Tabs eine Leiste mit dem aktuellen Schild
+// und „Route beenden“. Hochziehen zeigt alle Schilder, das aktuelle ist markiert.
 
 import { h, replace } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { api } from '../../js/services/api.js';
 import { route, skimap } from '../../js/services/slopes.js';
+import { liftState } from '../../js/services/lift-status.js';
 import { drawRoute } from '../../js/map/layers.js';
 import { distance as geoDistance } from '../../js/map/geo.js';
 import { distance, duration } from '../../js/utils/format.js';
 import { clock, todayAt, now } from '../../js/utils/time.js';
 import { icon } from '../../js/components/icons.js';
+import { toast } from '../../js/components/toast.js';
 import { config } from '../../js/config.js';
 import { placeLogo, placeCover, mediaFor } from './place-media.js';
 
@@ -22,9 +26,12 @@ export function mountRoutePanel(el, ctx) {
   let mode = 'fast';
   let result = null;
   let layer = null;
+  let running = null;   // { cur, idx, flat } – laufende Route
+  let focusBefore = 'all'; // Kartenfilter vor dem Start – danach wieder herstellen
   let picking = false;  // Uhrzeit für den Treffpunkt wird gerade gewählt
 
   function setTarget(place) {
+    if (running) stop();
     target = place;
     picking = false;
     calculate();
@@ -35,10 +42,8 @@ export function mountRoutePanel(el, ctx) {
     layer = null;
     result = target && ctx.me.pos ? route(ctx.me.pos, target.node, mode) : null;
     if (result && !result.unreachable && result.coords.length > 1) {
-      layer = drawRoute(ctx.map, result.coords);
+      layer = drawRoute(ctx.map, result.coords, result.steps);
       ctx.fit(L.latLngBounds(result.coords).extend(ctx.me.pos));
-      // Fake-Chip fährt die Route ab (echter Chip: der Gast fährt selbst)
-      api.guide(ctx.session.chip, target.node, mode);
     } else if (target) {
       ctx.fit(L.latLngBounds([target.pos, target.pos]), 15);
     }
@@ -51,12 +56,90 @@ export function mountRoutePanel(el, ctx) {
     result = null;
     layer?.remove();
     layer = null;
-    api.guide(ctx.session.chip, null);
     ctx.routeShown?.(false);
     render();
   }
 
+  // --- Route läuft ------------------------------------------------------------------
+  const bar = h('div', { class: 'route-bar' });
+
+  function start() {
+    if (!result || result.unreachable) return;
+    // Alle Punkte der Route mit ihrem Schritt – daran erkennen wir, wo du gerade bist
+    const flat = result.steps.flatMap((st, k) => st.coords.map((c) => ({ c, k })));
+    running = { cur: 0, idx: 0, flat };
+    // Fake-Chip fährt die Route ab (echter Chip: der Gast fährt selbst)
+    api.guide(ctx.session.chip, target.node, mode);
+    ctx.page.classList.add('route-running');
+    renderBar(); // erst befüllen, dann misst der Bereich die richtige Höhe
+    ctx.sheet.setTop(bar);
+    ctx.sheet.collapse();
+    // Karte zeigt sofort nur noch die Route
+    focusBefore = ctx.mapFocus?.() || 'all';
+    ctx.setFocus?.('route', { quiet: true });
+    ctx.follow(true, 16);
+    render();
+  }
+
+  function stop({ arrived = false } = {}) {
+    if (!running) return;
+    running = null;
+    api.guide(ctx.session.chip, null);
+    ctx.page.classList.remove('route-running');
+    ctx.sheet.setTop(null);
+    toast(arrived ? t('route.arrived', { name: target.name }) : t('route.stopped'), { icon: arrived ? 'flag' : 'route' });
+    clearRoute();
+    if (focusBefore === 'track') ctx.setFocus?.('track', { quiet: true });
+  }
+
+  /** Neue Position: welcher Schritt ist dran? Angekommen? */
+  function track() {
+    if (!running || !ctx.me.pos) return;
+    if (geoDistance(ctx.me.pos, target.pos) < ARRIVE_M) return stop({ arrived: true });
+    // Nur vorwärts suchen – zurück auf der Route springt die Anzeige nicht
+    let best = running.idx;
+    let bestD = Infinity;
+    for (let i = running.idx; i < running.flat.length; i++) {
+      const d = geoDistance(ctx.me.pos, running.flat[i].c);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    if (bestD > OFF_ROUTE_M) return;
+    running.idx = best;
+    const cur = running.flat[best].k;
+    if (cur !== running.cur) {
+      running.cur = cur;
+      navigator.vibrate?.(40);
+      render();
+    }
+  }
+
+  function renderBar() {
+    const st = result.steps[running.cur];
+    const next = result.steps[running.cur + 1];
+    replace(bar,
+      h('button', { class: 'route-bar-now', onclick: () => ctx.sheet.open('route') },
+        stepIcon(st),
+        h('span', { class: 'route-bar-text' },
+          h('strong', {}, stepText(st)),
+          h('small', {}, next ? `${t('route.then')}: ${stepText(next)}` : t('route.arrive', { name: target.name })))),
+      h('button', { class: 'route-bar-stop', 'aria-label': t('route.stop'), onclick: () => stop() }, icon('close')));
+  }
+
+  function runningView() {
+    return h('div', { class: 'stack' },
+      h('div', { class: 'route-run-head' },
+        h('span', { class: 'route-run-live' }, h('i'), t('route.running')),
+        h('h2', { class: 'title' }, target.name)),
+      h('h3', { class: 'steps-title' }, icon('route'), t('route.follow')),
+      steps(result, target, running.cur),
+      h('button', { class: 'btn btn-quiet btn-block', onclick: () => stop() }, icon('close'), t('route.stop')));
+  }
+
   function render() {
+    if (running) {
+      renderBar();
+      return replace(el, runningView());
+    }
     if (!target) return replace(el, emptyState());
     const ok = result && !result.unreachable;
     replace(el,
@@ -74,7 +157,9 @@ export function mountRoutePanel(el, ctx) {
       result?.unreachable
         ? h('p', { class: 'note note-warn' }, icon('mountain'), t('route.otherArea', { area: result.area }))
         : ok ? summary(result) : h('p', { class: 'note note-warn' }, t('route.none')),
+      ok ? h('button', { class: 'btn btn-sun btn-big btn-block route-start', onclick: start }, icon('nav'), t('route.start')) : null,
       ok ? h('h3', { class: 'steps-title' }, icon('route'), t('route.follow')) : null,
+      ok && ctx.liftStatus ? h('p', { class: 'small muted steps-note' }, icon('check'), t('route.statusIncluded')) : null,
       ok ? steps(result, target) : null,
     );
   }
@@ -221,6 +306,18 @@ export function mountRoutePanel(el, ctx) {
     }, icon('eye'), h('span', {}, h('strong', {}, t('focus.routeOnly')), h('small', {}, t('focus.route.hint'))), h('i', { class: 'switch' }));
   }
 
+  /** Bei Liften: fährt er (bis wann) – Wind-Stopp und „schließt bald“ hervorgehoben */
+  function liftNote(s) {
+    if (s.kind !== 'lift' || !ctx.liftStatus) return null;
+    const st = liftState(ctx.liftStatus, s.item.name);
+    const text = {
+      open: () => t('route.liftUntil', { time: st.close }),
+      closing: () => t('lifts.state.closing', { time: duration((todayAt(st.close) - now()) / 1000) }),
+      hold: () => (st.reason ? t(`lifts.reason.${st.reason}`) : t('lifts.state.hold')),
+    }[st.state]?.() ?? t(`lifts.state.${st.state}`);
+    return h('span', { class: `step-liftstate is-${st.state}` }, ` · ${text}`);
+  }
+
   function action(ic, label, sub, href, external = false) {
     return h('a', { class: 'place-action', href, target: external ? '_blank' : null, rel: external ? 'noopener' : null },
       h('span', { class: 'place-action-icon' }, icon(ic)),
@@ -231,18 +328,15 @@ export function mountRoutePanel(el, ctx) {
     return h('li', {}, icon(ic), h('span', {}, text));
   }
 
-  function steps(r, place) {
+  function steps(r, place, current = -1) {
     return h('ol', { class: 'steps' },
-      r.steps.map((s) => {
-        const isLift = s.kind === 'lift';
-        const name = isLift ? s.item.name : pisteName(s.item);
-        return h('li', { class: `step step-${s.kind}` },
-          isLift
-            ? h('span', { class: 'step-icon' }, icon('gondola'))
-            : h('span', { class: `step-icon disc diff-${s.item.diff}` }, h('span', {}, s.item.ref || '')),
+      r.steps.map((s, i) => {
+        const state = current < 0 ? '' : i < current ? ' is-done' : i === current ? ' is-current' : '';
+        return h('li', { class: `step step-${s.kind}${state}` },
+          stepIcon(s),
           h('span', { class: 'step-text' },
-            h('strong', {}, t(isLift ? 'route.stepLift' : 'route.stepPiste', { name })),
-            h('small', {}, `${distance(s.len)}, ${duration(s.time)}`)));
+            h('strong', {}, stepText(s)),
+            h('small', {}, `${distance(s.len)}, ${duration(s.time)}`, liftNote(s))));
       }),
       h('li', { class: 'step step-goal' },
         h('span', { class: 'step-icon' }, icon('flag')),
@@ -252,6 +346,7 @@ export function mountRoutePanel(el, ctx) {
 
   const offs = [
     on('lang', render),
+    on('me', track),
     on('focus', () => target && render()),
     on('meeting', () => target && render()),
   ];
@@ -260,11 +355,29 @@ export function mountRoutePanel(el, ctx) {
   return {
     setTarget,
     refresh: () => { if (!target) render(); },
+    stop: () => stop(),
     destroy() {
+      if (running) api.guide(ctx.session.chip, null);
       offs.forEach((off) => off());
       layer?.remove();
     },
   };
+}
+
+const ARRIVE_M = 45;     // so nah am Ziel = angekommen
+const OFF_ROUTE_M = 120; // weiter weg = nicht auf der Route, Anzeige bleibt stehen
+
+/** Schild-Symbol: Lift = Gondel, Piste = farbige Scheibe mit Nummer */
+function stepIcon(s) {
+  return s.kind === 'lift'
+    ? h('span', { class: 'step-icon' }, icon('gondola'))
+    : h('span', { class: `step-icon disc diff-${s.item.diff}` }, h('span', {}, s.item.ref || ''));
+}
+
+function stepText(s) {
+  return s.kind === 'lift'
+    ? t('route.stepLift', { name: s.item.name })
+    : t('route.stepPiste', { name: pisteName(s.item) });
 }
 
 const stat = (label, value) => h('div', {}, h('dt', {}, label), h('dd', { class: 'num' }, String(value)));
