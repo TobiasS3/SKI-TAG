@@ -2,7 +2,7 @@
 //
 // Rechnung: Route von dir zur Talstation, wo dein Tag begonnen hat. Für jeden Lift auf der Route:
 // Schließzeit minus die Zeit, bis du dort bist = späteste Abfahrt. Die früheste davon zählt.
-// Ab 45 min vorher: Hinweis unter der Suche („Hahnenkammbahn schließt um 16:30 – Route starten“).
+// Ab 45 min vorher: Hinweis unter der Suche („Hahnenkammbahn schließt um 16:30 – Route zeigen“).
 // Bei 30, 15 und 5 min zusätzlich Meldung + Vibration.
 
 import { h, replace } from '../../js/utils/dom.js';
@@ -103,15 +103,15 @@ export function mountLastLift(page, ctx, status) {
         late
           ? h('small', {}, t('lastlift.noneHint'))
           : h('small', {}, t('lastlift.leaveBy', { time: clock(new Date(d.at)), min: Math.max(1, Math.round(d.left)) }))),
-      late ? null : h('button', { class: 'lastlift-go', onclick: goHome }, icon('nav'), t('lastlift.start')),
+      late ? null : h('button', { class: 'lastlift-go', onclick: goHome }, icon('route'), t('lastlift.start')),
       h('button', { class: 'lastlift-close', 'aria-label': t('close'), onclick: () => { dismissed = true; el.hidden = true; } }, icon('close')));
   }
 
-  /** Navigation ins Tal sofort starten */
+  /** Route ins Tal zeigen */
   function goHome() {
     dismissed = true;
     el.hidden = true;
-    ctx.navigateTo({ type: 'lift', name: home.lift.name, sub: home.lift.typeName, pos: home.pos, node: home.node, lift: home.lift });
+    ctx.choose({ type: 'lift', name: home.lift.name, sub: home.lift.typeName, pos: home.pos, node: home.node, lift: home.lift });
   }
 
   const offs = [on('me', () => update()), on('lang', () => update(true))];

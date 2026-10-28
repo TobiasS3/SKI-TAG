@@ -1,5 +1,6 @@
-// Gäste-Ansicht: Karte + Kopfleiste + Suche + Bereich mit Tabs (Mein Tag, Route, Lifte, Wetter, Gruppe),
-// dazu SOS-Knopf, Navigation und Kartenfilter (alles / nur Route / nur gefahrene Strecke).
+// Gäste-Ansicht: Karte + Kopfleiste + Suche + Bereich mit Tabs (Mein Tag, Route, Gruppe),
+// dazu SOS-Knopf und Kartenfilter (alles / nur Route / nur gefahrene Strecke).
+// Lifte und Wetter öffnen sich als Fenster über die Knöpfe in der Kopfleiste.
 
 import { h, reducedMotion, isWide } from '../../js/utils/dom.js';
 import { t, toggleLang, translate } from '../../js/core/i18n.js';
@@ -18,7 +19,7 @@ import { temp } from '../../js/utils/format.js';
 import { config } from '../../js/config.js';
 import { icon } from '../../js/components/icons.js';
 import { createSheet } from '../../js/components/panel.js';
-import { confirmModal } from '../../js/components/modal.js';
+import { confirmModal, infoModal } from '../../js/components/modal.js';
 import { toast } from '../../js/components/toast.js';
 import { createSearch } from './search.js';
 import { mountTracking } from './tracking.js';
@@ -28,7 +29,6 @@ import { mountGroup } from './group-panel.js';
 import { mountLifts, liftList, liftState, isRunning, pisteList, pisteState } from './lifts-panel.js';
 import { mountSOS } from './sos.js';
 import { showChipConnect } from './chip-connect.js';
-import { startNavigation } from './navigation.js';
 import { showDayEnd } from './day-end.js';
 import { mountLastLift } from './last-lift.js';
 import { setMedia, logoHTML } from './place-media.js';
@@ -42,8 +42,8 @@ export async function mountGuest(root, session) {
   const leftLabel = h('span', { class: 'top-left-label' });
   const leftValue = h('span', { class: 'num top-left-value' });
   const timeBox = h('div', { class: 'top-time' }, leftLabel, leftValue);
-  const liftsBtn = h('button', { class: 'pill pill-lifts', onclick: () => sheet.open('lifts') });
-  const weatherBtn = h('button', { class: 'pill pill-weather', onclick: () => sheet.open('weather') });
+  const liftsBtn = h('button', { class: 'pill pill-lifts', onclick: () => openInfo('lifts') });
+  const weatherBtn = h('button', { class: 'pill pill-weather', onclick: () => openInfo('weather') });
   const menuBtn = h('button', { class: 'avatar-btn', 'data-i18n-label': 'top.menu', 'aria-expanded': 'false' }, (session.name || '?')[0]);
   const menu = h('div', { class: 'menu', hidden: true, role: 'menu' });
 
@@ -56,8 +56,6 @@ export async function mountGuest(root, session) {
     tabs: [
       { id: 'day', label: 'tab.day', icon: 'today', badge: true },
       { id: 'route', label: 'tab.route', icon: 'route' },
-      { id: 'lifts', label: 'tab.status', icon: 'gondola' },
-      { id: 'weather', label: 'tab.weather', icon: 'sun' },
       { id: 'group', label: 'tab.group', icon: 'users' },
     ],
   });
@@ -119,16 +117,13 @@ export async function mountGuest(root, session) {
     return { paddingTopLeft: [r.left + 30, r.top + 20], paddingBottomRight: [innerWidth - r.right + 30, innerHeight - r.bottom + 20] };
   }
 
-  /** Der Teil der Karte, der gerade wirklich zu sehen ist (ohne Kopfleiste, Suche, Bereich, Navigation) */
+  /** Der Teil der Karte, der gerade wirklich zu sehen ist (ohne Kopfleiste, Suche und Bereich) */
   function visibleRect() {
     const desktop = isWide();
-    const topEl = ['.nav-hud', '.nav-pill', '.search', '.topbar']
+    const topEl = ['.search', '.topbar']
       .map((s) => page.querySelector(s)?.getBoundingClientRect())
       .find((b) => b && b.height > 0);
-    let bottom = innerHeight;
-    const navBar = page.querySelector('.nav-bar')?.getBoundingClientRect();
-    if (navBar?.height) bottom = navBar.top;
-    else if (!desktop) bottom = innerHeight - sheet.visibleHeight();
+    const bottom = desktop ? innerHeight : innerHeight - sheet.visibleHeight();
     return { left: desktop ? 452 : 0, right: innerWidth, top: (topEl?.bottom ?? 80) + 8, bottom: bottom - 8 };
   }
 
@@ -142,26 +137,25 @@ export async function mountGuest(root, session) {
 
   const routePanel = mountRoutePanel(sheet.body('route'), ctx);
   const choose = (place) => {
+    closeInfo?.();
     routePanel.setTarget(place);
     sheet.open('route');
   };
   ctx.choose = choose;
-  ctx.navigateTo = (place) => routePanel.navigate(place);
 
-  // Navigation
-  let nav = null;
-  ctx.startNavigation = ({ target, mode, onEnd }) => {
-    nav?.stop();
-    nav = startNavigation(ctx, {
-      target, mode,
-      onEnd: () => {
-        nav = null;
-        onEnd?.();
-      },
+  // Lifte + Wetter: Inhalt bleibt bestehen, das Fenster hängt ihn nur ein
+  const infoBodies = { lifts: h('section', { class: 'sheet-pane' }), weather: h('section', { class: 'sheet-pane' }) };
+  let closeInfo = null;
+  function openInfo(id) {
+    closeInfo?.();
+    closeInfo = infoModal({
+      body: infoBodies[id],
+      label: t(id === 'lifts' ? 'tab.status' : 'tab.weather'),
+      closeLabel: t('close'),
+      onClose: () => { closeInfo = null; },
     });
-  };
-  ctx.stopNavigation = () => nav?.stop(true);
-  cleanups.push(() => nav?.stop());
+  }
+  cleanups.push(() => closeInfo?.());
 
   // Kartenstil: Schnee ↔ Gelände
   let mapStyle = setMapStyle(mapEl, load('mapStyle', 'winter'));
@@ -294,7 +288,7 @@ export async function mountGuest(root, session) {
   let dayEnd = null;
   /** Tag beendet → ab jetzt nur noch die Übersicht */
   ctx.endDay = (day, { animate = false } = {}) => {
-    nav?.stop();
+    closeInfo?.();
     dayEnd?.destroy();
     dayEnd = showDayEnd(page, { day, skimap, animate, onLogout: logout, onReset: config.fakeData ? resetDay : null });
   };
@@ -350,9 +344,9 @@ export async function mountGuest(root, session) {
   };
   drawMeeting();
   cleanups.push(() => meetLayer?.remove(), on('lang', drawMeeting));
-  const weatherPanel = mountWeather(sheet.body('weather'), weather);
+  const weatherPanel = mountWeather(infoBodies.weather, weather);
   const groupPanel = mountGroup(sheet.body('group'), ctx, group);
-  const liftsPanel = mountLifts(sheet.body('lifts'), ctx, liftStatus, pisteStatus);
+  const liftsPanel = mountLifts(infoBodies.lifts, ctx, liftStatus, pisteStatus);
   const lifts = liftList(skimap);
   const lastLift = mountLastLift(page, ctx, liftStatus);
   cleanups.push(() => liftsPanel.destroy(), () => lastLift.destroy());

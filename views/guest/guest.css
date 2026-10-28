@@ -1436,8 +1436,19 @@
   font-size: 1.45rem;
 }
 
-.nav-start {
-  font-size: 1.15rem;
+/* „Den Schildern folgen“ über der Wegbeschreibung */
+.steps-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--sp-5) !important;
+  font-size: 1.1rem;
+}
+
+.steps-title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--sun-deep);
 }
 
 /* Schritte als Linie mit Stationen */
@@ -1489,344 +1500,6 @@
 
 .step-goal .step-icon {
   background: var(--sun);
-}
-
-/* ================================================================================
-   Navigation
-   ================================================================================ */
-.nav-hud {
-  position: absolute;
-  top: calc(var(--safe-top) + var(--sp-3) + 68px);
-  left: var(--sp-3);
-  right: var(--sp-3);
-  z-index: 1060;
-  padding: 14px;
-  border-radius: 24px;
-  background: var(--night);
-  color: #fff;
-  box-shadow: var(--shadow-3);
-  animation: modal-in var(--t-slow) var(--ease-spring) both;
-}
-
-.nav-now {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.nav-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: var(--sun);
-  color: #fff;
-}
-
-.nav-icon.is-big {
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
-  box-shadow: 0 8px 20px rgba(255, 106, 19, 0.35);
-}
-
-.nav-icon.disc {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9);
-}
-
-.nav-icon.is-big.disc span {
-  font-size: 1.5rem;
-}
-
-.nav-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-.nav-icon.is-big svg {
-  width: 30px;
-  height: 30px;
-}
-
-.nav-icon.is-ok {
-  background: var(--ok);
-  box-shadow: 0 8px 20px rgba(22, 180, 107, 0.4);
-}
-
-.nav-now-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.nav-dist {
-  font-size: 2.1rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.nav-now-text strong {
-  margin-top: 4px;
-  font-size: 1.05rem;
-  line-height: 1.25;
-}
-
-.nav-next {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--night-line);
-  color: var(--night-muted);
-  font-size: var(--fs-s);
-  font-weight: 600;
-}
-
-.nav-next .nav-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-}
-
-.nav-next .nav-icon svg {
-  width: 15px;
-  height: 15px;
-}
-
-.nav-next .nav-icon.disc span {
-  font-size: 0.75rem;
-}
-
-.nav-next > svg {
-  width: 18px;
-  height: 18px;
-}
-
-.nav-next-name {
-  color: #fff;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.nav-bar {
-  position: absolute;
-  left: var(--sp-3);
-  right: var(--sp-3);
-  bottom: calc(var(--sp-3) + var(--safe-bottom));
-  z-index: 1060;
-  overflow: hidden;
-  padding: 0 14px 14px;
-  border-radius: 24px;
-  background: var(--night);
-  color: #fff;
-  box-shadow: var(--shadow-3);
-  animation: nav-bar-in var(--t-slow) var(--ease-out) both;
-}
-
-@keyframes nav-bar-in {
-  from {
-    transform: translateY(120%);
-  }
-}
-
-.nav-progress {
-  height: 4px;
-  margin: 0 -14px 12px;
-  background: var(--night-3);
-}
-
-.nav-progress i {
-  display: block;
-  height: 100%;
-  width: calc(var(--f) * 100%);
-  background: var(--sun);
-  box-shadow: 0 0 10px var(--sun);
-  transition: width 900ms var(--ease);
-}
-
-.nav-bar-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-}
-
-.nav-stat {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.nav-stat .num {
-  font-size: 1.5rem;
-}
-
-.nav-stat-main .num {
-  font-size: 2.1rem;
-  color: var(--sun);
-}
-
-.nav-stat small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--night-muted);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-}
-
-.nav-stop {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 48px;
-  height: 48px;
-  margin-left: auto;
-  border-radius: 50%;
-  background: var(--night-3);
-  color: #fff;
-}
-
-.nav-stop svg {
-  width: 22px;
-  height: 22px;
-}
-
-.nav-bar .btn-sun {
-  margin-top: 14px;
-}
-
-.is-navigating .search {
-  display: none;
-}
-
-.is-navigating:not(.nav-mini) .sheet {
-  transform: translateY(110%) !important;
-}
-
-.is-navigating:not(.nav-mini) .map-controls,
-.is-navigating:not(.nav-mini) .sos-wrap {
-  bottom: calc(118px + var(--safe-bottom)) !important;
-}
-
-/* Handy: vier Dinge in der Leiste – enger zusammen, Zielname darf gekürzt werden */
-.is-navigating .nav-bar-row {
-  gap: 10px;
-}
-
-.nav-bar-row .nav-stat {
-  min-width: 0;
-}
-
-.nav-bar-row .nav-stat small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Knopf „Karte“: Navigation einklappen */
-.nav-min {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  height: 48px;
-  margin-left: auto;
-  padding: 0 14px;
-  border-radius: 16px;
-  background: var(--night-3);
-  color: #fff;
-  font-size: var(--fs-s);
-  font-weight: 700;
-}
-
-.nav-min svg {
-  width: 18px;
-  height: 18px;
-}
-
-.nav-min + .nav-stop {
-  margin-left: 0;
-}
-
-/* Eingeklappt: HUD + Leiste weg, oben ein Streifen zum Zurückkehren */
-.nav-mini .nav-hud,
-.nav-mini .nav-bar {
-  display: none;
-}
-
-.nav-pill {
-  display: none;
-}
-
-.nav-mini .nav-pill {
-  position: absolute;
-  top: calc(var(--safe-top) + var(--sp-3) + 72px);
-  left: var(--sp-3);
-  right: var(--sp-3);
-  z-index: 1090;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 56px;
-  padding: 0 8px 0 16px;
-  border-radius: 20px;
-  background: var(--night);
-  color: #fff;
-  text-align: left;
-  box-shadow: var(--shadow-3);
-  animation: pane-in var(--t-med) var(--ease) both;
-}
-
-.nav-pill-live i {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--sun);
-  animation: rec 1.6s ease-in-out infinite;
-}
-
-.nav-pill-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.15;
-}
-
-.nav-pill-text strong {
-  font-size: 1.15rem;
-  color: var(--sun);
-}
-
-.nav-pill-text small {
-  overflow: hidden;
-  font-size: var(--fs-xs);
-  color: var(--night-muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.nav-pill-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  height: 42px;
-  margin-left: auto;
-  padding: 0 14px;
-  border-radius: 14px;
-  background: var(--sun);
-  font-size: var(--fs-s);
-  font-weight: 800;
-}
-
-.nav-pill-back svg {
-  width: 16px;
-  height: 16px;
 }
 
 /* ================================================================================
@@ -2765,67 +2438,6 @@
 }
 
 /* ================================================================================
-   Navigation: Vorschau im Route-Tab
-   ================================================================================ */
-.nav-preview-head .title {
-  margin-top: 4px;
-  font-size: 1.5rem;
-}
-
-.nav-preview-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: var(--fs-xs);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--sun-deep);
-}
-
-.nav-preview-live i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--sun);
-  animation: rec 1.6s ease-in-out infinite;
-}
-
-.nav-progress.is-light {
-  height: 6px;
-  margin: 0;
-  overflow: hidden;
-  border-radius: 3px;
-  background: var(--ice);
-}
-
-.nav-progress.is-light i {
-  border-radius: 3px;
-  box-shadow: none;
-}
-
-.step.is-done {
-  opacity: 0.4;
-}
-
-.step.is-current::after {
-  content: "";
-  position: absolute;
-  inset: 2px -10px;
-  z-index: -1;
-  border-radius: 14px;
-  background: var(--sun-soft);
-}
-
-.step.is-current .step-text strong {
-  color: var(--sun-deep);
-}
-
-.steps {
-  isolation: isolate;
-}
-
-/* ================================================================================
    Lifte: Status-Liste
    ================================================================================ */
 .lifts-head {
@@ -3189,10 +2801,7 @@
   background: var(--night);
 }
 
-.day-over .sos-wrap,
-.day-over .nav-hud,
-.day-over .nav-bar,
-.day-over .nav-pill {
+.day-over .sos-wrap {
   display: none;
 }
 
@@ -3549,7 +3158,6 @@
   background: var(--ink);
 }
 
-.is-navigating .lastlift,
 .day-full .lastlift,
 .day-over .lastlift {
   display: none;
@@ -4128,33 +3736,6 @@
     left: calc(420px + var(--sp-4) * 2);
     right: auto;
     width: min(440px, calc(100% - 420px - var(--sp-4) * 3));
-  }
-
-  .nav-hud {
-    top: var(--sp-4);
-    left: calc(420px + var(--sp-4) * 2);
-    right: auto;
-    width: 440px;
-  }
-
-  .nav-bar {
-    left: calc(420px + var(--sp-4) * 2);
-    right: auto;
-    width: 440px;
-    bottom: var(--sp-4);
-  }
-
-  .is-navigating .sheet {
-    transform: none !important;
-  }
-
-  .nav-min {
-    display: none;
-  }
-
-  .is-navigating .map-controls,
-  .is-navigating .sos-wrap {
-    bottom: var(--sp-5) !important;
   }
 }
 

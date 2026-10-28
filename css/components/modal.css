@@ -46,6 +46,38 @@
   padding: 8px 16px;
 }
 
+/* Info-Fenster (Lifte, Wetter): grauer Grund wie im Bereich unten, Inhalt scrollt */
+.modal-info {
+  position: relative;
+  width: min(520px, 100%);
+  padding: var(--sp-4);
+  padding-top: var(--sp-3);
+  background: var(--snow);
+  overscroll-behavior: contain;
+}
+
+.modal-close {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 0 calc(-40px - var(--sp-1)) auto;
+  border: 0;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.modal-close svg {
+  width: 18px;
+  height: 18px;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

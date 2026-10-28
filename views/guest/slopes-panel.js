@@ -1,9 +1,11 @@
-// Route-Tab: Ziel wählen, Einstellung (schwarze Pisten meiden/bevorzugen …), Route anzeigen,
-// „Route starten“ übergibt an die Navigation. Während der Navigation: Vorschau mit Fortschritt.
+// Route-Tab: Ziel wählen, Einstellung (schwarze Pisten meiden/bevorzugen …), Route anzeigen.
+// Keine Live-Navigation: Die Route einmal anschauen, dann den Schildern folgen –
+// deshalb steht die Wegbeschreibung mit Liftnamen und Pistennummern im Mittelpunkt.
 
 import { h, replace } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
+import { api } from '../../js/services/api.js';
 import { route, skimap } from '../../js/services/slopes.js';
 import { drawRoute } from '../../js/map/layers.js';
 import { distance as geoDistance } from '../../js/map/geo.js';
@@ -20,12 +22,9 @@ export function mountRoutePanel(el, ctx) {
   let mode = 'fast';
   let result = null;
   let layer = null;
-  let navigating = false;
-  let progress = null; // letzter Stand der Navigation
   let picking = false;  // Uhrzeit für den Treffpunkt wird gerade gewählt
 
   function setTarget(place) {
-    if (navigating) return;
     target = place;
     picking = false;
     calculate();
@@ -38,6 +37,8 @@ export function mountRoutePanel(el, ctx) {
     if (result && !result.unreachable && result.coords.length > 1) {
       layer = drawRoute(ctx.map, result.coords);
       ctx.fit(L.latLngBounds(result.coords).extend(ctx.me.pos));
+      // Fake-Chip fährt die Route ab (echter Chip: der Gast fährt selbst)
+      api.guide(ctx.session.chip, target.node, mode);
     } else if (target) {
       ctx.fit(L.latLngBounds([target.pos, target.pos]), 15);
     }
@@ -50,30 +51,12 @@ export function mountRoutePanel(el, ctx) {
     result = null;
     layer?.remove();
     layer = null;
+    api.guide(ctx.session.chip, null);
     ctx.routeShown?.(false);
     render();
   }
 
-  function start() {
-    if (!result || result.unreachable) return;
-    layer?.remove();
-    layer = null;
-    navigating = true;
-    progress = null;
-    ctx.startNavigation({
-      target, mode,
-      onEnd: () => {
-        navigating = false;
-        progress = null;
-        clearRoute();
-      },
-    });
-    ctx.routeShown?.(true); // Navigation zeichnet ihre eigene Route
-    render();
-  }
-
   function render() {
-    if (navigating) return replace(el, navPreview());
     if (!target) return replace(el, emptyState());
     const ok = result && !result.unreachable;
     replace(el,
@@ -91,7 +74,7 @@ export function mountRoutePanel(el, ctx) {
       result?.unreachable
         ? h('p', { class: 'note note-warn' }, icon('mountain'), t('route.otherArea', { area: result.area }))
         : ok ? summary(result) : h('p', { class: 'note note-warn' }, t('route.none')),
-      ok ? h('button', { class: 'btn btn-sun btn-big btn-block nav-start', onclick: start }, icon('nav'), t('nav.start')) : null,
+      ok ? h('h3', { class: 'steps-title' }, icon('route'), t('route.follow')) : null,
       ok ? steps(result, target) : null,
     );
   }
@@ -238,29 +221,6 @@ export function mountRoutePanel(el, ctx) {
     }, icon('eye'), h('span', {}, h('strong', {}, t('focus.routeOnly')), h('small', {}, t('focus.route.hint'))), h('i', { class: 'switch' }));
   }
 
-  /** Während der Navigation: wohin, wie weit, welche Schritte noch kommen */
-  function navPreview() {
-    const p = progress;
-    const r = p?.route;
-    return h('div', { class: 'stack nav-preview' },
-      h('div', { class: 'nav-preview-head' },
-        h('span', { class: 'nav-preview-live' }, h('i'), t(p?.arrived ? 'nav.arrived' : 'nav.running')),
-        h('h2', { class: 'title' }, target.name)),
-      p ? h('div', { class: 'route-summary' },
-        h('div', { class: 'route-time' },
-          h('span', { class: 'num route-big' }, p.arrived ? '✓' : duration(p.timeLeft)),
-          p.arrived ? null : h('span', { class: 'route-eta' }, t('route.arrival', { time: clock(new Date(now().getTime() + p.timeLeft * 1000)) }))),
-        h('div', { class: 'nav-progress is-light', style: { '--f': Math.min(1, Math.max(0, p.f)).toFixed(3) } }, h('i')),
-        h('dl', { class: 'route-stats' },
-          stat(t('nav.left'), distance(p.remaining)),
-          stat(t('route.pistes'), r.pistes),
-          stat(t('route.lifts'), r.lifts))) : null,
-      focusToggle(),
-      r ? steps(r, target, p.step) : null,
-      h('button', { class: 'btn btn-quiet btn-block', onclick: () => ctx.stopNavigation?.() }, icon('close'), t('nav.stop')),
-    );
-  }
-
   function action(ic, label, sub, href, external = false) {
     return h('a', { class: 'place-action', href, target: external ? '_blank' : null, rel: external ? 'noopener' : null },
       h('span', { class: 'place-action-icon' }, icon(ic)),
@@ -271,13 +231,12 @@ export function mountRoutePanel(el, ctx) {
     return h('li', {}, icon(ic), h('span', {}, text));
   }
 
-  function steps(r, place, current = -1) {
+  function steps(r, place) {
     return h('ol', { class: 'steps' },
-      r.steps.map((s, i) => {
+      r.steps.map((s) => {
         const isLift = s.kind === 'lift';
         const name = isLift ? s.item.name : pisteName(s.item);
-        const state = current < 0 ? '' : i < current ? ' is-done' : i === current ? ' is-current' : '';
-        return h('li', { class: `step step-${s.kind}${state}` },
+        return h('li', { class: `step step-${s.kind}` },
           isLift
             ? h('span', { class: 'step-icon' }, icon('gondola'))
             : h('span', { class: `step-icon disc diff-${s.item.diff}` }, h('span', {}, s.item.ref || '')),
@@ -293,24 +252,13 @@ export function mountRoutePanel(el, ctx) {
 
   const offs = [
     on('lang', render),
-    on('focus', () => !navigating && target && render()),
-    on('meeting', () => !navigating && target && render()),
-    on('nav:progress', (p) => {
-      // Nur neu zeichnen, wenn sich der Schritt ändert oder alle ~5 s – schont den Akku
-      const changed = !progress || progress.step !== p.step || p.arrived || Date.now() - (progress.at || 0) > 5000;
-      progress = { ...p, at: changed ? Date.now() : progress.at };
-      if (navigating && changed) render();
-    }),
+    on('focus', () => target && render()),
+    on('meeting', () => target && render()),
   ];
   render();
 
   return {
     setTarget,
-    /** Ziel setzen und sofort losnavigieren (z. B. „Route starten“ beim letzten Lift) */
-    navigate(place) {
-      setTarget(place);
-      start();
-    },
     refresh: () => { if (!target) render(); },
     destroy() {
       offs.forEach((off) => off());
