@@ -21,7 +21,7 @@ SKI-TAG/
 ├── data/                Daten (aktuell Fake-Daten)
 ├── lib/                 Fremde Bibliotheken (z. B. Leaflet)
 ├── assets/              Logos, Icons, Bilder, Töne
-└── docs/                Dokumentation, Konzept, Änderungen
+└── docs/                Dokumentation, Datenformat, Änderungen
 ```
 
 ## Die wichtigste Regel

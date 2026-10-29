@@ -3,14 +3,14 @@
 Projekt von Tobias Strobl (früher "Projekt LVS"). Kommunikation auf Deutsch, locker.
 
 ## Worum es geht
-Ski Tag ist ein **Miet-Chip fürs Skigebiet** mit **SOS-Knopf** und Ortung übers ganze Skigebiet,
-plus eine App für Gäste, Bergbahn-Mitarbeiter und Skischulen.
-Kein Lawinen-Suchgerät mehr – keine cm-genaue Suche, sondern Notruf + Ortung.
+Dieser Ordner ist **nur die App-Entwicklung**. Geschäftsplan, Zeitplan, Partner, Chip-Hardware und Kosten
+liegen im eigenen Plan-Projekt (`Ski Tag Plan.html`) – hier nicht wieder anlegen.
 
-- Chip wird an der Kassa / am Automaten gemietet (kein Kauf)
+Die App gehört zum Ski-Tag-Miet-Chip (SOS-Knopf + Ortung übers Skigebiet) – für Gäste, Bergbahn-Mitarbeiter
+und Skischulen. Notruf + Ortung, keine cm-genaue Suche.
+
 - Gäste brauchen keine App – der Chip allein reicht
 - Bergbahn-Mitarbeiter müssen die App haben
-- Skischulen (z. B. Element3) bekommen Zugang per Abo
 - **Keine Fehlalarme** – SOS muss sauber abgesichert sein
 - Geht jemand verloren: zuerst nur **Vibrationssignal an die eigene Gruppe**, kein sofortiger Notruf
 - **Keine Pisten-Statistik** für die Bergbahn (nicht jeder hat einen Chip)
@@ -30,8 +30,7 @@ als **MP4-Video** („Übersicht downloaden“), weil das auf iPhone, Samsung un
 **Mitarbeiter-Ansicht (Bergbahn / Skischule):** SOS-Alarme als **roter Punkt** auf der Karte,
 Alarm geht an den **nächsten Mitarbeiter**.
 
-Zielgruppen: Familien mit Kindern, schnelle Fahrer, die ohne teure Uhr tracken wollen.
-Mögliche Partner-Bergbahn: KitzSki.
+Kartendaten aktuell: Skigebiet KitzSki (`data/skimap/kitzski.json`).
 
 ## Technik
 - **PWA** (Progressive Web App) mit **reinem HTML, CSS, JavaScript** – keine Frameworks, kein CMS
@@ -55,7 +54,7 @@ Mögliche Partner-Bergbahn: KitzSki.
   - `utils/` – kleine Helfer ohne App-Wissen
 - `data/fake/` – Fake-Daten bis der Chip steht
 - `lib/leaflet/` – Leaflet selbst gehostet (DSGVO, kein CDN)
-- `assets/` – Icons, Bilder, Sounds (SOS-Ton); `docs/` – Konzept, Datenformat, Changelog
+- `assets/` – Icons, Bilder, Sounds (SOS-Ton); `docs/` – Datenformat, Changelog, Bildnachweis
 
 ## Aktueller Stand
 - Alle drei Ansichten laufen mit Fake-Daten: **Gast** (`views/guest/`), **Bergbahn-Leitstand** (`views/staff/`),
@@ -65,4 +64,3 @@ Mögliche Partner-Bergbahn: KitzSki.
 ## Arbeitsweise
 - Lieber bestehenden Code schrittweise erweitern statt alles neu schreiben
 - Neue Konzepte (JSON, Service Worker usw.) kurz und mit konkretem Beispiel erklären
-- Zeitplan: Chip und App bis Winter 2026/27, Test im Schnee im Februar 2027
