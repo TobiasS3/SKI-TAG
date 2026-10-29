@@ -13,6 +13,7 @@ async function getJSON(path) {
 // Fake-Chips brauchen das Pistennetz – erst laden, wenn wirklich gebraucht.
 const fakeChip = () => import('./fake-chip.js');
 const fakeSims = new Map(); // chipId → laufender Fake-Chip
+const fakeLast = new Map(); // chipId → letzte Position (für Fake-Kinder, die jemandem hinterherfahren)
 const fakeOps = () => import('./fake-ops.js'); // Fake-Server für Bergbahn und Skischule
 
 export const api = {
@@ -103,9 +104,17 @@ export const api = {
     if (config.fakeData) {
       let sim = null;
       let stopped = false;
-      fakeChip().then(({ simulateChip }) => {
+      Promise.all([fakeChip(), getJSON('data/fake/groups.json')]).then(([{ simulateChip, simulateFollower }, groups]) => {
         if (stopped) return;
-        sim = simulateChip({ seed: hash(chipId), ...options }, cb);
+        const emit = (p) => {
+          fakeLast.set(chipId, p);
+          cb(p);
+        };
+        // In groups.json z. B. "fake": { "follows": "CHIP-0042" } → fährt dieser Person hinterher
+        const follows = Object.values(groups).flatMap((g) => g.members).find((m) => m.chip === chipId)?.fake?.follows;
+        sim = follows
+          ? simulateFollower({ seed: hash(chipId), lead: () => fakeLast.get(follows) }, emit)
+          : simulateChip({ seed: hash(chipId), ...options }, emit);
         fakeSims.set(chipId, sim);
       });
       return () => {

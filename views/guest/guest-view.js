@@ -95,6 +95,7 @@ export async function mountGuest(root, session) {
 
   let following = false;
   ctx = {
+    connected: connecting, // Promise: Chip-Verbindungs-Bildschirm ist weg (Meldungen erst danach)
     session,
     page,
     map,

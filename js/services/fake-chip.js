@@ -2,7 +2,7 @@
 // Wird NUR von api.js benutzt. Sobald echte Chips senden, fällt diese Datei weg.
 
 import { config } from '../config.js';
-import { skimap, findPath, edgeTime } from './slopes.js';
+import { skimap, findPath, edgeTime, nearestNode } from './slopes.js';
 import { pointAlong, distance } from '../map/geo.js';
 import { now } from '../utils/time.js';
 
@@ -118,6 +118,74 @@ export function simulateChip({ seed = 1, start, mode = 'fast' }, cb) {
       queue = []; // aktuelle Kante zu Ende fahren, dann neuer Weg
       if (wait > 0 && edge?.kind !== 'lift') wait = 0;
     },
+  };
+}
+
+/**
+ * Fake-Kind, das jemandem hinterherfährt (lead() = letzte Position der Person).
+ * Ablauf im Kreis: mitfahren → reißt aus und fährt eigene Wege → kommt zurück → mitfahren …
+ * Damit lässt sich der Reichweiten-Alarm in der Gruppe ausprobieren.
+ */
+const FOLLOW_TICKS = 40; // ~40 s mitfahren
+const AWAY_TICKS = 45;   // ~45 s eigene Wege, dann zurück
+const CATCH_M = 80;      // so nah = wieder dabei
+
+export function simulateFollower({ seed = 1, lead }, cb) {
+  let phase = 'follow';
+  let ticks = 0;
+  let prev = null;     // Position der Person einen Takt vorher → Kind fährt knapp dahinter
+  let mine = null;     // eigene letzte Position
+  let free = null;     // eigener Fake-Chip, solange das Kind ausgerissen ist
+
+  function onFree(p) {
+    mine = p;
+    cb(p);
+  }
+
+  function tick() {
+    const l = lead();
+    if (!l) return;
+    const leadPos = [l.lat, l.lng];
+    ticks += 1;
+
+    if (phase === 'follow') {
+      const p = prev || l;
+      prev = l;
+      // ~25 m versetzt, sonst liegt das Kind genau auf dir (Karte + Radar-Mitte)
+      mine = { ...p, lat: p.lat + 0.00018, lng: p.lng - 0.00018, time: l.time, battery: 82 };
+      cb(mine);
+      if (ticks >= FOLLOW_TICKS) {
+        phase = 'away';
+        ticks = 0;
+        free = simulateChip({ seed: seed + Math.floor(l.time / 1000), start: nearestNode([mine.lat, mine.lng]) }, onFree);
+      }
+      return;
+    }
+
+    const d = distance(leadPos, [mine.lat, mine.lng]);
+    if (phase === 'away' && ticks >= AWAY_TICKS) {
+      phase = 'back';
+      ticks = 0;
+    }
+    // Auf dem Rückweg alle paar Sekunden neu zur Person lenken (sie fährt ja weiter)
+    if (phase === 'back' && ticks % 10 === 1) free.goTo(nearestNode(leadPos));
+    // Findet keinen Weg zurück (z. B. anderes Teilgebiet)? Nach ~90 s einfach wieder dabei.
+    if (phase === 'back' && (d < CATCH_M || ticks > 90)) {
+      free.stop();
+      free = null;
+      phase = 'follow';
+      ticks = 0;
+      prev = null;
+    }
+  }
+
+  const timer = setInterval(tick, TICK_MS);
+  return {
+    stop() {
+      clearInterval(timer);
+      free?.stop();
+    },
+    goTo() {}, // Kind lässt sich nicht navigieren
   };
 }
 

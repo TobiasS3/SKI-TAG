@@ -16,9 +16,10 @@ import { confirmModal } from '../../js/components/modal.js';
 import { toast } from '../../js/components/toast.js';
 import { pisteName } from './slopes-panel.js';
 import { mountRace } from './group-race.js';
+import { mountRangeAlarm } from './range-alarm.js';
+import { mountGroupCheck } from './group-check.js';
 
 const TRAIL = 50;             // so viele Punkte Spur pro Person
-const KID_WARN_M = 1500;      // Kind weiter weg als das → Hinweis
 const STALE_S = 60;           // kein Signal seit … Sekunden → „kein Signal“
 
 export function mountGroup(el, ctx, group) {
@@ -40,6 +41,19 @@ export function mountGroup(el, ctx, group) {
 
   // --- Positionen empfangen ---------------------------------------------------------
   const race = mountRace(ctx, session.group, members);
+  const alarm = mountRangeAlarm(session.group, session.chip, others, {
+    onChange: () => {
+      groupCheck.update();
+      schedule();
+    },
+  });
+  // Meldung oben: „Passt Ihre Gruppe?“ → Gruppe beim Reichweiten-Alarm öffnen
+  const groupCheck = mountGroupCheck(ctx, others, alarm, {
+    onCheck: () => {
+      ctx.sheet.open('group');
+      requestAnimationFrame(() => alarm.el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    },
+  });
   const stops = others.map((m) => watch(m));
 
   function watch(m) {
@@ -172,7 +186,8 @@ export function mountGroup(el, ctx, group) {
       const pos = [l.p.lat, l.p.lng];
       return { m, d: geoDistance(me, pos), b: bearing(me, pos) };
     }).filter(Boolean);
-    const max = niceScale(Math.max(300, ...points.map((p) => p.d)));
+    const limit = alarm.on() ? alarm.range() : 0;
+    const max = niceScale(Math.max(300, limit * 1.2, ...points.map((p) => p.d)));
     const rOf = (d) => Math.sqrt(Math.min(1, d / max)) * R;
     radarScale.textContent = t('group.radarScale', { dist: distance(max) });
 
@@ -183,6 +198,12 @@ export function mountGroup(el, ctx, group) {
       return `<circle r="${r.toFixed(1)}" class="radar-ring${k === 2 ? ' is-outer' : ''}"/>
         <text x="${(r * 0.71 + 3).toFixed(1)}" y="${(r * 0.71 + 10).toFixed(1)}" class="radar-ring-label">${distance(d)}</text>`;
     }).join('');
+    // Alarm-Grenze als orange gestrichelter Kreis
+    const rangeSvg = limit ? (() => {
+      const r = rOf(limit);
+      return `<circle r="${r.toFixed(1)}" class="radar-range"/>
+        <text y="${(-r - 4).toFixed(1)}" class="radar-range-label">${t('range.ring', { dist: distance(limit) })}</text>`;
+    })() : '';
     const compassSvg = [['N', 0, -1], [getLang() === 'de' ? 'O' : 'E', 1, 0], ['S', 0, 1], ['W', -1, 0]]
       .map(([c, x, y]) => `<text x="${x * (R + 13)}" y="${y * (R + 13) + 4}" class="radar-compass${c === 'N' ? ' is-n' : ''}">${c}</text>`).join('');
 
@@ -196,7 +217,7 @@ export function mountGroup(el, ctx, group) {
       const r = rOf(d);
       const x = Math.sin((b * Math.PI) / 180) * r;
       const y = -Math.cos((b * Math.PI) / 180) * r;
-      return `<g class="radar-dot${selected === m.chip ? ' is-selected' : ''}" data-chip="${m.chip}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" style="--c:${m.color}">
+      return `<g class="radar-dot${selected === m.chip ? ' is-selected' : ''}${alarm.isOut(m.chip) ? ' is-out' : ''}" data-chip="${m.chip}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" style="--c:${m.color}">
         <circle r="22" class="radar-dot-hit"/>
         <circle r="15" class="radar-dot-ring"/>
         <circle r="12" class="radar-dot-core"/>
@@ -210,6 +231,7 @@ export function mountGroup(el, ctx, group) {
       <svg viewBox="-135 -135 270 270">
         <circle r="${R}" class="radar-bg"/>
         ${ringsSvg}
+        ${rangeSvg}
         <line x1="-${R}" x2="${R}" class="radar-axis"/><line y1="-${R}" y2="${R}" class="radar-axis"/>
         ${compassSvg}
         ${lines}
@@ -222,10 +244,11 @@ export function mountGroup(el, ctx, group) {
   // --- Personen-Karten ----------------------------------------------------------------
   const list = h('ul', { class: 'members' });
   const rows = new Map();
-  // Abstandswarnung fürs Kind (Knopf bleibt bestehen, nur der Text ändert sich)
-  let warnTarget = null;
+  // Hinweis, wenn jemand außer Reichweite ist – „Zeigen“ springt auf der Karte hin
+  // (Knopf bleibt bestehen, nur der Text ändert sich)
+  let warnTargets = [];
   const warningText = h('span');
-  const warningBtn = h('button', { class: 'btn btn-small btn-sun', onclick: () => warnTarget && signal([warnTarget]) });
+  const warningBtn = h('button', { class: 'btn btn-small btn-sun', onclick: () => warnTargets.length && select(warnTargets[0].chip, true) });
   const warning = h('div', { class: 'note note-alert', hidden: true }, icon('avalanche'), warningText, warningBtn);
 
   function buildList() {
@@ -273,9 +296,13 @@ export function mountGroup(el, ctx, group) {
     renderMeeting(); // rechnet auch die Erinnerung „jetzt losfahren“ – läuft daher immer
     updateLink();
     if (carded && personCard.isConnected) renderCard();
-    if (!shown()) return;
     const me = ctx.me.pos;
-    let warn = null;
+    // Reichweiten-Alarm läuft immer – auch wenn der Gruppen-Tab zu ist
+    const far = alarm.check(others.map((m) => {
+      const l = live.get(m.chip);
+      return l && me ? { m, d: geoDistance(me, [l.p.lat, l.p.lng]) } : null;
+    }).filter(Boolean));
+    if (!shown()) return;
     rows.forEach(({ li, status, meta, battery }, chip) => {
       const m = members.find((x) => x.chip === chip);
       const l = m.me
@@ -292,7 +319,6 @@ export function mountGroup(el, ctx, group) {
         const pos = [p.lat, p.lng];
         const d = geoDistance(me, pos);
         parts.push(`${distance(d)} ${compass(bearing(me, pos), getLang())}`);
-        if (m.kid && d > KID_WARN_M) warn = { m, d };
       }
       if (p && p.speed > 0.5) parts.push(`${Math.round(p.speed * 3.6)} km/h`);
       if (l && !m.me) {
@@ -306,12 +332,11 @@ export function mountGroup(el, ctx, group) {
       battery.classList.toggle('is-low', bat != null && bat < 20);
     });
 
-    warnTarget = warn?.m ?? null;
-    warning.hidden = !warn;
-    if (warn) {
-      warningText.textContent = t('group.kidFar', { name: warn.m.name, dist: distance(warn.d) });
-      warningBtn.textContent = t('group.signal');
-    }
+    warnTargets = far.map((f) => f.m);
+    warning.hidden = !far.length;
+    if (far.length === 1) warningText.textContent = t('range.far', { name: far[0].m.name, dist: distance(far[0].d) });
+    if (far.length > 1) warningText.textContent = t('range.farMany', { names: far.map((f) => f.m.name).join(', ') });
+    warningBtn.replaceChildren(icon('locate'), t('group.show'));
     renderRadar();
     if (++raceTick % 3 === 0) race.render(); // Rangliste nicht bei jedem Signal neu zeichnen
   }
@@ -507,6 +532,7 @@ export function mountGroup(el, ctx, group) {
     buildList();
     renderFriend();
     race.render();
+    alarm.render();
     replace(el,
       h('header', { class: 'group-head' },
         h('div', {},
@@ -516,6 +542,7 @@ export function mountGroup(el, ctx, group) {
       meetCard,
       radarCard,
       warning,
+      alarm.el,
       list,
       friendCard,
       race.el,
@@ -546,6 +573,7 @@ export function mountGroup(el, ctx, group) {
   return {
     destroy() {
       race.destroy();
+      groupCheck.destroy();
       stops.forEach((stop) => stop());
       offs.forEach((off) => off());
       clearInterval(ticker);

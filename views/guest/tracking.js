@@ -16,9 +16,11 @@ import { pisteName } from './slopes-panel.js';
 import { renderSummary } from './day-summary.js';
 import { emptyDay, addPoint, altitudeChart, difficultyBar, runList, badgeRow } from './day-stats.js';
 import { playDayStart } from './day-start.js';
+import { topNote } from './top-note.js';
 
 const MAX_KMH = 100; // Tacho-Ende
 const KEY = () => `day-${isoDay()}`;
+const REMIND_MS = 2 * 60 * 1000; // so lange nach dem Einloggen ohne „Tag starten“ → Erinnerung oben
 
 export function mountTracking(el, ctx) {
   let day = { ...emptyDay(), ...load(KEY(), {}) };
@@ -147,12 +149,36 @@ export function mountTracking(el, ctx) {
     if (fresh.length || extrasTick % 6 === 0) renderExtras();
   }
 
-  function start() {
+  // --- Erinnerung: 2 Minuten nach dem Einloggen noch nicht gestartet? ----------------------
+  const remindKey = `dayremind-${ctx.session.startedAt}`;
+  let reminder = null;
+  const remindTimer = setTimeout(() => {
+    if (day.status !== 'idle' || load(remindKey, false)) return;
+    save(remindKey, true); // pro Einloggen nur einmal
+    reminder = topNote(ctx.page, {
+      lead: icon('play'),
+      title: t('dayremind.title'),
+      text: t('dayremind.text'),
+      action: t('day.start'),
+      onAction: () => {
+        // „Mein Tag“ öffnen und den echten Knopf drücken → Drehkreuz-Moment läuft wie gewohnt
+        ctx.sheet.open('day');
+        requestAnimationFrame(() => {
+          const btn = el.querySelector('.day-start');
+          btn?.scrollIntoView({ block: 'center' });
+          btn?.click();
+        });
+      },
+    });
+  }, Math.max(1500, ctx.session.startedAt + REMIND_MS - Date.now()));
+
+  async function start(e) {
+    reminder?.close();
     day = { ...emptyDay(), status: 'running', startedAt: ctx.me.time || Date.now() };
     track.clear();
     save(KEY(), day);
+    await playDayStart(e.currentTarget); // Drehkreuz-Moment auf dem Knopf, dann Live-Ansicht
     render();
-    playDayStart(ctx.page);
   }
 
   let justEnded = false;
@@ -180,6 +206,8 @@ export function mountTracking(el, ctx) {
     destroy() {
       offs.forEach((off) => off());
       clearInterval(timer);
+      clearTimeout(remindTimer);
+      reminder?.close();
       save(KEY(), day);
       track.remove();
     },

@@ -14,6 +14,9 @@ Kein Lawinen-Suchgerät mehr – keine cm-genaue Suche, sondern Notruf + Ortung.
 - **Keine Fehlalarme** – SOS muss sauber abgesichert sein
 - Geht jemand verloren: zuerst nur **Vibrationssignal an die eigene Gruppe**, kein sofortiger Notruf
 - **Keine Pisten-Statistik** für die Bergbahn (nicht jeder hat einen Chip)
+- App spricht Gäste und Mitarbeiter mit **„Sie“** an (deutsche Texte in `js/core/i18n.js`)
+- **Keine Tempo-Abzeichen** („60 km/h geknackt“) – passt nicht zu Sicherheit; Abzeichen belohnen Erlebnisse
+  (erste Abfahrt, schwarze Piste, Streif, lange Abfahrt …)
 
 ## Die App
 Eine App für alle, Zugang per **Code** – der Code bestimmt die Ansicht.

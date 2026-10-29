@@ -43,6 +43,7 @@ export function addPoint(day, p, skimap) {
 
   if (p.kind === 'lift' && prev?.kind !== 'lift') {
     day.lifts += 1;
+    if (!day.firstLiftAt) day.firstLiftAt = p.time;
     day.afterLift = true;
     const name = p.ref != null ? skimap.lifts[p.ref].name : '?';
     day.liftsUsed[name] = (day.liftsUsed[name] || 0) + 1;
@@ -75,6 +76,7 @@ export function addPoint(day, p, skimap) {
           run.streif = run.streif || /streif/i.test(piste.name || '');
         }
       }
+      if (run && p.alt) run.minAlt = Math.min(run.minAlt ?? p.alt, p.alt);
       if (prev.alt && p.alt && p.alt < prev.alt) {
         day.descent += prev.alt - p.alt;
         if (run) run.drop += prev.alt - p.alt;
@@ -91,14 +93,21 @@ export function addPoint(day, p, skimap) {
 }
 
 // --- Abzeichen ------------------------------------------------------------------------------
+// Bewusst keine Tempo-Abzeichen (z. B. „60 km/h geknackt“) – Ski Tag steht für Sicherheit,
+// belohnt wird, was man am Berg erlebt: Pisten, Lifte, Höhe, Strecke.
+const VALLEY_M = 950; // Talstationen KitzSki: Kitzbühel 762 m, Kirchberg ~850 m, Jochberg ~930 m
+
 export const BADGES = [
   { id: 'firstRun', test: (d) => d.runs.length >= 1 },
-  { id: 'runs10', test: (d) => d.runs.length >= 10 },
-  { id: 'speed60', test: (d) => d.top >= 60 },
-  { id: 'vert1000', test: (d) => d.descent >= 1000 },
+  { id: 'early', test: (d) => !!d.firstLiftAt && new Date(d.firstLiftAt).getHours() < 9 },
   { id: 'black', test: (d) => d.runs.some((r) => r.black) },
   { id: 'streif', test: (d) => d.runs.some((r) => r.streif) },
+  { id: 'valleyRun', test: (d) => d.runs.some((r) => r.minAlt <= VALLEY_M && r.drop >= 400) },
+  { id: 'longRun', test: (d) => d.runs.some((r) => r.drop >= 800) },
+  { id: 'gondola3s', test: (d) => !!d.liftsUsed['3S Bahn'] },
   { id: 'summit', test: (d) => d.maxAlt >= 1900 },
+  { id: 'runs10', test: (d) => d.runs.length >= 10 },
+  { id: 'vert1000', test: (d) => d.descent >= 1000 },
   { id: 'km20', test: (d) => d.km >= 20 },
 ];
 
