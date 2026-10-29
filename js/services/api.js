@@ -10,6 +10,9 @@ async function getJSON(path) {
   return res.json();
 }
 
+/** Name säubern: „  noah   b “ → „Noah B“ */
+const cleanName = (s) => s.trim().replace(/\s+/g, ' ').replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+
 // Fake-Chips brauchen das Pistennetz – erst laden, wenn wirklich gebraucht.
 const fakeChip = () => import('./fake-chip.js');
 const fakeSims = new Map(); // chipId → laufender Fake-Chip
@@ -17,17 +20,23 @@ const fakeLast = new Map(); // chipId → letzte Position (für Fake-Kinder, die
 const fakeOps = () => import('./fake-ops.js'); // Fake-Server für Bergbahn und Skischule
 
 export const api = {
-  /** Code prüfen → { role, name, chip, group } oder null */
-  async login(code) {
+  /**
+   * Code + Name prüfen → { role, name, chip, group }, 'name' (Code gibt's, Name passt nicht) oder null
+   */
+  async login(code, name) {
     if (config.fakeData) {
       const codes = await getJSON('data/fake/codes.json');
-      return codes.find((c) => c.code === code) || null;
+      const user = codes.find((c) => c.code === code);
+      // Test-Codes nehmen jeden Namen – so heißt man beim Testen, wie man will (z. B. „Noah B“).
+      // Der echte Server prüft den Namen gegen den Mietbeleg.
+      return user ? { ...user, name: cleanName(name) } : null;
     }
     const res = await fetch(`${config.serverUrl}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, name }),
     });
+    if (res.status === 403) return 'name';
     return res.ok ? res.json() : null;
   },
 

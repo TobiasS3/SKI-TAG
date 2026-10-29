@@ -1,4 +1,4 @@
-// Startseite: Video einer fahrenden Gondel, Code eingeben → richtige Ansicht.
+// Startseite: Video einer fahrenden Gondel, Name + Code eingeben → richtige Ansicht.
 
 import { h, reducedMotion } from '../../js/utils/dom.js';
 import { t, toggleLang, translate } from '../../js/core/i18n.js';
@@ -24,6 +24,27 @@ const VIDEO = {
 };
 
 export async function mountLogin(root) {
+  const nameInput = h('input', {
+    id: 'name',
+    class: 'name-input',
+    type: 'text',
+    autocomplete: 'given-name',
+    autocapitalize: 'words',
+    spellcheck: 'false',
+    maxlength: '40',
+    'aria-describedby': 'code-error',
+    oninput: () => {
+      error.textContent = '';
+      page.classList.remove('has-error', 'has-name-error');
+    },
+    onkeydown: (e) => {
+      // Enter: Code schon fertig → einloggen, sonst weiter zum Code
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (normalizeCode(input.value).length === CODE_LENGTH) send();
+      else input.focus();
+    },
+  });
   const input = h('input', {
     id: 'code',
     class: 'code-input',
@@ -42,6 +63,8 @@ export async function mountLogin(root) {
   const submit = h('button', { class: 'btn btn-big btn-block login-submit', type: 'submit' }, submitLabel, icon('chevron'));
 
   const form = h('form', { class: 'login-form', novalidate: true, onsubmit: (e) => { e.preventDefault(); send(); } },
+    h('label', { class: 'login-label', for: 'name', 'data-i18n': 'login.name' }),
+    nameInput,
     h('label', { class: 'login-label', for: 'code', 'data-i18n': 'login.label' }),
     h('div', { class: 'code-pass' },
       h('div', { class: 'code-slots', 'aria-hidden': 'true' }, slots),
@@ -107,7 +130,11 @@ export async function mountLogin(root) {
     });
     error.textContent = '';
     page.classList.remove('has-error');
-    if (code.length === CODE_LENGTH) send();
+    // Code fertig → gleich einloggen (fehlt noch der Name, erst dorthin)
+    if (code.length === CODE_LENGTH) {
+      if (nameInput.value.trim()) send();
+      else nameInput.focus();
+    }
   }
   input.addEventListener('input', update);
   input.addEventListener('focus', update);
@@ -119,7 +146,7 @@ export async function mountLogin(root) {
     busy = true;
     submit.disabled = true;
     submitLabel.textContent = t('login.loading');
-    const result = await login(input.value);
+    const result = await login(nameInput.value, input.value);
     if (result.ok) {
       celebrate(result.session.role);
       return;
@@ -128,16 +155,19 @@ export async function mountLogin(root) {
     submit.disabled = false;
     submitLabel.textContent = t('login.button');
     error.textContent = t(`login.error.${result.error}`);
-    page.classList.remove('has-error');
+    // Fehler beim Namen → Namensfeld wackelt, sonst die Code-Felder
+    const nameError = ['noName', 'name'].includes(result.error);
+    page.classList.remove('has-error', 'has-name-error');
     void page.offsetWidth; // Animation neu starten
-    page.classList.add('has-error');
+    page.classList.add(nameError ? 'has-name-error' : 'has-error');
     navigator.vibrate?.([40, 40, 40]);
-    input.focus();
+    (nameError ? nameInput : input).focus();
   }
 
   /** Erfolg: Felder werden grün, Karte fliegt weg, Skifahrer carvt durchs Bild, Schwarz-Blende. */
   function celebrate(role) {
     input.blur();
+    nameInput.blur();
     submitLabel.textContent = t('login.welcome');
     navigator.vibrate?.(30);
     if (reducedMotion()) {
@@ -176,7 +206,7 @@ export async function mountLogin(root) {
     if (!busy) submitLabel.textContent = t('login.button');
   });
 
-  if (!matchMedia('(pointer: coarse)').matches) input.focus({ preventScroll: true });
+  if (!matchMedia('(pointer: coarse)').matches) nameInput.focus({ preventScroll: true });
 
   return () => {
     video.pause();
@@ -225,7 +255,7 @@ function boardCell(key, value) {
     h('dd', { class: 'num' }, value));
 }
 
-/** Nur im Test-Modus: Codes zum Antippen. */
+/** Nur im Test-Modus: Codes zum Antippen. Der Name bleibt, wie Sie ihn eingegeben haben. */
 function demoCodes(input, onPick) {
   const codes = [
     ['K7M2X9', 'role.guest'],

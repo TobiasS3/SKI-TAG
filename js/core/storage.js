@@ -20,6 +20,17 @@ export function save(key, value) {
   }
 }
 
+/** Alles von Ski Tag löschen – außer den Schlüsseln in keep (z. B. die Sprache). Nur zum Testen. */
+export function clearAll(keep = []) {
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith(PREFIX) && !keep.includes(k.slice(PREFIX.length)))
+      .forEach((k) => localStorage.removeItem(k));
+  } catch {
+    /* egal */
+  }
+}
+
 export function remove(key) {
   try {
     localStorage.removeItem(PREFIX + key);

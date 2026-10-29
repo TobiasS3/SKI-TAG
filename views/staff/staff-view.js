@@ -10,7 +10,7 @@ import { go } from '../../js/core/router.js';
 import { load, save, remove } from '../../js/core/storage.js';
 import { api } from '../../js/services/api.js';
 import { loadSkimap, nearestNode, route, placeLabel } from '../../js/services/slopes.js';
-import { createMap, setMapStyle, limitToArea } from '../../js/map/map.js';
+import { createMap, limitToArea } from '../../js/map/map.js';
 import { drawSkimap, drawRoute } from '../../js/map/layers.js';
 import { alarmMarker, staffMarker } from '../../js/map/markers.js';
 import { clock, isoDay, now as clockNow } from '../../js/utils/time.js';
@@ -52,8 +52,6 @@ export async function mountStaff(root, session) {
   });
 
   const fleetBtn = h('button', { class: 'icon-btn style-btn', onclick: () => toggleFleet() }, icon('eye'), h('span', { class: 'style-name' }));
-  const styleBtn = h('button', { class: 'icon-btn style-btn', 'data-i18n-label': 'map.style', onclick: () => toggleStyle() },
-    icon('layers'), h('span', { class: 'style-name' }));
   const locateBtn = h('button', { class: 'icon-btn locate-btn', 'data-i18n-label': 'ops.locateMe', onclick: () => ctx.focus(ctx.myPos(), 15) }, icon('locate'));
 
   const menu = createUserMenu({
@@ -86,7 +84,7 @@ export async function mountStaff(root, session) {
       windBtn,
       menu.el,
     ),
-    h('div', { class: 'map-controls' }, fleetBtn, styleBtn, locateBtn),
+    h('div', { class: 'map-controls' }, fleetBtn, locateBtn),
     sheet.el,
   );
   root.append(page);
@@ -137,13 +135,6 @@ export async function mountStaff(root, session) {
   const skiLayers = drawSkimap(map, skimap, {});
   cleanups.push(() => skiLayers.destroy());
 
-  // Kartenstil: Schnee ↔ Gelände
-  let mapStyle = setMapStyle(mapEl, load('mapStyle', 'winter'));
-  function toggleStyle() {
-    mapStyle = setMapStyle(mapEl, mapStyle === 'winter' ? 'terrain' : 'winter');
-    renderButtons();
-  }
-
   // --- Alle Chips als kleine Punkte -----------------------------------------------------
   map.createPane('fleet').style.zIndex = 440;
   const fleetCanvas = L.canvas({ pane: 'fleet', padding: 0.3, tolerance: 8 });
@@ -161,7 +152,6 @@ export async function mountStaff(root, session) {
   }
 
   function renderButtons() {
-    styleBtn.querySelector('.style-name').textContent = t(`map.style.${mapStyle === 'winter' ? 'terrain' : 'winter'}`);
     fleetBtn.querySelector('.style-name').textContent = t(showFleet ? 'ops.fleet.hide' : 'ops.fleet.show');
     fleetBtn.classList.toggle('is-on', !showFleet);
   }

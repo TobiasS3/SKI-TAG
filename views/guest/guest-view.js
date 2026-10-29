@@ -7,10 +7,10 @@ import { t, toggleLang, translate } from '../../js/core/i18n.js';
 import { on, emit } from '../../js/core/events.js';
 import { endSession } from '../../js/core/session.js';
 import { go } from '../../js/core/router.js';
-import { load, save, remove } from '../../js/core/storage.js';
+import { load, save, clearAll } from '../../js/core/storage.js';
 import { api } from '../../js/services/api.js';
 import { loadSkimap, setClosedLifts, setClosedPistes } from '../../js/services/slopes.js';
-import { createMap, setMapStyle, limitToArea } from '../../js/map/map.js';
+import { createMap, limitToArea } from '../../js/map/map.js';
 import { bearing, distance as geoDistance } from '../../js/map/geo.js';
 import { drawSkimap } from '../../js/map/layers.js';
 import { meMarker, meetMarker } from '../../js/map/markers.js';
@@ -23,7 +23,7 @@ import { confirmModal, infoModal } from '../../js/components/modal.js';
 import { toast } from '../../js/components/toast.js';
 import { createSearch } from './search.js';
 import { mountTracking } from './tracking.js';
-import { mountRoutePanel } from './slopes-panel.js';
+import { mountRoutePanel, pisteName } from './slopes-panel.js';
 import { mountWeather, mountainStation, AVAL_COLORS } from './weather-panel.js';
 import { mountGroup } from './group-panel.js';
 import { mountLifts, liftList, liftState, isRunning, pisteList, pisteState } from './lifts-panel.js';
@@ -31,7 +31,7 @@ import { mountSOS } from './sos.js';
 import { showChipConnect } from './chip-connect.js';
 import { showDayEnd } from './day-end.js';
 import { mountLastLift } from './last-lift.js';
-import { setMedia, logoHTML } from './place-media.js';
+import { setMedia } from './place-media.js';
 
 export async function mountGuest(root, session) {
   const cleanups = [];
@@ -61,8 +61,6 @@ export async function mountGuest(root, session) {
   });
 
   const locateBtn = h('button', { class: 'icon-btn locate-btn', 'data-i18n-label': 'map.locate', onclick: () => follow(true) }, icon('locate'));
-  const styleBtn = h('button', { class: 'icon-btn style-btn', 'data-i18n-label': 'map.style', onclick: () => toggleStyle() },
-    icon('layers'), h('span', { class: 'style-name' }));
   const focusBtn = h('button', { class: 'icon-btn style-btn focus-btn', 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
     icon('eye'), h('span', { class: 'style-name' }));
   const focusMenu = h('div', { class: 'focus-menu', role: 'menu', hidden: true });
@@ -77,7 +75,7 @@ export async function mountGuest(root, session) {
       weatherBtn,
       h('div', { class: 'menu-wrap' }, menuBtn, menu),
     ),
-    h('div', { class: 'map-controls' }, h('div', { class: 'focus-wrap' }, focusMenu, focusBtn), styleBtn, locateBtn),
+    h('div', { class: 'map-controls' }, h('div', { class: 'focus-wrap' }, focusMenu, focusBtn), locateBtn),
     sheet.el,
   );
   root.append(page);
@@ -162,17 +160,6 @@ export async function mountGuest(root, session) {
   }
   cleanups.push(() => closeInfo?.());
 
-  // Kartenstil: Schnee ↔ Gelände
-  let mapStyle = setMapStyle(mapEl, load('mapStyle', 'winter'));
-  const renderStyleBtn = () => {
-    styleBtn.querySelector('.style-name').textContent = t(`map.style.${mapStyle === 'winter' ? 'terrain' : 'winter'}`);
-  };
-  function toggleStyle() {
-    mapStyle = setMapStyle(mapEl, mapStyle === 'winter' ? 'terrain' : 'winter');
-    renderStyleBtn();
-  }
-  renderStyleBtn();
-
   // Kartenfilter: alles / nur die Route / nur was ich heute gefahren bin
   const FOCUS = ['all', 'route', 'track'];
   let focus = 'all';
@@ -221,15 +208,16 @@ export async function mountGuest(root, session) {
     else renderFocus();
   };
 
-  const skiLayers = drawSkimap(map, skimap, {
+  // Antippen auf der Karte
+  const skiHandlers = {
     onHut: (hut) => choose({ type: 'hut', name: hut.name, pos: hut.pos, node: hut.node, hut }),
     onLift: (lift, e) => choose({ type: 'lift', name: lift.name, sub: lift.typeName, pos: skimap.nodes[e.a], node: e.a, lift }),
     onPiste: (piste, e) => choose({
-      type: 'piste', name: piste.name || `Piste ${piste.ref}`, ref: piste.ref, diff: piste.diff,
+      type: 'piste', name: pisteName(piste), ref: piste.ref, diff: piste.diff,
       pos: skimap.nodes[e.a], node: skimap.coreSet.has(e.a) ? e.a : e.b, piste,
     }),
-    hutLogo: (hut) => logoHTML(hut.name),
-  });
+  };
+  const skiLayers = drawSkimap(map, skimap, skiHandlers);
   cleanups.push(() => skiLayers.destroy());
 
   // Suche oben
@@ -319,6 +307,7 @@ export async function mountGuest(root, session) {
   }
   groupName = group?.name ?? null;
   ctx.liftStatus = liftStatus; // Route-Tab zeigt bei jedem Lift, ob und bis wann er fährt
+  ctx.pisteStatus = pisteStatus; // … und bei Pisten, ob sie offen sind
 
   // --- Treffpunkt der Gruppe ----------------------------------------------------------
   let meetLayer = null;
@@ -445,9 +434,12 @@ export async function mountGuest(root, session) {
   document.addEventListener('click', onDocClick);
   cleanups.push(() => document.removeEventListener('click', onDocClick));
 
+  /** Test: alles zurück auf Anfang – Tag, Alarm, Meldungen, Anmeldung. Nur die Sprache bleibt. */
   function resetDay() {
-    remove(`day-${isoDay()}`);
-    location.reload();
+    clearAll(['lang']);
+    // Ganz neu laden, ohne vorher die Ansicht abzubauen – sonst speichert „Mein Tag“ beim
+    // Abbauen den alten Tag gleich wieder
+    location.replace(location.pathname + location.search);
   }
 
   async function logout() {
@@ -464,7 +456,6 @@ export async function mountGuest(root, session) {
   cleanups.push(on('lang', () => {
     translate(page);
     renderTop();
-    renderStyleBtn();
     renderFocus();
   }));
   renderFocus();

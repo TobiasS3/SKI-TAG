@@ -36,6 +36,11 @@ export const BLACK = new Set(['advanced', 'expert', 'freeride']);
 export async function loadSkimap() {
   if (map) return map;
   map = await api.getSkimap();
+  // Skirouten wie auf dem KitzSki-Plan: orange gestrichelt. In OpenStreetMap stehen sie oft als
+  // schwarz/rot drin – der Name („Skiroute Giggling“) verrät sie.
+  map.pistes.forEach((p) => {
+    if (/skiroute/i.test(p.name || '')) p.diff = 'freeride';
+  });
   out = map.nodes.map(() => []);
   map.edges.forEach((e, i) => out[e.a].push(i));
   map.coreSet = new Set(map.core);

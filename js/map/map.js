@@ -1,9 +1,6 @@
 // Karte erstellen (Leaflet + OpenStreetMap-Kacheln).
 
 import { config } from '../config.js';
-import { load, save } from '../core/storage.js';
-
-export const MAP_STYLES = ['winter', 'terrain'];
 
 export function createMap(el) {
   const map = L.map(el, {
@@ -31,7 +28,8 @@ export function createMap(el) {
   map.on('zoomend', setZoomClass);
   setZoomClass();
 
-  setMapStyle(el, load('mapStyle', 'winter'));
+  // Nur ein Kartenstil: Winter (eisblaues Gelände, Pisten leuchten)
+  el.classList.add('style-winter');
   return map;
 }
 
@@ -64,14 +62,3 @@ export function limitToArea(map, skimap) {
   return { all, main };
 }
 
-/**
- * Kartenstil umschalten. Die Kacheln bleiben dieselben, CSS färbt sie um:
- *  winter  = eisblaues Gelände, Pisten leuchten
- *  terrain = normale Topo-Karte mit Wald und Wiesen
- */
-export function setMapStyle(el, style) {
-  if (!MAP_STYLES.includes(style)) style = 'winter';
-  MAP_STYLES.forEach((s) => el.classList.toggle(`style-${s}`, s === style));
-  save('mapStyle', style);
-  return style;
-}

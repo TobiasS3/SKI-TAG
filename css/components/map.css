@@ -7,14 +7,10 @@
   font-family: var(--font);
 }
 
-/* Stil „Winter“: Gelände weiß-grau mit einem Hauch Eisblau – die farbigen Pisten leuchten darauf */
+/* Winter: Gelände weiß-grau mit einem Hauch Eisblau – die farbigen Pisten leuchten darauf.
+   Kräftiger Kontrast, damit Berge, Grate und Täler (Schummerung der Topo-Karte) gut sichtbar sind. */
 .style-winter .map-tiles {
-  filter: grayscale(1) sepia(0.2) hue-rotate(180deg) saturate(1.6) brightness(1.12) contrast(0.9);
-}
-
-/* Stil „Gelände“: normale Topo-Karte, nur etwas ruhiger */
-.style-terrain .map-tiles {
-  filter: saturate(0.7) brightness(1.04) contrast(0.95);
+  filter: grayscale(1) sepia(0.25) hue-rotate(185deg) saturate(1.4) brightness(1.1) contrast(1.25);
 }
 
 .map {
@@ -22,7 +18,7 @@
 }
 
 .style-winter.map {
-  background: #ececee;
+  background: #e9eef6;
 }
 
 /* Weicher Rand: die Karte läuft in Schnee aus */
@@ -33,7 +29,7 @@
   z-index: 450;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 62%, rgba(236, 236, 238, 0.6) 100%);
+    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 62%, rgba(233, 238, 246, 0.6) 100%);
 }
 
 .friend-trail {

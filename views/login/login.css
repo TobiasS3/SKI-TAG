@@ -181,6 +181,31 @@
   color: var(--ink-2);
 }
 
+.name-input {
+  width: 100%;
+  height: 56px;
+  margin-bottom: var(--sp-2);
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ice);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  font: 650 1.15rem var(--font);
+  color: var(--ink);
+  transition: background var(--t-fast), box-shadow var(--t-fast);
+}
+
+.name-input:focus {
+  outline: none;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 2px var(--ink), 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.has-name-error .name-input {
+  box-shadow: inset 0 0 0 2px var(--sos);
+  animation: shake 420ms var(--ease);
+}
+
 .code-pass {
   position: relative;
 }

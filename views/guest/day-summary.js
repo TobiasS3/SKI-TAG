@@ -1,32 +1,23 @@
-// Tagesrückblick: Zahlen, Höhenprofil, Abfahrten, Abzeichen, Datei herunterladen und teilen.
+// Tagesrückblick: Zahlen, Höhenprofil, Abfahrten, Abzeichen – und „Übersicht downloaden“:
+// der Tagesfilm als Video (MP4), das auf iPhone, Samsung und PC einfach aufgeht.
 
 import { h } from '../../js/utils/dom.js';
 import { t, getLang } from '../../js/core/i18n.js';
-import { duration, number, distance } from '../../js/utils/format.js';
-import { isoDay } from '../../js/utils/time.js';
-import { config } from '../../js/config.js';
+import { duration, number } from '../../js/utils/format.js';
 import { icon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
-import { toGPX, download, share } from '../../js/services/export.js';
+import { saveFile, isIOS } from '../../js/services/export.js';
+import { skimap } from '../../js/services/slopes.js';
 import { speedColor } from '../../js/map/layers.js';
 import { altitudeChart, difficultyBar, runList, badgeRow } from './day-stats.js';
+import { recordFilm, filmFormat, filmName } from './day-film.js';
 
 export function renderSummary(day, { onNew } = {}) {
-  const name = `Ski Tag ${config.resort.name} ${isoDay(new Date(day.startedAt))}`;
-  const file = `skitag-${isoDay(new Date(day.startedAt))}`;
   const date = new Date(day.startedAt).toLocaleDateString(getLang() === 'de' ? 'de-AT' : 'en-GB', {
     weekday: 'long', day: 'numeric', month: 'long',
   });
   const pisteTime = day.points.filter((p) => p.kind === 'piste' && p.speed > 1).length;
   const avg = pisteTime ? day.points.filter((p) => p.kind === 'piste' && p.speed > 1).reduce((s, p) => s + p.speed * 3.6, 0) / pisteTime : 0;
-
-  const shareText = t('day.shareText', {
-    resort: config.resort.name,
-    km: distance(day.km * 1000),
-    runs: day.runs.length,
-    top: `${Math.round(day.top)} km/h`,
-    vert: `${number(day.descent)} m`,
-  });
 
   return h('div', { class: 'recap' },
     // Kopf: großer Wert auf Schwarz
@@ -50,36 +41,72 @@ export function renderSummary(day, { onNew } = {}) {
     favouriteLifts(day),
     h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day)),
 
-    h('div', { class: 'recap-actions' },
-      h('button', {
-        class: 'btn btn-big btn-block',
-        onclick: () => {
-          download(`${file}.gpx`, toGPX(day, name), 'application/gpx+xml');
-          toast(t('day.saved'), { icon: 'check' });
-        },
-      }, icon('download'), t('day.download')),
-      h('div', { class: 'row' },
-        h('button', {
-          class: 'btn btn-quiet',
-          style: { flex: 1 },
-          onclick: () => {
-            download(`${file}.json`, JSON.stringify(day, null, 2), 'application/json');
-            toast(t('day.saved'), { icon: 'check' });
-          },
-        }, t('day.downloadJson')),
-        h('button', {
-          class: 'btn btn-sun',
-          style: { flex: 1 },
-          onclick: async () => {
-            const res = await share({
-              title: name, text: shareText, filename: `${file}.gpx`, content: toGPX(day, name), type: 'application/gpx+xml',
-            });
-            if (res === 'copied') toast(shareText, { icon: 'check', ms: 5000 });
-          },
-        }, icon('share'), t('day.share'))),
-      onNew ? h('button', { class: 'btn btn-quiet btn-block', onclick: onNew }, icon('play'), t('day.again')) : null,
-    ),
+    downloadBlock(day),
+    onNew ? h('button', { class: 'btn btn-quiet btn-block', onclick: onNew }, icon('play'), t('day.again')) : null,
   );
+}
+
+/**
+ * „Übersicht downloaden“ + darunter klein Format und Dateiname, daneben „Teilen“.
+ * Das Video wird beim ersten Tipp erstellt (~9 s) und dann gemerkt.
+ * iPhone: Nach dem Erstellen ist der Tipp „verbraucht“ – dann steht „Jetzt speichern“ da und
+ * ein zweiter Tipp öffnet das Teilen-Menü („Video sichern“). Android/PC: lädt gleich herunter.
+ */
+function downloadBlock(day) {
+  const fmt = filmFormat();
+  const fileName = `${filmName(day)}.${fmt.ext}`;
+  let file = null;
+  let busy = false;
+
+  const saveLabel = h('span', {});
+  const shareLabel = h('span', {});
+  const saveBtn = h('button', { class: 'btn btn-big btn-block recap-download', onclick: () => run('save') }, icon('download'), saveLabel);
+  const shareBtn = h('button', { class: 'btn btn-quiet btn-block', onclick: () => run('share') }, icon('share'), shareLabel);
+  const reset = () => {
+    saveLabel.textContent = t('recap.download');
+    shareLabel.textContent = t('day.share');
+    saveBtn.classList.remove('is-ready');
+    shareBtn.classList.remove('is-ready');
+  };
+  reset();
+
+  async function run(how) {
+    if (busy) return;
+    if (file) {
+      await finish(how);
+      return;
+    }
+    busy = true;
+    saveBtn.disabled = true;
+    shareBtn.disabled = true;
+    const label = how === 'save' ? saveLabel : shareLabel;
+    file = await recordFilm(day, skimap(), (f) => {
+      label.textContent = t('recap.making', { pct: Math.round(f * 100) });
+    });
+    busy = false;
+    saveBtn.disabled = false;
+    shareBtn.disabled = false;
+    reset();
+    if (how === 'save' && !isIOS()) {
+      await finish('save');
+      return;
+    }
+    // Neuer Tipp nötig (iPhone / Teilen-Menü)
+    const btn = how === 'save' ? saveBtn : shareBtn;
+    label.textContent = t(how === 'save' ? 'recap.readySave' : 'recap.readyShare');
+    btn.classList.add('is-ready');
+  }
+
+  async function finish(how) {
+    const res = await saveFile(file, how === 'share' ? { preferShare: true } : undefined);
+    if (res === 'saved') toast(t('day.saved'), { icon: 'check' });
+    reset();
+  }
+
+  return h('div', { class: 'recap-actions' },
+    saveBtn,
+    h('p', { class: 'recap-file' }, t(fmt.video ? 'recap.asVideo' : 'recap.asImage', { ext: fmt.ext.toUpperCase() }), ' · ', h('span', { class: 'num' }, fileName)),
+    shareBtn);
 }
 
 function tile(key, value, unit = '') {

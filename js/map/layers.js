@@ -7,7 +7,7 @@
 import { hutMarker, pisteDisc, goalMarker } from './markers.js';
 import { lineLength, pointAlong, distance } from './geo.js';
 import { reducedMotion } from '../utils/dom.js';
-import { iconHTML } from '../components/icons.js';
+import { iconHTML, liftIcon } from '../components/icons.js';
 
 const PISTE_COLOR = {
   easy: '#1f66d1',
@@ -19,7 +19,7 @@ const PISTE_COLOR = {
 
 /**
  * Pisten, Lifte und Hütten zeichnen.
- * handlers: { onHut(hut), onLift(lift, edge), onPiste(piste, edge), hutLogo(hut) → HTML }
+ * handlers: { onHut(hut), onLift(lift, edge), onPiste(piste, edge) }
  */
 export function drawSkimap(map, skimap, handlers = {}) {
   map.createPane('pistes').style.zIndex = 410;
@@ -73,7 +73,7 @@ export function drawSkimap(map, skimap, handlers = {}) {
     }).addTo(lifts);
     line.bindTooltip(lift.name, { sticky: true, className: 'map-tip' });
     line.on('click', () => handlers.onLift?.(lift, e));
-    const icon = lift.type === 'gondola' || lift.type === 'cable_car' ? 'gondola' : 'lift';
+    const icon = liftIcon(lift.type);
     const bottom = skimap.ele[e.a] <= skimap.ele[e.b] ? e.a : e.b;
     if ((icon === 'gondola' && skimap.ele[bottom] < VALLEY_ELE) || VALLEY_EXTRA[lift.name]) {
       // Talbahn: großes Schild an der Talstation, schon in der Übersicht sichtbar
@@ -81,7 +81,7 @@ export function drawSkimap(map, skimap, handlers = {}) {
       L.marker(skimap.nodes[bottom], {
         icon: L.divIcon({
           className: 'sk mk-valley',
-          html: `<span data-prio="${prio < 0 ? 99 : prio}">${iconHTML(icon)}<b>${escapeHTML(VALLEY_EXTRA[lift.name] || shortName(lift.name))}</b></span>`,
+          html: `<span data-prio="${prio < 0 ? 99 : prio}">${iconHTML(icon)}${codeHTML(lift)}<b>${escapeHTML(VALLEY_EXTRA[lift.name] || shortName(lift.name))}</b></span>`,
           iconSize: [0, 0],
         }),
         interactive: false,
@@ -94,7 +94,7 @@ export function drawSkimap(map, skimap, handlers = {}) {
       L.marker(pointAlong(lift.coords, lineLength(lift.coords) / 2), {
         icon: L.divIcon({
           className: `sk mk-lift${main ? ' is-main' : ''}`,
-          html: `<span>${iconHTML(icon)}${escapeHTML(lift.name)}</span>`,
+          html: `<span>${iconHTML(icon)}${codeHTML(lift)}${escapeHTML(lift.name)}</span>`,
           iconSize: [0, 0],
         }),
         interactive: false,
@@ -130,7 +130,7 @@ export function drawSkimap(map, skimap, handlers = {}) {
   // Hütten
   const huts = L.layerGroup().addTo(map);
   for (const hut of skimap.huts) {
-    hutMarker(hut, handlers.hutLogo?.(hut)).on('click', () => handlers.onHut?.(hut)).addTo(huts);
+    hutMarker(hut).on('click', () => handlers.onHut?.(hut)).addTo(huts);
   }
 
   // Namen, die sich überdecken, ausblenden (erst ab Zoom 15 sind Namen sichtbar)
@@ -154,9 +154,12 @@ export function drawSkimap(map, skimap, handlers = {}) {
 const SMALL_LIFTS = new Set(['t-bar', 'j-bar', 'platter', 'rope_tow', 'magic_carpet']);
 const VALLEY_ELE = 1000; // Talstation tiefer als das = Talbahn (Hahnenkammbahn, Fleckalmbahn …)
 // Wenn sich Talbahn-Schilder überdecken, gewinnt die weiter vorne
-const VALLEY_ORDER = ['Hahnenkammbahn', 'Fleckalmbahn', 'Hornbahn I', 'Resterhöhe', 'Panoramabahn Kitzbüheler Alpen I', 'Pengelstein I', 'Maierlbahn', 'Wagstättbahn'];
+const VALLEY_ORDER = ['Hahnenkammbahn', 'Fleckalmbahn', 'Hornbahn I', 'Resterhöhe', 'Panoramabahn Kitzbüheler Alpen I', 'Pengelstein I', 'Maierlbahn', 'Wagstättbahn', 'Gaisberg'];
 // Einstiege von der Straße, die keine Talgondel sind – mit eigenem Schild-Text
-const VALLEY_EXTRA = { 'Resterhöhe': 'Resterhöhe · Pass Thurn' };
+const VALLEY_EXTRA = { 'Resterhöhe': 'Resterhöhe · Pass Thurn', 'Gaisberg': 'Gaisberg' };
+/** Offizieller KitzSki-Code wie auf dem Pistenplan („A1“), falls bekannt */
+const codeHTML = (lift) => (lift.code ? `<i class="mk-code">${escapeHTML(lift.code)}</i>` : '');
+
 /** Lange Namen fürs Schild kürzen: „Panoramabahn Kitzbüheler Alpen I“ → „Panoramabahn“ */
 const shortName = (name) => name.replace(/ Kitzbüheler Alpen I+$/, '');
 
@@ -172,14 +175,25 @@ function declutter(map) {
   // 1. Talbahnen untereinander (wichtigste zuerst), dann Gipfel, die von Talbahnen verdeckt würden
   // Knöpfe über der Karte (Kartenfilter, SOS …) gelten als belegt – Schilder weichen ihnen aus
   const placed = [...document.querySelectorAll('.map-controls button, .sos-btn')].map((el) => el.getBoundingClientRect());
+  // Große Gipfel (Hahnenkamm, Pengelstein, Resterhöhe, Horn …) zuerst – sonst verdeckt z. B. das
+  // Schild „Hahnenkammbahn“ den Hahnenkamm, während Pengelstein schon zu sehen ist
+  root.querySelectorAll('.mk-peak.is-major span').forEach((el) => {
+    el.classList.remove('is-hidden');
+    const r = el.getBoundingClientRect();
+    if (placed.some((p) => hit(r, p))) el.classList.add('is-hidden');
+    else placed.push(r);
+  });
   const valleys = [...root.querySelectorAll('.mk-valley span')].sort((a, b) => a.dataset.prio - b.dataset.prio);
   const SIDES = ['b', 't', 'r', 'l']; // unter, über, rechts, links von der Talstation
+  // Schild muss ganz in der Karte liegen – sonst hängt es halb aus dem Bild
+  const box = root.getBoundingClientRect();
+  const inside = (r) => r.left >= box.left + 4 && r.right <= box.right - 4 && r.top >= box.top && r.bottom <= box.bottom;
   valleys.forEach((el) => {
     el.classList.remove('is-hidden');
     const free = SIDES.find((side) => {
       el.dataset.side = side;
       const r = el.getBoundingClientRect();
-      return !placed.some((p) => hit(r, p));
+      return inside(r) && !placed.some((p) => hit(r, p));
     });
     if (free) placed.push(el.getBoundingClientRect());
     else {
@@ -187,7 +201,7 @@ function declutter(map) {
       el.classList.add('is-hidden');
     }
   });
-  root.querySelectorAll('.mk-peak span').forEach((el) => {
+  root.querySelectorAll('.mk-peak:not(.is-major) span').forEach((el) => {
     el.classList.remove('is-hidden');
     if (placed.some((p) => hit(el.getBoundingClientRect(), p))) el.classList.add('is-hidden');
   });
@@ -220,10 +234,12 @@ function animateCabins(map, skimap, liftEdges) {
     const drag = ['t-bar', 'j-bar', 'platter'].includes(lift.type);
     const count = Math.max(2, Math.min(drag ? 8 : 14, Math.round(len / (drag ? 120 : 150))));
     const speed = { cable_car: 10, gondola: 6, chair_lift: 5, mixed_lift: 5 }[lift.type] || 3;
-    const color = lift.type === 'gondola' || lift.type === 'cable_car' ? '#ff2d2d' : '#0e0e10';
+    // Gondeln = Kästchen, Sessel/Bügel = Punkte. Dunkel mit weißem Rand – nicht rot, sonst sehen sie
+    // aus wie rote Pisten, und nicht weiß gefüllt, sonst wie die Stationen.
+    const box = liftIcon(lift.type) === 'gondola';
     const bounds = L.latLngBounds(lift.coords);
     for (let i = 0; i < count; i++) {
-      cabins.push({ coords: lift.coords, len, offset: (i / count) * len, speed, r: drag ? 2 : 3.5, color, bounds });
+      cabins.push({ coords: lift.coords, len, offset: (i / count) * len, speed, r: drag ? 2.2 : box ? 3.6 : 3, box, bounds });
     }
   }
 
@@ -258,8 +274,9 @@ function animateCabins(map, skimap, liftEdges) {
       const pos = pointAlong(c.coords, at);
       const pt = map.latLngToContainerPoint(pos);
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, c.r, 0, Math.PI * 2);
-      ctx.fillStyle = c.color;
+      if (c.box) ctx.roundRect(pt.x - c.r, pt.y - c.r, c.r * 2, c.r * 2, 1.5);
+      else ctx.arc(pt.x, pt.y, c.r, 0, Math.PI * 2);
+      ctx.fillStyle = '#2a2a30';
       ctx.fill();
       ctx.stroke();
     }
@@ -349,7 +366,7 @@ function routeSign(step) {
   const pos = pointAlong(step.coords, lineLength(step.coords) / 2);
   const opts = { pane: 'route', interactive: false, keyboard: false };
   if (step.kind === 'lift') {
-    const icon = step.item.type === 'gondola' || step.item.type === 'cable_car' ? 'gondola' : 'lift';
+    const icon = liftIcon(step.item.type);
     return L.marker(pos, {
       ...opts,
       icon: L.divIcon({ className: 'mk-lift is-route', html: `<span>${iconHTML(icon)}${escapeHTML(step.item.name)}</span>`, iconSize: [0, 0] }),

@@ -50,8 +50,13 @@ export function showDayEnd(page, { day, skimap, animate, onLogout, onReset }) {
             h('span', { class: 'film-cta-icon' }, icon('play')),
             h('span', {}, h('strong', {}, t('film.cta')), h('small', {}, t('film.ctaHint')))),
           renderSummary(day, {}),
-          h('p', { class: 'note day-end-note' }, icon('vibrate'), t('dayend.chipNote')),
-          onReset ? h('button', { class: 'btn btn-quiet btn-block day-end-test', onclick: onReset }, icon('today'), t('test.resetDay')) : null)),
+          onReset ? h('button', { class: 'btn btn-quiet btn-block day-end-test', onclick: onReset }, icon('today'), t('test.resetDay')) : null,
+          // Ganz unten und nicht zu übersehen: Chip zurückgeben
+          h('div', { class: 'day-end-return', role: 'note' },
+            icon('alert'),
+            h('div', {},
+              h('strong', {}, t('dayend.returnTitle')),
+              h('span', {}, t('dayend.chipNote')))))),
     );
     root.classList.add('is-ready');
     requestAnimationFrame(() => {

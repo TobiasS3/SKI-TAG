@@ -5,7 +5,8 @@ Eingabe:  tools/kitzski-osm.json   (Overpass-Export: Pisten, Lifte, Hütten)
 Ausgabe:  data/skimap/kitzski.json (Pisten, Lifte, Hütten + Netz für die Routenplanung)
 
 Behalten werden nur die KitzSki-Teilgebiete (Hahnenkamm bis Resterhöhe, Horn, Gaisberg,
-Bichlalm). Jeder Punkt bekommt seine Höhe (Open-Meteo, zwischengespeichert in
+Bichlalm, Kirchberg, Reith) – dazu jeder Lift mit offiziellem KitzSki-Code (A1 … H12),
+auch kleine Übungslifte, die allein stehen. Jeder Punkt bekommt seine Höhe (Open-Meteo, zwischengespeichert in
 tools/elevation-cache.json).
 
 Aufruf:   python3 tools/build-skimap.py
@@ -19,6 +20,7 @@ Daten © OpenStreetMap-Mitwirkende, ODbL.
 import json
 import math
 import os
+import re
 import collections
 import time
 import urllib.parse
@@ -35,6 +37,9 @@ LIFT_TYPES = {
 }
 DIFFICULTY = {"novice": "easy", "easy": "easy", "intermediate": "intermediate",
               "advanced": "advanced", "expert": "expert", "freeride": "freeride"}
+
+# Pisten ohne Nummer in OSM, die auf dem offiziellen KitzSki-Plan eine haben: (Name, Schwierigkeit) → Nummer
+REF_FIX = {("Gaisberg", "intermediate"): "41", ("Gaisberg", "advanced"): "42"}
 
 LIFT_LINK_M = 120     # Liftstation ↔ Piste: so weit darf man gehen/rutschen
 PISTE_LINK_M = 45     # loses Pistenende ↔ andere Piste
@@ -81,9 +86,12 @@ for e in data:
             "ref": (t.get("piste:ref") or t.get("ref") or "").split(";")[0].strip() or None,
             "diff": DIFFICULTY.get(t.get("piste:difficulty"), "intermediate"),
         })
+        p = pistes[-1]
+        p["ref"] = p["ref"] or REF_FIX.get((p["name"], p["diff"]))
     elif "aerialway" in t and t["aerialway"] in LIFT_TYPES:
         lifts.append({
             "osm": e["id"], "nodes": e["nodes"], "name": t.get("name"),
+            "code": t.get("ref"),  # offizieller KitzSki-Code, z. B. „A1“ (Hahnenkammbahn)
             "type": t["aerialway"],
             "website": t.get("website"),
             "capacity": t.get("aerialway:capacity"),
@@ -243,7 +251,12 @@ AREAS = {
     "Kitzbüheler Horn": {"Hornbahn I", "Hornbahn II", "Horngipfelbahn"},
     "Gaisberg": {"Gaisberg"},
     "Bichlalm": {"Bichlalmlift"},
+    "Kirchberg": {"Schatzerlift"},
+    "Reith": {"Übungslift Reith", "Sun Cord Reith"},
 }
+# Offizielle KitzSki-Liftcodes (A1 … H12). Teilnetze mit so einem Lift gehören dazu, auch ohne Pisten.
+KITZ_CODE = re.compile(r"^[A-H]\d{1,2}$")
+NEAR_AREA_M = 2500  # einzelner Lift so nah an einem Teilgebiet → gehört dorthin (z. B. G2 Pass Thurn)
 
 adj = collections.defaultdict(set)
 for e in edges:
@@ -271,6 +284,23 @@ for comp in comps:
             for n in comp:
                 area_of[n] = area
             break
+
+# Übrige Teilnetze mit KitzSki-Lift (z. B. ein Schlepplift allein an der Talstation):
+# zum nächsten Teilgebiet in der Nähe
+assigned = list(area_of)
+for comp in comps:
+    if next(iter(comp)) in area_of:
+        continue
+    codes = {lifts[e["ref"]]["code"] for e in edges if e["kind"] == "lift" and e["a"] in comp}
+    if not any(c and KITZ_CODE.match(c) for c in codes):
+        continue
+    probe = pos[next(iter(comp))]
+    near = min(assigned, key=lambda n: dist(probe, pos[n]))
+    if dist(probe, pos[near]) < NEAR_AREA_M:
+        for n in comp:
+            area_of[n] = area_of[near]
+    else:
+        print(f"  Achtung: Lift(e) {sorted(c for c in codes if c)} ohne Teilgebiet")
 edges = [e for e in edges if e["a"] in area_of]
 
 # Kern je Teilgebiet: Knoten, von denen man überall hin und wieder zurück kommt.
@@ -373,7 +403,7 @@ result = {
     "nodeArea": [area_names.index(area_of[n]) for n in node_ids],
     "core": sorted(index[n] for n in core),
     "pistes": [{"name": pistes[i]["name"], "ref": pistes[i]["ref"], "diff": pistes[i]["diff"]} for i in used_p],
-    "lifts": [{"name": lifts[i]["name"] or LIFT_TYPES[lifts[i]["type"]], "type": lifts[i]["type"],
+    "lifts": [{"name": lifts[i]["name"] or LIFT_TYPES[lifts[i]["type"]], "code": lifts[i]["code"], "type": lifts[i]["type"],
                "typeName": LIFT_TYPES[lifts[i]["type"]],
                "website": lifts[i]["website"],
                "capacity": lifts[i]["capacity"],

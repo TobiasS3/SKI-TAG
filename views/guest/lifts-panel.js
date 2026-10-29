@@ -9,7 +9,7 @@ import { clock, todayAt, now as clockNow } from '../../js/utils/time.js';
 import { duration, distance } from '../../js/utils/format.js';
 import { pisteName } from './slopes-panel.js';
 import { liftState, isRunning, liftList, pisteState, pisteList } from '../../js/services/lift-status.js';
-import { icon } from '../../js/components/icons.js';
+import { icon, liftIcon } from '../../js/components/icons.js';
 
 const FILTERS = ['all', 'open', 'closed'];
 // Reihenfolge in der Liste: große Bahnen zuerst
@@ -121,20 +121,19 @@ export function mountLifts(el, ctx, status, pistes) {
       },
       h('span', { class: `lift-icon disc diff-${p.diff}` }, h('span', {}, p.ref || '')),
       h('span', { class: 'lift-text' },
-        h('strong', {}, p.name || `Piste ${p.ref}`),
+        h('strong', {}, p.name || pisteName(p)),
         h('small', {}, t(`diff.${p.diff}`), ' · ', distance(r.len))),
       h('span', { class: 'lift-state' }, label)));
   }
 
   function row(r) {
     const { lift, s } = r;
-    const big = lift.type === 'gondola' || lift.type === 'cable_car';
     return h('li', {},
       h('button', {
         class: `lift-row is-${s.state}`,
         onclick: () => ctx.choose({ type: 'lift', name: lift.name, sub: lift.typeName, pos: r.pos, node: r.node, lift }),
       },
-      h('span', { class: 'lift-icon' }, icon(big ? 'gondola' : 'lift')),
+      h('span', { class: 'lift-icon' }, icon(liftIcon(lift.type))),
       h('span', { class: 'lift-text' },
         h('strong', {}, lift.name),
         h('small', {}, lift.typeName, ' · ', h('span', { class: 'num' }, `${s.open}–${s.close}`))),

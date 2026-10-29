@@ -18,6 +18,34 @@ const H = 1280;
 const LENGTH = 9; // Sekunden
 const PISTE = { easy: '#1f66d1', intermediate: '#e0242f', advanced: '#0e0e10', expert: '#0e0e10', freeride: '#f08a24' };
 
+/**
+ * Welche Datei dieses Gerät aufnehmen kann. MP4 zuerst – läuft auf iPhone, Samsung und jedem PC.
+ * → { type, ext, video } (ext 'png', wenn gar kein Video geht)
+ */
+export function filmFormat() {
+  const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm']
+    .find((m) => window.MediaRecorder?.isTypeSupported?.(m));
+  if (!type || !HTMLCanvasElement.prototype.captureStream) return { type: 'image/png', ext: 'png', video: false };
+  return { type, ext: type.startsWith('video/mp4') ? 'mp4' : 'webm', video: true };
+}
+
+/** Dateiname ohne Endung: skitag-2026-10-29 */
+export const filmName = (day) => `skitag-${isoDay(new Date(day.startedAt || Date.now()))}`;
+
+/** Tagesfilm ohne Vorschau aufnehmen (dauert so lang wie der Film) → File */
+export async function recordFilm(day, skimap, onProgress) {
+  // Unsichtbar, aber im Dokument – manche Browser nehmen losgelöste Canvas nicht auf
+  const canvas = h('canvas', { width: W, height: H, style: { position: 'fixed', left: '-9999px', top: '0' } });
+  document.body.append(canvas);
+  const film = createFilm(canvas, day, skimap);
+  try {
+    return await film.record(onProgress);
+  } finally {
+    film.stop();
+    canvas.remove();
+  }
+}
+
 /** Vollbild-Fenster mit Vorschau (läuft in Schleife) und Knöpfen Speichern / Teilen. */
 export function openFilm(day, skimap) {
   const canvas = h('canvas', { class: 'film-canvas', width: W, height: H });
@@ -266,10 +294,9 @@ function createFilm(canvas, day, skimap) {
 
   /** Einmal komplett abspielen und aufnehmen → File (Video oder PNG) */
   function record(onProgress) {
-    const name = `skitag-film-${isoDay(new Date(day.startedAt || Date.now()))}`;
-    const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm']
-      .find((m) => window.MediaRecorder?.isTypeSupported?.(m));
-    if (!type || !canvas.captureStream) {
+    const name = filmName(day);
+    const { type, ext, video } = filmFormat();
+    if (!video) {
       draw(LENGTH - 0.5);
       return new Promise((resolve) => canvas.toBlob((b) => resolve(new File([b], `${name}.png`, { type: 'image/png' })), 'image/png'));
     }
@@ -280,7 +307,6 @@ function createFilm(canvas, day, skimap) {
     rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
     return new Promise((resolve) => {
       rec.onstop = () => {
-        const ext = type.startsWith('video/mp4') ? 'mp4' : 'webm';
         resolve(new File(chunks, `${name}.${ext}`, { type: type.split(';')[0] }));
         loop();
       };

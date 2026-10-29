@@ -19,9 +19,10 @@ Kein Lawinen-Suchgerät mehr – keine cm-genaue Suche, sondern Notruf + Ortung.
   (erste Abfahrt, schwarze Piste, Streif, lange Abfahrt …)
 
 ## Die App
-Eine App für alle, Zugang per **Code** – der Code bestimmt die Ansicht.
+Eine App für alle, Zugang per **Vorname + Code** (wie auf dem Mietbeleg) – der Code bestimmt die Ansicht.
 Die App ist nur ein Werkzeug fürs Mieten: **Zugang läuft am Tagesende aus**,
-der Tag wird als **Datei zum Herunterladen, Anschauen und Teilen** gespeichert.
+der Tag wird als **Datei zum Herunterladen, Anschauen und Teilen** gespeichert –
+als **MP4-Video** („Übersicht downloaden“), weil das auf iPhone, Samsung und PC aufgeht (kein GPX/JSON).
 
 **Gäste-Ansicht (optional):** eigenes Tracking, Wetter, Strecken/Pisten, Freunde/Gruppe
 (z. B. Eltern sehen, wo das Kind ist).
@@ -36,7 +37,7 @@ Mögliche Partner-Bergbahn: KitzSki.
 - **PWA** (Progressive Web App) mit **reinem HTML, CSS, JavaScript** – keine Frameworks, kein CMS
 - Für die Stores später mit **Capacitor** als native App verpackt (Push, Hintergrund-GPS, Vibration) –
   **zuerst iOS**, danach Android. Web-Code bleibt derselbe.
-- Karten: **Leaflet + OpenStreetMap**, später auf eigenen Servern gehostet
+- Karten: **Leaflet + OpenStreetMap** (2D, nur Winter-Stil), später auf eigenen Servern gehostet
 - DSGVO-freundlich: keine externen Fonts, keine Google-Dienste
 - Positionsdaten kommen später vom Server als JSON (Chip → Empfänger → Server → App)
 - **Aktuell: Fake-Daten**, bis die Chip-Technik steht

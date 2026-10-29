@@ -9,12 +9,13 @@ import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { api } from '../../js/services/api.js';
 import { route, skimap } from '../../js/services/slopes.js';
-import { liftState } from '../../js/services/lift-status.js';
+import { liftState, isRunning, pisteState } from '../../js/services/lift-status.js';
+import { openingState } from '../../js/utils/hours.js';
 import { drawRoute } from '../../js/map/layers.js';
 import { distance as geoDistance } from '../../js/map/geo.js';
 import { distance, duration } from '../../js/utils/format.js';
 import { clock, todayAt, now } from '../../js/utils/time.js';
-import { icon } from '../../js/components/icons.js';
+import { icon, liftIcon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
 import { config } from '../../js/config.js';
 import { placeLogo, placeCover, mediaFor } from './place-media.js';
@@ -155,7 +156,10 @@ export function mountRoutePanel(el, ctx) {
         m === 'avoidBlack' || m === 'preferBlack' ? h('i', { class: 'dot diff-advanced' }) : null,
         t(`route.mode.${m}`)))),
       result?.unreachable
-        ? h('p', { class: 'note note-warn' }, icon('mountain'), t('route.otherArea', { area: result.area }))
+        ? h('div', { class: 'note note-area', role: 'note' }, icon('mountain'),
+          h('div', {},
+            h('strong', {}, t('route.otherAreaTitle')),
+            h('span', {}, t('route.otherArea', { area: result.area }))))
         : ok ? summary(result) : h('p', { class: 'note note-warn' }, t('route.none')),
       ok ? h('button', { class: 'btn btn-sun btn-big btn-block route-start', onclick: start }, icon('nav'), t('route.start')) : null,
       ok ? h('h3', { class: 'steps-title' }, icon('route'), t('route.follow')) : null,
@@ -222,9 +226,51 @@ export function mountRoutePanel(el, ctx) {
         placeLogo(place, 'big'),
         h('span', { class: 'place-cover-name' }, h('small', {}, sub), h('strong', {}, place.name)),
       ]),
+      statusRow(place),
       facts.length ? h('ul', { class: 'place-facts' }, facts) : null,
       actions.length ? h('div', { class: `place-actions n-${actions.length}` }, actions) : null,
     );
+  }
+
+  /** Geöffnet / Geschlossen – für Lift, Piste und Hütte, gleich unter dem Foto */
+  function statusRow(place) {
+    const s = placeStatus(place);
+    if (!s) return null;
+    return h('p', { class: `place-status ${s.open ? 'is-open' : 'is-closed'}` },
+      h('i'),
+      h('strong', {}, t(s.open ? 'status.open' : 'status.closed')),
+      s.detail ? h('span', {}, s.detail) : null);
+  }
+
+  function placeStatus(place) {
+    const nowD = now();
+    const liftsOpen = nowD >= todayAt(config.resort.liftsOpen) && nowD < todayAt(config.resort.liftsClose);
+    if (place.type === 'lift') {
+      const st = liftState(ctx.liftStatus, place.name, nowD);
+      const why = st.reason ? t(`lifts.reason.${st.reason}`) : null;
+      if (isRunning(st)) return { open: true, detail: t('status.until', { time: st.close }) };
+      if (st.state === 'later') return { open: false, detail: t('status.opensAt', { time: st.open }) };
+      if (st.state === 'hold') return { open: false, detail: why || t('lifts.state.hold') };
+      return { open: false, detail: why || t('status.today') };
+    }
+    if (place.type === 'piste' && place.piste) {
+      const ps = pisteState(ctx.pisteStatus, place.piste);
+      if (!ps.open) return { open: false, detail: ps.reason ? t(`pistes.reason.${ps.reason}`) : null };
+      if (!liftsOpen) return { open: false, detail: t('status.withLifts', { from: config.resort.liftsOpen, to: config.resort.liftsClose }) };
+      return { open: true, detail: t('status.until', { time: config.resort.liftsClose }) };
+    }
+    if (place.type === 'hut') {
+      const o = openingState(place.hut?.hours, nowD);
+      if (o.known) {
+        if (o.open) return { open: true, detail: t('status.until', { time: o.until }) };
+        return { open: false, detail: o.from ? t('status.opensAt', { time: o.from }) : t('status.today') };
+      }
+      // Keine Zeiten bekannt: Hütten am Berg haben meist offen, solange die Lifte fahren
+      return liftsOpen
+        ? { open: true, detail: t('status.hutTypical', { time: config.resort.liftsClose }) }
+        : { open: false, detail: t('status.hutTypicalClosed') };
+    }
+    return null;
   }
 
   function summary(r) {
@@ -370,7 +416,7 @@ const OFF_ROUTE_M = 120; // weiter weg = nicht auf der Route, Anzeige bleibt ste
 /** Schild-Symbol: Lift = Gondel, Piste = farbige Scheibe mit Nummer */
 function stepIcon(s) {
   return s.kind === 'lift'
-    ? h('span', { class: 'step-icon' }, icon('gondola'))
+    ? h('span', { class: 'step-icon' }, icon(liftIcon(s.item.type)))
     : h('span', { class: `step-icon disc diff-${s.item.diff}` }, h('span', {}, s.item.ref || ''));
 }
 
@@ -384,5 +430,6 @@ const stat = (label, value) => h('div', {}, h('dt', {}, label), h('dd', { class:
 
 export function pisteName(p) {
   if (p.name && p.ref) return `${p.ref} ${p.name}`;
-  return p.name || (p.ref ? `Piste ${p.ref}` : t(`diff.${p.diff}`));
+  // Manche Pisten haben in OpenStreetMap weder Name noch Nummer → „Blaue Piste“, nie „Piste null“
+  return p.name || (p.ref ? `Piste ${p.ref}` : t(`piste.unnamed.${p.diff}`));
 }

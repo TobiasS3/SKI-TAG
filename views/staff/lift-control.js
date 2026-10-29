@@ -6,7 +6,7 @@ import { t } from '../../js/core/i18n.js';
 import { api } from '../../js/services/api.js';
 import { liftList, liftState, isRunning } from '../../js/services/lift-status.js';
 import { now as clockNow } from '../../js/utils/time.js';
-import { icon } from '../../js/components/icons.js';
+import { icon, liftIcon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
 
 const TYPE_ORDER = ['cable_car', 'gondola', 'mixed_lift', 'chair_lift', 't-bar', 'j-bar', 'platter', 'rope_tow', 'magic_carpet'];
@@ -83,7 +83,7 @@ export function mountLiftControl(el, ctx) {
       : s.state === 'closed' ? `${t('lifts.state.closed')}${s.reason ? ` · ${t(`lifts.reason.${s.reason}`)}` : ''}`
         : `${t(isRunning(s) ? 'lifts.state.open' : s.state === 'later' ? 'ops.lifts.notYet' : 'lifts.state.done')} · ${s.open}–${s.close}`;
     return h('div', { class: `lc-row is-${mode}` },
-      h('span', { class: 'lc-icon' }, icon(x.lift.type === 'gondola' || x.lift.type === 'cable_car' ? 'gondola' : 'lift')),
+      h('span', { class: 'lc-icon' }, icon(liftIcon(x.lift.type))),
       h('span', { class: 'lc-text' },
         h('strong', {}, name),
         h('small', {}, line, changed ? h('em', {}, ` · ${t('ops.lifts.byYou')}`) : null)),

@@ -29,7 +29,8 @@ export function mountGroup(el, ctx, group) {
     return { destroy() {} };
   }
 
-  const members = group.members.map((m) => ({ ...m, me: m.chip === session.chip }));
+  // Sie selbst heißen in der Gruppe so, wie Sie sich angemeldet haben
+  const members = group.members.map((m) => (m.chip === session.chip ? { ...m, name: session.name || m.name, me: true } : { ...m, me: false }));
   const others = members.filter((m) => !m.me); // wird länger, wenn Freunde dazukommen
   const live = new Map();      // chip → { p, receivedAt }
   const mapItems = new Map();  // chip → { marker, trail, coords }

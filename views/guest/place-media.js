@@ -5,7 +5,7 @@
 //   assets/places/web/      Fotos/Logos von den Webseiten der Hütten (nur lokal, nicht im Git)
 
 import { h } from '../../js/utils/dom.js';
-import { icon, iconHTML } from '../../js/components/icons.js';
+import { icon, liftIcon } from '../../js/components/icons.js';
 
 let media = {};
 
@@ -43,7 +43,7 @@ export function placeLogo(place, size = 'small') {
     return h('span', { class: `${cls} is-person`, style: { '--c': place.member.color } }, place.name[0]);
   }
   const fallback = () => place.type === 'lift'
-    ? h('span', { class: `${cls} is-lift` }, icon('gondola'))
+    ? h('span', { class: `${cls} is-lift` }, icon(liftIcon(place.lift?.type)))
     : h('span', { class: `${cls} is-mono`, style: { '--c': colorFor(place.name) } }, initials(place.name));
   if (!m?.logo) return fallback();
   const img = h('img', { src: m.logo, alt: '', loading: 'lazy', decoding: 'async' });
@@ -109,13 +109,6 @@ function coverArt(place) {
     <path d="M0 150 C 60 110, 120 100, 180 112 S 290 120, 320 104" stroke="#dfe5ee" stroke-width="2" fill="none"/>
     ${thing}
   </svg>`;
-}
-
-/** HTML für Kartenmarker (Leaflet braucht Text). Lädt das Logo nicht, bleibt das Haus-Symbol. */
-export function logoHTML(name) {
-  const m = mediaFor(name);
-  if (m?.logo) return `<img src="${m.logo}" alt="" onerror="this.remove()">${iconHTML('hut')}`;
-  return '';
 }
 
 export { colorFor };

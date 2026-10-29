@@ -10,10 +10,9 @@ import { t, translate, getLang } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { endSession } from '../../js/core/session.js';
 import { go } from '../../js/core/router.js';
-import { load } from '../../js/core/storage.js';
 import { api } from '../../js/services/api.js';
 import { loadSkimap, chipPlace } from '../../js/services/slopes.js';
-import { createMap, setMapStyle, limitToArea } from '../../js/map/map.js';
+import { createMap, limitToArea } from '../../js/map/map.js';
 import { drawSkimap } from '../../js/map/layers.js';
 import { meMarker, kidMarker, alarmMarker } from '../../js/map/markers.js';
 import { distance as geoDistance, bearing, compass } from '../../js/map/geo.js';
@@ -55,8 +54,6 @@ export async function mountSchool(root, session) {
   });
 
   const groupBtn = h('button', { class: 'icon-btn style-btn', onclick: () => fitGroup() }, icon('headcount'), h('span', { class: 'style-name', 'data-i18n': 'school.showGroup' }));
-  const styleBtn = h('button', { class: 'icon-btn style-btn', 'data-i18n-label': 'map.style', onclick: () => toggleStyle() },
-    icon('layers'), h('span', { class: 'style-name' }));
   const locateBtn = h('button', { class: 'icon-btn locate-btn', 'data-i18n-label': 'map.locate', onclick: () => follow(true) }, icon('locate'));
 
   const awayBanner = h('div', { class: 'away-banner', hidden: true, role: 'status', 'aria-live': 'polite' });
@@ -85,7 +82,7 @@ export async function mountSchool(root, session) {
     ),
     awayBanner,
     sosBanner,
-    h('div', { class: 'map-controls' }, groupBtn, styleBtn, locateBtn),
+    h('div', { class: 'map-controls' }, groupBtn, locateBtn),
     sheet.el,
   );
   root.append(page);
@@ -144,15 +141,6 @@ export async function mountSchool(root, session) {
   const skiLayers = drawSkimap(map, skimap, {});
   cleanups.push(() => skiLayers.destroy());
 
-  let mapStyle = setMapStyle(mapEl, load('mapStyle', 'winter'));
-  function toggleStyle() {
-    mapStyle = setMapStyle(mapEl, mapStyle === 'winter' ? 'terrain' : 'winter');
-    renderButtons();
-  }
-  function renderButtons() {
-    styleBtn.querySelector('.style-name').textContent = t(`map.style.${mapStyle === 'winter' ? 'terrain' : 'winter'}`);
-  }
-  renderButtons();
 
   // --- Lehrer, Kreis, Kinder, andere Gruppen --------------------------------------------
   let following = true;
@@ -385,7 +373,6 @@ export async function mountSchool(root, session) {
   cleanups.push(on('lang', () => {
     translate(page);
     renderTop();
-    renderButtons();
     kidsPanel.update(true);
     course.update();
     schoolPanel.update(true);

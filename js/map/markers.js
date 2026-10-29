@@ -33,11 +33,12 @@ export function friendMarker(pos, member) {
 }
 
 /** Hütte: Logo (oder Haus-Symbol), Name ab Zoom 15. */
-export function hutMarker(hut, logo = '') {
+export function hutMarker(hut) {
   return L.marker(hut.pos, {
     icon: L.divIcon({
-      className: `sk mk-hut${logo ? ' has-logo' : ''}`,
-      html: `<span class="mk-hut-badge">${logo || iconHTML('hut')}</span><span class="mk-label">${escape(hut.name)}</span>`,
+      // Auf der Karte immer unser Haus-Zeichen – keine Fotos oder Logos, damit man sofort sieht: Hütte
+      className: 'sk mk-hut',
+      html: `<span class="mk-hut-badge">${iconHTML('hut')}</span><span class="mk-label">${escape(hut.name)}</span>`,
       iconSize: [28, 28],
       iconAnchor: [14, 14],
     }),

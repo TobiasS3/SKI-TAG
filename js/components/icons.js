@@ -9,6 +9,10 @@ const PATHS = {
   route: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/>',
   gondola: '<path d="M3 4l18 3"/><path d="M12 5.5V9"/><rect x="6" y="9" width="12" height="11" rx="3"/><path d="M6 14h12"/>',
   lift: '<path d="M3 5l18 4"/><path d="M12 7v6"/><path d="M7 13h10v3a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M8 21h8"/>',
+  // Lift-Arten (wie die Piktogramme auf dem Pistenplan)
+  chair: '<path d="M3 4l18 3.5"/><path d="M12 5.8V10"/><path d="M8 10h8"/><path d="M8 10v6h9"/><path d="M8 16l-1.5 4.5M17 16v4.5"/>',
+  tbar: '<path d="M3 4l18 3.5"/><path d="M12 5.8V14"/><path d="M8.5 14h7"/><path d="M3 21 21 16.5"/>',
+  carpet: '<path d="M3 18 21 12"/><path d="M3 21.5 21 15.5"/><path d="M3 18v3.5M21 12v3.5"/><path d="M10 8.5l3.5-1.2L12.3 4"/><path d="M13.5 7.3 7 9.5"/>',
   piste: '<path d="M4 20 11 6l3 5 2-3 4 12z"/><path d="m9 14 3 2 2-1"/>',
   hut: '<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -80,6 +84,16 @@ export function icon(name, className = '') {
   svg.innerHTML = PATHS[name] || '';
   if (name === 'play' || name === 'stop') svg.setAttribute('fill', 'currentColor');
   return svg;
+}
+
+/** Passendes Symbol zur Lift-Art aus OpenStreetMap: Gondel, Sessellift, Schlepplift, Förderband */
+export function liftIcon(type) {
+  return {
+    gondola: 'gondola', cable_car: 'gondola', mixed_lift: 'gondola',
+    chair_lift: 'chair',
+    't-bar': 'tbar', 'j-bar': 'tbar', platter: 'tbar', rope_tow: 'tbar',
+    magic_carpet: 'carpet',
+  }[type] || 'chair';
 }
 
 /** Als Text (für Leaflet-Marker, die HTML-Strings brauchen) */
