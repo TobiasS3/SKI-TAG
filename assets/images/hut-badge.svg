@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <!-- Hütte für Listen und Karten: dasselbe Holzschild wie auf der Karte, nur ohne Spitze -->
+  <defs><linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a65b26"/><stop offset="1" stop-color="#7a3d16"/></linearGradient></defs>
+  <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#w)"/>
+  <path d="M2.5 11.6c8-.9 16 .9 35 0M2.5 19.6c10 1 20-1 35 0M2.5 27.6c9-.8 18 .9 35 0" fill="none" stroke="#5e2c0d" stroke-width=".8" opacity=".45"/>
+  <path d="M10.6 20.2 20 12l9.4 8.2" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13.4 19.4v9.2h13.2v-9.2L20 13.8z" fill="#fff"/>
+  <rect x="17.6" y="20.8" width="4.8" height="4.2" rx=".6" fill="#ffc531"/>
+</svg>

@@ -3,6 +3,7 @@
 const PATHS = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
   chevron: '<path d="m9 6 6 6-6 6"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7"/>',

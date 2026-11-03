@@ -22,3 +22,8 @@ node_modules/
 
 # Bilder von Webseiten der Hütten (gehören den Hütten – nur lokal im Prototyp)
 assets/places/web/
+
+# Impeccable: lokaler Zustand (Live-Modus, Cache)
+.impeccable/live/
+.impeccable/hook.cache.json
+.impeccable/questions/

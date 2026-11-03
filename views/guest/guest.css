@@ -38,50 +38,6 @@
   white-space: nowrap;
 }
 
-/* „Noch offen“ – klein darüber, mit grünem Punkt solange die Lifte laufen */
-.top-left-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-
-.top-left-label::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--ink-3);
-}
-
-.is-open .top-left-label::before {
-  background: var(--ok);
-  box-shadow: 0 0 0 3px rgba(22, 180, 107, 0.18);
-}
-
-/* Die Restzeit: groß und fett */
-.top-left-value {
-  margin-top: 3px;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
-.top-left-value small {
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: var(--ink-2);
-}
-
-.is-after .top-left-value {
-  color: var(--ink-3);
-}
-
 .pill {
   display: inline-flex;
   align-items: center;
@@ -94,7 +50,6 @@
   transition: transform var(--t-fast) var(--ease), background var(--t-fast);
 }
 
-/* Kopfleiste: kleine Beschriftung über dem Wert („Status“, „Wetter“) */
 .topbar .pill {
   position: relative;
   flex-direction: column;
@@ -103,26 +58,6 @@
   gap: 2px;
   height: 48px;
   padding: 0 18px 0 9px;
-}
-
-/* Pfeil unten rechts nach außen: hier geht ein Fenster auf */
-.topbar .pill .pill-more {
-  position: absolute;
-  right: 5px;
-  bottom: 6px;
-  width: 11px;
-  height: 11px;
-  color: var(--ink-3);
-  stroke-width: 2.6;
-}
-
-.pill-label {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1;
-  color: var(--ink-3);
 }
 
 .pill-row {
@@ -178,7 +113,7 @@
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   font-family: var(--font-head);
   font-weight: 800;
@@ -443,7 +378,7 @@
 }
 
 .place-logo.is-lift {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -759,46 +694,6 @@
   gap: var(--sp-3);
 }
 
-.day-intro-art {
-  padding: var(--sp-3) var(--sp-3) 0;
-  border-radius: 20px;
-  background: var(--paper);
-  box-shadow: var(--shadow-1);
-}
-
-.day-intro-art svg {
-  width: 100%;
-  height: auto;
-}
-
-.art-line {
-  stroke-dasharray: 420;
-  stroke-dashoffset: 420;
-  animation: route-draw 2.4s var(--ease) 0.2s forwards;
-}
-
-.day-features {
-  display: grid;
-  gap: 8px;
-}
-
-.day-features li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 550;
-}
-
-.day-features svg {
-  width: 18px;
-  height: 18px;
-  padding: 3px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
-  stroke-width: 3;
-}
-
 .day-start {
   margin-top: var(--sp-2);
 }
@@ -809,12 +704,6 @@
 
 .day-live,
 .day-extras {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-}
-
-.day-instrument {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
@@ -841,86 +730,6 @@
   font-size: 0.85rem;
   letter-spacing: 0.06em;
   color: #fff;
-}
-
-/* Tacho */
-.gauge {
-  position: relative;
-  width: min(280px, 100%);
-  margin: 0 auto;
-}
-
-.gauge svg {
-  width: 100%;
-  height: auto;
-}
-
-.gauge-bar {
-  transition: stroke-dashoffset 900ms var(--ease);
-  filter: drop-shadow(0 0 8px rgba(255, 106, 19, 0.35));
-}
-
-.gauge-tick {
-  stroke: var(--night-muted);
-  stroke-width: 1.5;
-  opacity: 0.5;
-}
-
-.gauge-read {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 2px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.gauge-value {
-  font-size: 4.2rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.gauge-unit {
-  font-size: var(--fs-s);
-  font-weight: 650;
-  color: var(--night-muted);
-}
-
-.day-under-gauge {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-}
-
-.day-now {
-  min-width: 0;
-  color: var(--night-muted);
-  font-size: var(--fs-s);
-}
-
-.day-now strong {
-  color: #fff;
-}
-
-.day-alt {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: var(--night-2);
-  font-size: 1.05rem;
-  color: #fff;
-}
-
-.day-alt svg {
-  width: 16px;
-  height: 16px;
-  color: var(--night-muted);
 }
 
 /* Höhenprofil */
@@ -1015,7 +824,7 @@
   width: 30px;
   height: 30px;
   border-radius: 10px;
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   font-size: 1rem;
 }
@@ -1083,7 +892,7 @@
 }
 
 .badges li.is-earned {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -1439,7 +1248,7 @@
 
 .place-action:first-child:not(:only-child),
 .place-action[href^="tel:"] {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -1645,7 +1454,7 @@
   height: 36px;
   border-radius: 11px;
   border: 3px solid var(--paper);
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -2157,19 +1966,6 @@
   gap: var(--sp-3);
 }
 
-.radar-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-3);
-}
-
-.radar-scale {
-  font-size: var(--fs-xs);
-  font-weight: 650;
-  color: var(--ink-3);
-}
-
 .radar {
   position: relative;
   width: min(300px, 100%);
@@ -2420,18 +2216,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.member-actions {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.member-actions .btn {
-  padding: 0 6px;
-}
-
 .group-call p {
   margin-top: var(--sp-2);
   text-align: center;
@@ -2468,7 +2252,7 @@
 }
 
 .focus-btn.is-on {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -2586,7 +2370,7 @@
 }
 
 .switch-row.is-on .switch {
-  background: var(--ink);
+  background: var(--action);
 }
 
 .switch-row.is-on .switch::after {
@@ -2628,7 +2412,7 @@
 }
 
 .switch[aria-checked="true"] {
-  background: var(--ink);
+  background: var(--action);
 }
 
 .switch[aria-checked="true"]::after {
@@ -3006,7 +2790,7 @@
   margin: 0 var(--sp-3) var(--sp-1);
   padding: 8px 8px 8px 10px;
   border-radius: 18px;
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -3688,7 +3472,7 @@
 }
 
 .seg-btn[aria-selected="true"] {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -3759,7 +3543,7 @@
   height: 40px;
   padding: 0 12px;
   border-radius: 12px;
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   font-size: var(--fs-xs);
   font-weight: 800;
@@ -3786,7 +3570,7 @@
 }
 
 .lastlift.is-late .lastlift-icon {
-  background: var(--ink);
+  background: var(--action);
 }
 
 .day-full .lastlift,
@@ -4036,7 +3820,7 @@
 }
 
 .is-late .meet-eta em {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -4177,7 +3961,7 @@
   gap: 2px 14px;
   padding: 12px 14px;
   border-radius: 14px;
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
 }
 
@@ -4382,4 +4166,3525 @@
   .pill-weather .aval-mini {
     display: none;
   }
+}
+
+/* ================================================================================
+   Login: dunkel (Startfilm). Bergbahn und Skischule bleiben unverändert.
+   ================================================================================ */
+.hero:has(.hero-film) {
+  background: radial-gradient(ellipse 110% 70% at 50% 25%, #1b2547 0%, #0c0f1a 62%, #07080d 100%);
+}
+
+.hero-film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ================================================================================
+   Gast: Schild am Berg. Weiß und Schwarz mit echten Schatten, Signalgelb als Akzent.
+   Dunkel nur dort, wo es etwas hervorhebt (Tag läuft, Route läuft, Notruf).
+   ================================================================================ */
+:root:has(main.guest),
+:root:has(main.login) {
+  --night: #0b1226;
+  --snow: #edf2fa;
+  --paper: #ffffff;
+  --ice: #e8eef8;
+  --line: #dde5f2;
+  --ink: #0b1226;
+  --ink-2: #435070;
+  --ink-3: #5f6c8c;
+  --action: #0b1226;
+  --action-hover: #1b2747;
+  --sun: #e5450d;
+  --sun-deep: #bf3607;
+  --sun-soft: #ffece3;
+  --font-head: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-head);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-1: 0 1px 2px rgba(22, 44, 96, 0.05), 0 8px 24px rgba(22, 44, 96, 0.08);
+  --shadow-2: 0 2px 4px rgba(22, 44, 96, 0.08), 0 14px 36px rgba(22, 44, 96, 0.16);
+  --shadow-3: 0 4px 10px rgba(22, 44, 96, 0.12), 0 30px 70px rgba(22, 44, 96, 0.3);
+  --shadow-sheet: 0 -2px 6px rgba(22, 44, 96, 0.06), 0 -22px 56px rgba(22, 44, 96, 0.2);
+}
+
+/* --- Karte: gemalte Berge -------------------------------------------------------- */
+.style-painted.map {
+  background: #f6f8fc;
+}
+
+.style-painted.map::after {
+  background: none;
+}
+
+/* Große, klare Schilder: was wichtig ist, sieht man sofort */
+.guest .mk-valley span,
+.guest .mk-lift span {
+  border-radius: 9px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 5px 14px rgba(16, 17, 20, 0.28);
+}
+
+.guest .mk-valley span {
+  font-size: 12px;
+}
+
+.guest .mk-peak.is-major span {
+  padding: 5px 11px;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), 0 6px 16px rgba(16, 17, 20, 0.2);
+}
+
+.guest .mk-hut-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2.5px #fff, 0 4px 10px rgba(16, 17, 20, 0.35);
+}
+
+.guest .mk-friend-dot {
+  box-shadow: 0 3px 10px rgba(16, 17, 20, 0.4);
+}
+
+/* --- Kopfleiste: Restzeit groß ------------------------------------------------------ */
+.guest .topbar {
+  height: 72px;
+  border-radius: 24px;
+  padding: 0 10px 0 14px;
+  box-shadow: var(--shadow-2);
+}
+
+.top-left-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+.top-left-label::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.is-open .top-left-label::before {
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(22, 180, 107, 0.2);
+}
+
+.top-left-value {
+  margin-top: 4px;
+  font-size: 2.55rem;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.top-left-value small {
+  margin-left: 1px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+
+.is-after .top-left-value {
+  color: var(--ink-3);
+}
+
+.topbar .pill {
+  height: 54px;
+  padding: 0 20px 0 10px;
+  border-radius: 16px;
+  transition: background var(--t-fast), transform var(--t-fast) var(--ease);
+}
+
+.topbar .pill:hover {
+  background: var(--line);
+}
+
+.topbar .pill:active {
+  transform: scale(0.96);
+}
+
+.topbar .pill .pill-more {
+  position: absolute;
+  right: 6px;
+  bottom: 7px;
+  width: 11px;
+  height: 11px;
+  color: var(--ink-3);
+  stroke-width: 2.6;
+}
+
+.pill-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-3);
+}
+
+.guest .avatar-btn {
+  border-radius: 16px;
+}
+
+.guest .avatar-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* --- Knöpfe: körperlich, mit Schatten und Druckgefühl ----------------------------------- */
+.guest .btn,
+.modal-backdrop .btn {
+  box-shadow: 0 1px 1px rgba(16, 17, 20, 0.25), 0 6px 16px rgba(16, 17, 20, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition: transform 140ms var(--ease), box-shadow 140ms var(--ease), background 140ms;
+}
+
+.guest .btn:active,
+.modal-backdrop .btn:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: 0 1px 2px rgba(16, 17, 20, 0.25);
+}
+
+.guest .btn-quiet,
+.modal-backdrop .btn-quiet {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(16, 17, 20, 0.07), 0 2px 6px rgba(16, 17, 20, 0.09);
+}
+
+.guest .btn-quiet:hover,
+.modal-backdrop .btn-quiet:hover {
+  background: #fafafa;
+}
+
+:root:has(main.guest) .btn-sun {
+  background: var(--sun);
+  color: #fff;
+  box-shadow: 0 1px 1px rgba(120, 30, 0, 0.35), 0 8px 20px rgba(229, 69, 13, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+:root:has(main.guest) .btn-sun:hover {
+  background: #c93b0a;
+}
+
+.guest .choice[aria-pressed="true"] {
+  box-shadow: 0 4px 12px rgba(16, 17, 20, 0.25);
+}
+
+/* --- Flächen ------------------------------------------------------------------------- */
+.guest .card,
+.modal-info .card {
+  border-radius: 22px;
+  box-shadow: var(--shadow-1);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.card-head .card-title {
+  margin: 0;
+}
+
+.meter {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ice);
+}
+
+.meter i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--ink);
+  transition: width 700ms var(--ease-out);
+}
+
+/* --- Mein Tag ---------------------------------------------------------------------------- */
+.day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: 18px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #24262d 0%, #101114 70%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(16, 17, 20, 0.2), 0 18px 40px rgba(16, 17, 20, 0.3);
+}
+
+.day-bigs,
+.day-smalls {
+  display: grid;
+  margin: 0;
+}
+
+.day-bigs {
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+.day-smalls {
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.day-big dd,
+.day-small dd {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+}
+
+.day-big .num {
+  font-size: 3.8rem;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.day-small .num {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.day-big small,
+.day-small small,
+.day-big dt,
+.day-small dt {
+  font-size: var(--fs-xs);
+  font-weight: 550;
+  color: #b9bcc6;
+}
+
+.day-big dt,
+.day-small dt {
+  margin-top: 4px;
+}
+
+.day-now {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--fs-s);
+}
+
+.day-now strong {
+  min-width: 0;
+  font-weight: 650;
+}
+
+.day-now .num {
+  flex: none;
+  font-size: var(--fs-xs);
+  font-weight: 550;
+  color: #b9bcc6;
+}
+
+.day-rec {
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--sun);
+}
+
+.day-rec i {
+  background: var(--sun);
+  box-shadow: 0 0 8px var(--sun);
+}
+
+.ch-count,
+.exp-pct {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.exp-pct {
+  font-size: 1.7rem;
+  letter-spacing: -0.03em;
+}
+
+.ch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ch-list li {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.ch-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--ink-3);
+}
+
+.ch-mark svg {
+  width: 17px;
+  height: 17px;
+}
+
+.is-done .ch-mark {
+  background: var(--sun);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(229, 69, 13, 0.35);
+}
+
+.ch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--fs-s);
+}
+
+.ch-text strong {
+  font-weight: 650;
+}
+
+.ch-val {
+  font-size: var(--fs-s);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ch-val small {
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.cmp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cmp-big {
+  font-size: 1.3rem;
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.exp-card,
+.fam-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exp-card .card-head,
+.fam-card .card-head {
+  margin-bottom: 2px;
+}
+
+.pass-stamps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0;
+}
+
+.pass-stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 84px;
+  padding: 8px;
+  border: 1.5px dashed #c5c8d1;
+  border-radius: 16px;
+  color: #a4a7b1;
+}
+
+.pass-stamp svg {
+  width: 24px;
+  height: 24px;
+}
+
+.pass-stamp.is-set {
+  border: 0;
+  background: var(--sun-soft);
+  color: var(--ink);
+  transform: rotate(-2deg);
+}
+
+.pass-stamp small {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.15;
+  text-align: center;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pass-next {
+  width: 100%;
+  box-shadow: none;
+  background: var(--ice);
+}
+
+/* --- Bilder statt Monogramm --------------------------------------------------------------- */
+.place-logo.is-art {
+  overflow: hidden;
+  padding: 0;
+  background: #dfe9f6;
+  box-shadow: inset 0 0 0 1px rgba(16, 17, 20, 0.06);
+}
+
+.place-logo.is-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.place-logo.has-photo {
+  overflow: hidden;
+  padding: 0;
+}
+
+.place-logo.has-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- Route -------------------------------------------------------------------------------- */
+.route-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: 18px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #24262d 0%, #101114 70%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(16, 17, 20, 0.2), 0 18px 40px rgba(16, 17, 20, 0.3);
+}
+
+.route-hero-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.route-hero-time {
+  font-size: 2.7rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.route-hero-eta {
+  font-size: var(--fs-s);
+  font-weight: 650;
+  color: var(--sun);
+  white-space: nowrap;
+}
+
+.route-strip {
+  display: flex;
+  gap: 3px;
+  height: 12px;
+}
+
+.route-strip i {
+  min-width: 4px;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.route-strip .diff-easy { background: #3f86f0; }
+.route-strip .diff-intermediate { background: #ef3b4a; }
+.route-strip .diff-advanced,
+.route-strip .diff-expert { background: #70747f; }
+.route-strip .diff-freeride { background: #f6a93b; }
+.route-strip .seg-lift { background: repeating-linear-gradient(90deg, #fff 0 3px, transparent 3px 6px); }
+
+.route-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+  margin: 0;
+}
+
+.route-hero-stats dd {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.route-hero-stats dt {
+  margin-top: 3px;
+  font-size: var(--fs-xs);
+  color: #b9bcc6;
+}
+
+.route-hero-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.steps-title {
+  font-size: 1.15rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+}
+
+/* Wegweiser: Linie in Pistenfarbe, große Nummern */
+.guest .steps {
+  gap: 0;
+  padding: 6px 16px;
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.guest .steps::before {
+  display: none;
+}
+
+.guest .step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 64px;
+  padding: 10px 0;
+}
+
+.guest .step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 40px;
+  bottom: -14px;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--step-c, #101114);
+}
+
+.guest .step-lift {
+  --step-c: repeating-linear-gradient(180deg, #101114 0 4px, transparent 4px 8px);
+}
+
+.guest .step-piste { --step-c: #101114; }
+.guest .step-piste:has(.diff-easy) { --step-c: var(--piste-easy); }
+.guest .step-piste:has(.diff-intermediate) { --step-c: var(--piste-intermediate); }
+.guest .step-piste:has(.diff-freeride) { --step-c: var(--piste-freeride); }
+
+.guest .step-icon {
+  position: relative;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 3px 8px rgba(16, 17, 20, 0.22);
+}
+
+.guest .step-icon.disc span {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.guest .step-text strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.guest .step-goal .step-icon {
+  background: var(--sun);
+  color: #fff;
+}
+
+.guest .step.is-current {
+  margin: 0 -8px;
+  padding-inline: 8px;
+  border-radius: 16px;
+  background: var(--sun-soft);
+}
+
+.guest .step.is-current::after {
+  display: none;
+}
+
+.guest .route-bar {
+  background: #101114;
+  color: #fff;
+  box-shadow: var(--shadow-3);
+}
+
+/* --- Gruppe ------------------------------------------------------------------------------- */
+.group-lead.is-alert {
+  color: var(--sun-deep);
+  font-weight: 700;
+}
+
+.group-lead.is-ok {
+  color: #0a7a48;
+  font-weight: 700;
+}
+
+.member {
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+.member:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.member-quick {
+  display: flex;
+  gap: 6px;
+}
+
+.member-quick button {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: var(--ice);
+  color: var(--ink);
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast);
+}
+
+.member-quick button:active {
+  transform: scale(0.93);
+}
+
+.member-quick button.is-buzz {
+  background: var(--sun);
+  color: #fff;
+}
+
+.member-quick svg {
+  width: 20px;
+  height: 20px;
+}
+
+.radar-range {
+  fill: rgba(229, 69, 13, 0.08);
+  stroke: #e5450d;
+}
+
+.radar-range-label {
+  fill: var(--sun-deep);
+}
+
+.guest .note-alert {
+  background: var(--sun-soft);
+}
+
+/* --- Fenster: wachsen aus dem Knopf, von dem sie kommen --------------------------------------- */
+
+.modal-backdrop.is-closing {
+  opacity: 0;
+}
+
+.modal-info {
+  animation: modal-grow 340ms var(--ease-out) both;
+}
+
+.modal-backdrop.is-closing .modal-info {
+  transform: scale(0.6);
+  opacity: 0;
+  transition: transform 190ms var(--ease), opacity 190ms;
+}
+
+@keyframes modal-grow {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@media (max-width: 639px) {
+  .modal-backdrop:has(.modal-info) {
+    padding: 0;
+    place-items: end stretch;
+  }
+
+  .modal-info {
+    width: 100%;
+    max-height: 90dvh;
+    border-radius: 28px 28px 0 0;
+    padding-bottom: calc(var(--sp-5) + var(--safe-bottom));
+  }
+}
+
+.modal-info .seg {
+  margin-right: 48px;
+}
+
+.lift-text strong {
+  overflow: visible;
+  white-space: normal;
+}
+
+.lifts-count .num {
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.sheet-pane:not([hidden]) {
+  animation: pane-in var(--t-med) var(--ease-out) both;
+}
+
+@keyframes pane-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.top-note {
+  z-index: 1090;
+}
+
+.guest .film-cta {
+  background: var(--action);
+  color: #fff;
+}
+
+.guest .trace-line {
+  stroke: #ff6a2b;
+}
+
+.guest .diff-bar .diff-advanced {
+  background: var(--piste-advanced);
+}
+
+/* Kopfleiste passt auf jedes Handy, darunter Luft für Suche und Meldungen */
+.guest .topbar {
+  gap: 5px;
+  padding: 0 8px 0 12px;
+}
+
+.guest .top-left-value {
+  font-size: 2.3rem;
+}
+
+.topbar .pill {
+  padding: 0 17px 0 8px;
+}
+
+.guest .avatar-btn {
+  flex: none;
+  width: 44px;
+  height: 54px;
+}
+
+@media (max-width: 899px) {
+  .guest .search {
+    top: calc(var(--safe-top) + var(--sp-3) + 80px);
+  }
+
+  .guest .top-note {
+    top: calc(var(--safe-top) + 92px);
+  }
+}
+
+.guest .step-icon {
+  border-radius: 50%;
+}
+
+.guest .step-icon.disc {
+  background: none;
+}
+
+.guest .step-icon.disc span {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+}
+
+/* ================================================================================
+   Nachtblau und Schnee: der Startfilm zieht sich durch die App.
+   Kopfleiste, Navigation und Hauptkarten sind Nacht, Inhalte hell, die Karte leuchtet.
+   Schatten sind farbig getönt, nie grau. Orange ist die eine Aktionsfarbe.
+   Bewusst ohne backdrop-filter und Mischmodi: das Handy muss flüssig bleiben.
+   ================================================================================ */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../../assets/fonts/bricolage-grotesque-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+.guest .num,
+.guest .title,
+.guest .card-title,
+.steps-title,
+.modal-info .title,
+.modal-info .card-title,
+.modal-info .num,
+.cmp-big {
+  font-family: var(--font-head);
+}
+
+.guest .title,
+.modal-info .title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.guest .card-title,
+.modal-info .card-title {
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.guest .topbar {
+  background: url("../../assets/images/piste-lines.svg") right -30px center / 190px no-repeat, linear-gradient(120deg, #0b1226, #182650);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(11, 18, 38, 0.3), 0 16px 36px rgba(11, 18, 38, 0.32);
+}
+
+.guest .top-left-label {
+  color: #c5d0ea;
+}
+
+.guest .top-left-value,
+.guest .top-left-value small {
+  color: #fff;
+}
+
+.guest .topbar .pill {
+  background: rgba(255, 255, 255, 0.13);
+  color: #fff;
+}
+
+.guest .topbar .pill:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.guest .pill-label,
+.guest .topbar .pill-more,
+.guest .topbar .pill small {
+  color: #c5d0ea;
+}
+
+.guest .avatar-btn {
+  background: #fff;
+  color: var(--ink);
+}
+
+.guest .search-box {
+  border-radius: 20px;
+  box-shadow: var(--shadow-2);
+}
+
+.guest .sheet {
+  background: var(--snow);
+}
+
+.guest .sheet-handle span {
+  background: #c3cfe4;
+}
+
+.guest .sheet-tabs {
+  border-radius: 22px;
+  background: linear-gradient(120deg, #0b1226, #182650);
+  box-shadow: 0 10px 26px rgba(11, 18, 38, 0.3);
+}
+
+.guest .sheet-tab {
+  color: #c5d0ea;
+}
+
+.guest .sheet-tab[aria-selected="true"] {
+  color: #fff;
+}
+
+.guest .sheet-tab-ink {
+  border-radius: 17px;
+  background: var(--sun);
+  box-shadow: 0 6px 16px rgba(229, 69, 13, 0.45);
+}
+
+.guest .sheet-badge {
+  background: #ff8a5c;
+  box-shadow: 0 0 0 2px #0b1226;
+}
+
+/* Karte */
+.style-painted.map {
+  background: #eef3fb;
+}
+
+.style-painted.map::after {
+  background: none;
+}
+
+.guest .mk-valley span,
+.guest .mk-lift span {
+  background: #fff;
+  color: var(--ink);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(22, 44, 96, 0.28);
+}
+
+.guest .mk-valley svg,
+.guest .mk-lift svg {
+  color: var(--sun);
+}
+
+.guest .mk-code {
+  background: var(--ink);
+  color: #fff;
+}
+
+.guest .mk-peak span {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(11, 18, 38, 0.35);
+}
+
+.guest .mk-peak span small {
+  color: #c5d0ea;
+}
+
+.guest .mk-peak span::after {
+  border-top-color: var(--ink);
+}
+
+.mk-town span {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  color: #33456e;
+  white-space: nowrap;
+  text-shadow: 0 0 4px #fff, 0 0 4px #fff;
+}
+
+/* Hütten und Stationen: kleine Gebäude statt Punkte */
+.guest .mk-hut-badge {
+  width: 34px;
+  height: 34px;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.guest .mk-hut-badge svg {
+  width: 34px;
+  height: 34px;
+}
+
+.guest .mk-station span {
+  inset: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.guest .mk-station span svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.guest .mk-goal span,
+.guest .mk-meet-pin {
+  background: var(--sun);
+  color: #fff;
+}
+
+/* Hauptkarten: dasselbe Nachtbild */
+.day-panel,
+.route-hero,
+.modal-info .lifts-head,
+.guest .route-bar {
+  background: url("../../assets/images/piste-lines.svg") right -50px center / 300px no-repeat, linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+  box-shadow: 0 4px 10px rgba(11, 18, 38, 0.2), 0 22px 46px rgba(11, 18, 38, 0.32);
+  color: #fff;
+}
+
+.guest .instrument {
+  background: url("../../assets/images/piste-lines.svg") right -50px top -20px / 300px no-repeat, linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+}
+
+.day-rec,
+.route-hero-eta {
+  color: #ff9a6e;
+}
+
+.day-rec i {
+  background: #ff7a45;
+  box-shadow: 0 0 8px #ff7a45;
+}
+
+.day-big small,
+.day-small small,
+.day-big dt,
+.day-small dt,
+.day-now .num,
+.route-hero-stats dt {
+  color: #c5d0ea;
+}
+
+.meter {
+  background: var(--ice);
+}
+
+.meter i {
+  background: linear-gradient(90deg, #e5450d, #ff8a4c);
+}
+
+.cmp-big {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.exp-pct,
+.ch-count {
+  color: var(--sun);
+}
+
+.ch-mark {
+  background: var(--sun-soft);
+  color: var(--sun);
+}
+
+.is-done .ch-mark {
+  background: var(--sun);
+  color: #fff;
+}
+
+.pass-stamp.is-set {
+  background: var(--sun-soft);
+}
+
+/* Karten und Listen */
+.guest .card,
+.modal-info .card,
+.guest .member {
+  border-radius: 24px;
+  box-shadow: var(--shadow-1);
+}
+
+.guest .quick-item {
+  border-radius: 20px;
+  box-shadow: var(--shadow-1);
+}
+
+.guest .avatar {
+  border-radius: 50%;
+}
+
+.place-logo.is-small.is-art {
+  border-radius: 16px;
+}
+
+.member-quick button {
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--ink);
+}
+
+.member-quick button.is-buzz {
+  background: var(--sun);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(229, 69, 13, 0.35);
+}
+
+.guest .btn:not(.btn-quiet):not(.btn-sun):not(.btn-danger) {
+  background: linear-gradient(180deg, #1b2a55, #0b1226);
+  box-shadow: 0 2px 4px rgba(11, 18, 38, 0.25), 0 12px 24px rgba(11, 18, 38, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+:root:has(main.guest) .btn-sun {
+  background: linear-gradient(180deg, #f4581f, #e5450d);
+  color: #fff;
+}
+
+.guest .choice {
+  border: 0;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(22, 44, 96, 0.1), 0 4px 10px rgba(22, 44, 96, 0.07);
+}
+
+.guest .choice[aria-pressed="true"] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.guest .step-lift {
+  --step-c: repeating-linear-gradient(180deg, #0b1226 0 4px, transparent 4px 8px);
+}
+
+.radar-range {
+  fill: rgba(229, 69, 13, 0.08);
+  stroke: var(--sun);
+}
+
+/* Fenster: farbiger Grund statt Grau, Kopf als Nachtkarte */
+.modal-backdrop,
+.modal-backdrop:has(.modal-info) {
+  background: rgba(14, 30, 72, 0.5);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.modal-info {
+  background: var(--snow);
+  box-shadow: var(--shadow-3);
+}
+
+.modal-info .lifts-head {
+  padding: 18px;
+  border-radius: 24px;
+}
+
+.modal-info .lifts-head .title,
+.modal-info .lifts-count .num {
+  color: #fff;
+}
+
+.modal-info .lifts-head .muted,
+.modal-info .lifts-count small {
+  color: #c5d0ea;
+}
+
+.modal-info .lifts-meter i {
+  background: linear-gradient(90deg, #15b872, #4fe0a2);
+}
+
+.modal-info .seg {
+  background: #fff;
+  box-shadow: var(--shadow-1);
+}
+
+.modal-info .seg-btn[aria-selected="true"] {
+  background: var(--sun);
+  color: #fff;
+}
+
+.modal-info .lift-state {
+  padding: 0;
+  background: none;
+  color: #0a7a4a;
+}
+
+.modal-info .is-closed .lift-state,
+.modal-info .is-hold .lift-state {
+  color: var(--sun-deep);
+}
+
+.modal-info .lift-icon:not(.disc) {
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--ink);
+}
+
+/* Wetter: echte Himmelsfarben */
+.wx-hero {
+  border-radius: 26px;
+  box-shadow: 0 18px 40px rgba(30, 90, 190, 0.28);
+}
+
+.wx-hero.wx-sun { background: linear-gradient(180deg, #1668e3 0%, #4e9dfa 60%, #b8dcff 100%); }
+.wx-hero.wx-partly { background: linear-gradient(180deg, #2a6fd4 0%, #6aa8ee 60%, #cfe3fa 100%); }
+.wx-hero.wx-cloud,
+.wx-hero.wx-fog { background: linear-gradient(180deg, #3f64a3 0%, #7799cd 60%, #c9d9f1 100%); }
+.wx-hero.wx-snow { background: linear-gradient(180deg, #3f6bc0 0%, #80a6e4 60%, #dbe8fb 100%); }
+.wx-hero.wx-rain,
+.wx-hero.wx-storm { background: linear-gradient(180deg, #2c4470 0%, #5a76a6 60%, #b4c6e0 100%); }
+
+.wx-temp {
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+/* Ortskarte */
+.guest .place {
+  border-radius: 26px;
+  box-shadow: var(--shadow-2);
+}
+
+.place-cover.has-photo .place-cover-name,
+.place-cover.has-photo .place-cover-name strong,
+.place-cover.has-photo .place-cover-name small {
+  color: #fff;
+}
+
+.guest .toast {
+  border-radius: 18px;
+  background: linear-gradient(120deg, #0b1226, #1b2c5e);
+  box-shadow: var(--shadow-3);
+}
+
+.guest .menu {
+  border-radius: 22px;
+  box-shadow: var(--shadow-3);
+}
+
+.guest .film-cta {
+  background: linear-gradient(120deg, #e5450d, #f4703a);
+}
+
+/* Gipfelschilder: Schrift hell auf Nacht */
+.guest .mk-peak span,
+.guest .mk-peak b {
+  color: #fff;
+}
+
+/* Kopfleiste ruhig halten, Linien nur in den großen Karten */
+.guest .topbar {
+  background: linear-gradient(120deg, #0b1226, #182650);
+}
+
+/* Weniger gleichzeitig auf der Karte: Gebäude erst beim Reinzoomen */
+.guest .map:not(.z-mid) .mk-station,
+.guest .map:not(.z-mid) .mk-hut {
+  display: none;
+}
+
+/* Lift-Schilder: von weitem nur der Code, zum Antippen. Eigene Hülle vergrößert die Tippfläche. */
+.mk-chip span {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1.5px #fff, 0 3px 8px rgba(22, 44, 96, 0.35);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.mk-chip span::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+
+.mk-chip i {
+  font-style: normal;
+  font-family: var(--font-head);
+}
+
+.mk-chip svg {
+  width: 13px;
+  height: 13px;
+}
+
+.mk-chip b {
+  display: none;
+  font-weight: 650;
+}
+
+.mk-chip.is-open span,
+.z-close .mk-chip span {
+  background: #fff;
+  color: var(--ink);
+}
+
+.mk-chip.is-open b,
+.z-close .mk-chip b {
+  display: inline;
+}
+
+.mk-chip.is-open i,
+.z-close .mk-chip i {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: #fff;
+}
+
+.mk-chip.is-hidden {
+  display: none;
+}
+
+.guest .map:not(.z-near) .mk-chip:not(.is-main):not(.is-open) {
+  display: none;
+}
+
+/* Hütten: gleich groß, aber kräftig orange mit weißem Rand */
+.guest .mk-hut-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50% 50% 50% 6px;
+  background: var(--sun);
+  color: #fff;
+  box-shadow: 0 0 0 2px #fff, 0 3px 8px rgba(120, 30, 0, 0.45);
+  transform: rotate(-45deg);
+}
+
+.guest .mk-hut-badge svg {
+  width: 15px;
+  height: 15px;
+  transform: rotate(45deg);
+}
+
+/* ================================================================================
+   Orange nur noch, wo etwas passiert: aktiver Tab, Route starten, Gruppe rufen, Hütten,
+   Route auf der Karte und geschaffte Challenges. Nie als blasse Fläche.
+   ================================================================================ */
+:root:has(main.guest) {
+  --sun-soft: #e8eef8;
+}
+
+.exp-pct,
+.ch-count {
+  color: var(--ink);
+}
+
+.meter i {
+  background: var(--ink);
+}
+
+.ch-mark {
+  background: var(--ink);
+  color: #fff;
+}
+
+.is-done .ch-mark {
+  background: #0a9a5e;
+  color: #fff;
+  box-shadow: none;
+}
+
+.is-done .meter i {
+  background: #0a9a5e;
+}
+
+.day-rec,
+.route-hero-eta {
+  color: #fff;
+}
+
+.day-rec i {
+  background: #4fe0a2;
+  box-shadow: 0 0 8px #4fe0a2;
+}
+
+.member-quick button.is-buzz {
+  background: var(--ink);
+  box-shadow: none;
+}
+
+.modal-info .seg-btn[aria-selected="true"] {
+  background: var(--ink);
+}
+
+.guest .film-cta {
+  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+}
+
+.guest .sheet-badge {
+  background: #4fe0a2;
+}
+
+.guest .mk-valley svg,
+.guest .mk-lift svg {
+  color: var(--ink);
+}
+
+/* Radar: Nacht, Menschen leuchten */
+.radar-card {
+  background: url("../../assets/images/piste-lines.svg") right -60px center / 320px no-repeat, linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%) !important;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(11, 18, 38, 0.2), 0 22px 46px rgba(11, 18, 38, 0.32) !important;
+}
+
+.radar-card .card-title {
+  color: #fff;
+}
+
+.radar-bg {
+  fill: rgba(255, 255, 255, 0.05);
+}
+
+.radar-ring,
+.radar-axis {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+.radar-ring.is-outer {
+  stroke: rgba(255, 255, 255, 0.34);
+}
+
+.radar-ring-label,
+.radar-compass {
+  fill: #c5d0ea;
+}
+
+.radar-compass.is-n {
+  fill: #fff;
+}
+
+.radar-dot-name {
+  fill: #fff;
+  stroke: #101b3a;
+}
+
+.radar-range {
+  fill: rgba(255, 255, 255, 0.05);
+  stroke: #fff;
+}
+
+.radar-range-label {
+  fill: #fff;
+  stroke: #101b3a;
+}
+
+.radar-me-halo {
+  fill: rgba(120, 165, 255, 0.28);
+}
+
+/* Weg auf einen Blick: Lift zeigt sein Symbol, Piste Farbe und Nummer */
+.route-strip {
+  gap: 3px;
+  height: 26px;
+}
+
+.route-strip i {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  overflow: hidden;
+  border-radius: 7px;
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  color: #fff;
+}
+
+.route-strip .seg-lift {
+  background: #fff;
+  color: var(--ink);
+}
+
+.route-strip svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Liftstrecke in der Liste: ruhige Linie statt Striche */
+.guest .step-lift {
+  --step-c: #c3cfe4;
+}
+
+/* Hinweise: neutral statt blassem Orange */
+.guest .note,
+.guest .note-warn,
+.guest .note-alert {
+  background: var(--ice);
+  color: var(--ink);
+}
+
+.has-route .mk-chip {
+  display: none;
+}
+
+.route-name {
+  margin-top: var(--sp-1);
+}
+
+/* Logo im Titelbild bleibt im eigenen Rahmen */
+.place-cover .place-logo img {
+  position: static;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Weg-Balken: schlank, Lift-Striche laufen in Fahrtrichtung */
+.route-strip {
+  height: 12px;
+}
+
+.route-strip i {
+  min-width: 6px;
+  border-radius: 4px;
+}
+
+.route-strip .seg-lift {
+  background: repeating-linear-gradient(90deg, #fff 0 5px, rgba(255, 255, 255, 0.18) 5px 10px);
+  background-size: 200% 100%;
+  animation: lift-run 900ms linear infinite;
+}
+
+@keyframes lift-run {
+  to {
+    background-position: 10px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-strip .seg-lift {
+    animation: none;
+  }
+}
+
+/* Hütten: gezeichnetes Chalet, eine Bilddatei für alle (schont das Handy) */
+.guest .mk-hut-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 0;
+  background-position: center;
+  box-shadow: none;
+  transform: none;
+}
+
+.guest .mk-hut-badge svg {
+  display: none;
+}
+
+.guest .mk-hut:hover .mk-hut-badge {
+  transform: scale(1.12);
+}
+
+/* Ort offen: liegt über dem aktuellen Tab, der Griff bleibt frei */
+.place-over {
+  position: absolute;
+  inset: 22px 0 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-3) calc(var(--sp-4) + var(--safe-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--snow);
+  animation: pane-in 260ms var(--ease-out) both;
+}
+
+.place-over[hidden],
+.sheet[data-stage="peek"]:not(.is-dragging) .place-over {
+  display: none;
+}
+
+.place-over .place {
+  flex: none;
+}
+
+.place-over-close {
+  position: sticky;
+  top: 8px;
+  z-index: 3;
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-self: flex-end;
+  width: 44px;
+  height: 44px;
+  margin: 8px 8px -60px 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--shadow-2);
+}
+
+.place-over-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Route kommt rein: Karte hebt sich, der Balken läuft von links ein */
+.route-enter .route-hero {
+  animation: route-rise 420ms var(--ease-out) both;
+}
+
+.route-enter .route-strip {
+  animation: strip-run 800ms var(--ease-out) 120ms both;
+}
+
+.route-enter .route-start {
+  animation: route-rise 420ms var(--ease-out) 90ms both;
+}
+
+.guest.route-running .route-bar {
+  animation: route-rise 420ms var(--ease-out) both;
+}
+
+@keyframes route-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes strip-run {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Ziel: kräftiges Gelb, hebt sich von Route und Hütten ab */
+.guest .mk-goal span,
+.guest .step-goal .step-icon {
+  background: #ffc400;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.guest .mk-goal span {
+  box-shadow: 0 0 0 2px #fff, 0 6px 16px rgba(120, 90, 0, 0.5);
+}
+
+.guest .step-goal .step-icon {
+  box-shadow: 0 3px 10px rgba(120, 90, 0, 0.4);
+}
+
+/* Abzeichen: geschafft ist grün, wie bei den Challenges */
+.guest .badges .is-earned .badge-icon {
+  background: #0a9a5e;
+  color: #fff;
+  box-shadow: none;
+}
+
+.guest .badges .is-earned {
+  color: var(--ink);
+}
+
+/* Radar: ruhige Nachtfläche ohne Linien */
+.radar-card {
+  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%) !important;
+}
+
+.radar-card .card-head {
+  align-items: center;
+}
+
+.radar-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: var(--fs-s);
+  font-weight: 650;
+}
+
+.radar-all svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Personen: klare Zeile, Knöpfe mit Beschriftung */
+.guest .member {
+  padding: 12px 12px 12px 14px;
+}
+
+.member-quick button,
+.member-quick button.is-buzz {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--ice);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.member-quick span {
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.guest .members {
+  flex: none;
+}
+
+.guest .member {
+  flex: none;
+}
+
+.guest .group-call {
+  margin-top: var(--sp-1);
+}
+
+/* Wetter: Ort mit Höhe klar benannt, keine nackten Zahlen */
+.wx-alt li {
+  display: grid;
+  grid-template-columns: 1fr 24px auto;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 52px;
+}
+
+.wx-alt-place {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wx-alt-place strong {
+  font-size: var(--fs-s);
+  font-weight: 650;
+}
+
+.wx-alt-place small {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.wx-alt-t {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.wx-hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  text-align: right;
+}
+
+/* Abzeichen: geschafft grün, offen ruhig grau, nichts Schwarzes */
+.guest .badges li,
+.guest .badges li.is-earned {
+  background: var(--ice);
+  color: var(--ink-2);
+  box-shadow: none;
+}
+
+.guest .badges li.is-earned {
+  background: #e3f6ec;
+  color: #075c39;
+}
+
+.guest .badges li .badge-icon {
+  background: #cfd9ea;
+  color: #fff;
+}
+
+.guest .badges li.is-earned .badge-icon {
+  background: #0a9a5e;
+  color: #fff;
+}
+
+/* Tagesende */
+.day-end-intro {
+  background: radial-gradient(ellipse 110% 70% at 50% 35%, #1b2547 0%, #0c0f1a 70%);
+}
+
+.trace-line {
+  stroke-width: 4.5;
+}
+
+.trace-shadow {
+  stroke: rgba(255, 106, 43, 0.2);
+  stroke-width: 11;
+}
+
+.trace-dot {
+  stroke: #ff6a2b;
+}
+
+.day-end-kicker {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.day-end-map {
+  height: max(300px, 48vh);
+  background: #eef3fb;
+}
+
+.day-end-top {
+  background: linear-gradient(120deg, #0b1226, #182650);
+  color: #fff;
+  box-shadow: var(--shadow-2);
+}
+
+.day-end-top small {
+  color: #c5d0ea;
+}
+
+.day-end-top .pill {
+  background: rgba(255, 255, 255, 0.13);
+  color: #fff;
+}
+
+.day-end-body {
+  padding-top: var(--sp-4);
+}
+
+.guest .recap-hero {
+  padding: 20px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+}
+
+.recap-hero .instrument-head {
+  color: #c5d0ea;
+  font-weight: 600;
+}
+
+.recap-hero .day-chip {
+  display: none;
+}
+
+.recap-km {
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.recap-unit {
+  color: #c5d0ea;
+}
+
+.recap-hero .day-stats {
+  gap: var(--sp-4) var(--sp-3);
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0;
+  background: none;
+}
+
+.recap-hero .stat {
+  padding: 0;
+  background: none;
+}
+
+.recap-hero .stat dt {
+  order: 2;
+  color: #c5d0ea;
+  font-size: var(--fs-xs);
+  font-weight: 550;
+}
+
+.recap-hero .stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.recap-hero .stat dd {
+  margin: 0;
+}
+
+.recap-hero .stat .num {
+  font-size: 1.3rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.recap-hero .stat small {
+  color: #c5d0ea;
+}
+
+.guest .film-cta {
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+
+.guest .film-cta small {
+  color: var(--ink-2);
+}
+
+.guest .film-cta-icon {
+  background: var(--sun);
+  color: #fff;
+}
+
+.guest .recap .run-n {
+  background: var(--ice);
+  color: var(--ink);
+}
+
+.guest .recap-download {
+  background: linear-gradient(180deg, #f4581f, #e5450d) !important;
+  box-shadow: 0 8px 20px rgba(229, 69, 13, 0.35) !important;
+}
+
+.guest .day-end-return {
+  border-radius: 22px;
+}
+
+/* Ganz weit draußen: nur Orte, große Gipfel und Menschen. Lift-Schilder erst ab Zoom 13. */
+.guest .map[data-zoom="11"] .mk-chip:not(.is-open),
+.guest .map[data-zoom="12"] .mk-chip:not(.is-open),
+.guest .map[data-zoom="11"] .mk-peak:not(.is-major),
+.guest .map[data-zoom="12"] .mk-peak:not(.is-major) {
+  display: none;
+}
+
+/* Mein Tag vor dem Start: Nachtkarte mit großem Knopf, darunter kurz der Ablauf */
+.day-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: 22px 18px 16px;
+  border-radius: 26px;
+  background: url("../../assets/images/piste-lines.svg") right -40px top -30px / 300px no-repeat, linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(11, 18, 38, 0.2), 0 22px 46px rgba(11, 18, 38, 0.32);
+}
+
+.day-hero-title {
+  font-family: var(--font-head);
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.day-hero p {
+  color: #dbe3f5;
+}
+
+.day-hero .day-start {
+  margin-top: var(--sp-2);
+  min-height: 66px;
+  font-size: 1.25rem;
+}
+
+.day-hero .day-left {
+  color: #c5d0ea;
+}
+
+.guest .btn.is-gate {
+  background: #0b1226 !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25) !important;
+  color: #fff;
+}
+
+.guest .btn.is-gate.is-open {
+  background: #0a9a5e !important;
+}
+
+.day-steps {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 16px;
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.day-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 0;
+}
+
+.day-steps li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 44px;
+  bottom: -11px;
+  width: 2px;
+  background: var(--line);
+}
+
+.day-step-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--ink);
+}
+
+.day-step-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.day-steps li:last-child .day-step-icon {
+  background: var(--ink);
+  color: #fff;
+}
+
+.day-steps li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.day-steps strong {
+  font-weight: 700;
+}
+
+.day-steps small {
+  font-size: var(--fs-s);
+  color: var(--ink-2);
+}
+
+/* Schalter: eigene Form, kein iPhone-Pille */
+.guest .switch {
+  flex: none;
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: 10px;
+  background: #cdd7e8;
+  box-shadow: inset 0 1px 3px rgba(22, 44, 96, 0.22);
+  transition: background var(--t-fast);
+}
+
+.guest .switch::after {
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(22, 44, 96, 0.35);
+  transition: transform var(--t-med) var(--ease-out);
+}
+
+.guest .switch[aria-checked="true"],
+.guest .is-on .switch {
+  background: #0a9a5e;
+}
+
+.guest .switch[aria-checked="true"]::after,
+.guest .is-on .switch::after {
+  transform: translateX(24px);
+}
+
+.range-card.is-off .range-head {
+  margin-bottom: 0;
+}
+
+/* Hütten: kleine Almhütte mit Licht in den Fenstern */
+.guest .mk-hut-badge {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 0;
+  background: url("../../assets/images/hut.svg") center / contain no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 2px 3px rgba(22, 44, 96, 0.32));
+}
+
+.guest .mk-hut-badge svg {
+  display: none;
+}
+
+.guest .mk-hut .mk-label {
+  left: 36px;
+  top: 5px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 650;
+  text-shadow: none;
+  box-shadow: 0 2px 7px rgba(22, 44, 96, 0.28);
+}
+
+/* Orte ohne Foto: dieselbe Holz-Plakette wie auf der Karte */
+.place-logo.is-badge {
+  background: url("../../assets/images/hut-badge.svg") center / 100% no-repeat;
+  box-shadow: none;
+}
+
+
+.place-cover .place-logo.is-badge {
+  background-color: transparent;
+  border: 0;
+}
+
+/* Wetter: Kopf mit Jetzt und den nächsten Stunden, darunter der Berg */
+.wx-hero {
+  flex-wrap: wrap;
+  padding: 20px 18px 14px;
+}
+
+.wx-hero-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wx-temp {
+  font-size: 5rem;
+  line-height: .95;
+}
+
+.wx-hero-hills {
+  display: none;
+}
+
+.wx-hero .wx-hours {
+  flex: 1 0 100%;
+  display: flex;
+  gap: 4px;
+  margin-top: var(--sp-2);
+  padding: 10px 4px;
+  overflow-x: auto;
+  border-radius: 18px;
+  background: rgba(11, 18, 38, 0.28);
+  scrollbar-width: none;
+}
+
+.wx-hero .wx-hour {
+  flex: 1 0 50px;
+  padding: 2px;
+  background: none;
+  color: #fff;
+  box-shadow: none;
+}
+
+.wx-hero .wx-hour small,
+.wx-hero .wx-hour em {
+  color: #e4ecfb;
+}
+
+.wx-hero .wx-hour .num {
+  color: #fff;
+}
+
+.wx-hero .wx-hour svg {
+  color: #fff;
+}
+
+.wx-hero .wx-hint {
+  flex: 1 0 100%;
+  margin-top: 6px;
+  color: #e4ecfb;
+  text-align: left;
+}
+
+.wx-peak {
+  overflow: hidden;
+  padding-bottom: 12px;
+}
+
+.wx-peak-fig {
+  margin: var(--sp-2) calc(var(--sp-4) * -1) 0;
+}
+
+.wx-peak-fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.wx-peak-t {
+  fill: var(--ink);
+  font: 800 15px var(--font-head);
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 4px;
+}
+
+.wx-peak-e {
+  fill: #dbe3f5;
+  font: 600 10.5px var(--font);
+}
+
+.wx-peak-fig figcaption {
+  display: grid;
+  gap: 2px;
+  padding: 8px 2px 0;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink);
+}
+
+.wx-days li {
+  display: grid;
+  grid-template-columns: 42px 24px 58px 32px 1fr 32px;
+  align-items: center;
+  gap: 6px;
+  min-height: 46px;
+}
+
+.wx-day-snow {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: #1f66d1;
+}
+
+.wx-day-snow svg {
+  width: 13px;
+  height: 13px;
+}
+
+.wx-range-t {
+  text-align: right;
+  font-size: .95rem;
+}
+
+small.wx-range-t {
+  color: var(--ink-3);
+}
+
+.wx-range {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ice);
+}
+
+.wx-range i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 8px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #4d8dff, #ff8a4c);
+}
+
+.modal-info .wx-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+  background: none;
+}
+
+.modal-info .wx-facts > * {
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.wx-hero .wx-hint {
+  color: var(--ink);
+  font-weight: 550;
+}
+
+/* Eckiger: Rundes nur noch für Personen, Pistennummern und SOS-frei gebliebene Punkte */
+.guest .btn,
+.modal-backdrop .btn,
+.guest .choice,
+.guest .back-btn,
+.guest .icon-btn,
+.place-over-close,
+.modal-close,
+.guest .radar-all,
+.guest .place-facts li {
+  border-radius: 13px;
+}
+
+.guest .btn-big {
+  border-radius: 16px;
+}
+
+.guest .route-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 13px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: var(--shadow-2);
+}
+
+.guest .route-chip[hidden],
+.guest .focus-wrap[hidden] {
+  display: none;
+}
+
+.guest .route-chip svg {
+  width: 20px;
+  height: 20px;
+}
+
+.guest .route-chip.is-on {
+  background: var(--sun);
+  color: #fff;
+}
+
+
+/* ================================================================================
+   Chip-Knopf oben rechts + Menü (Chip, Zugang, Sprache)
+   Dunkel wie die Kopfleiste, damit Schrift immer lesbar bleibt
+   ================================================================================ */
+.guest .menu-wrap {
+  flex: none;
+}
+
+.guest .topbar .pill-chip {
+  position: relative;
+}
+
+.guest .pill-chip .pill-row {
+  gap: 5px;
+}
+
+/* Akku als kleines Symbol, Füllstand per --lvl */
+.bat {
+  position: relative;
+  width: 17px;
+  height: 10px;
+  border: 1.6px solid currentColor;
+  border-radius: 3.5px;
+  margin-right: 3px;
+}
+
+.bat::before {
+  content: "";
+  position: absolute;
+  inset: 1.4px auto 1.4px 1.4px;
+  width: calc(var(--lvl) * 10.6px);
+  border-radius: 1.5px;
+  background: #34d391;
+}
+
+.bat::after {
+  content: "";
+  position: absolute;
+  right: -4.5px;
+  top: 2.2px;
+  width: 2px;
+  height: 4px;
+  border-radius: 0 1px 1px 0;
+  background: currentColor;
+}
+
+.is-low .bat::before {
+  background: #ff5b5b;
+}
+
+.guest .menu {
+  min-width: 284px;
+  padding: 10px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #0f1a38, #1b2c5e);
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(11, 18, 38, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.guest .menu-chip {
+  margin: 0;
+  padding: 12px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.menu-chip-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.guest .menu-chip small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6ee7b0;
+  font-size: 12px;
+}
+
+.menu-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d391;
+  box-shadow: 0 0 0 3px rgba(52, 211, 145, 0.2);
+}
+
+.guest .menu-chip-bat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  color: #fff;
+}
+
+.menu-chip-bat strong {
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.menu-bat-bar {
+  width: 46px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.menu-bat-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #34d391;
+}
+
+.menu-access {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px 12px;
+}
+
+.menu-access svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: #c5d0ea;
+}
+
+.menu-access span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-access strong {
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.menu-access small {
+  font-size: 12.5px;
+  color: #c5d0ea;
+}
+
+/* Sprache als Umschalter, beide Sprachen sichtbar */
+.menu-lang {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-lang-btn {
+  min-height: 40px;
+  border-radius: 9px;
+  color: #c5d0ea;
+  font-weight: 650;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.menu-lang-btn[aria-pressed="true"] {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.guest .menu .menu-item {
+  margin-top: 6px;
+  color: #c5d0ea;
+  font-size: 0.9rem;
+}
+
+.guest .menu .menu-item svg {
+  color: #c5d0ea;
+}
+
+.guest .menu .menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Vier Knöpfe oben müssen auch auf 360 px nebeneinander passen */
+@media (max-width: 899px) {
+  .guest .topbar {
+    gap: 4px;
+  }
+
+  .guest .topbar .pill {
+    padding: 0 14px 0 8px;
+  }
+
+  .guest .topbar .pill .pill-more {
+    right: 4px;
+  }
+}
+
+@media (max-width: 374px) {
+  .guest .top-left-value {
+    font-size: 1.9rem;
+  }
+}
+
+/* Andere Leute: nur ihr Punkt, keine Spur auf der Karte */
+.guest .friend-trail {
+  display: none;
+}
+
+/* --- Suchvorschläge ---------------------------------------------------------------- */
+.search-head {
+  padding: 10px 12px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.search-head-back {
+  padding: 4px 4px 2px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.search-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 10px 0 6px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.search-back svg {
+  width: 18px;
+  height: 18px;
+}
+
+.search-back:hover {
+  background: var(--ice);
+}
+
+.search-suggest > svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  color: var(--ink-3);
+}
+
+.search-sg-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: #e6edf9;
+  color: #1b2c5e;
+}
+
+.search-sg-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.sg-valley {
+  background: #dfeafd;
+  color: #1f66d1;
+}
+
+.sg-streif,
+.sg-black {
+  background: #0e1530;
+  color: #fff;
+}
+
+.sg-huts {
+  background: url("../../assets/images/hut-badge.svg") center / 100% no-repeat;
+}
+
+.sg-huts svg {
+  display: none;
+}
+
+.search-results {
+  max-height: min(62vh, 460px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Gruppe auf der Karte: alles andere ist weg – nur noch die Gruppe */
+.map.has-group .leaflet-pistes-pane,
+.map.has-group .leaflet-lifts-pane,
+.map.has-group .leaflet-cabins-pane,
+.map.has-group .sk,
+.map.has-group .mk-friend {
+  display: none !important;
+}
+
+/* Ende einer Talabfahrt: Schild sitzt über dem Punkt */
+.mk-rsign.is-end span {
+  transform: translate(-50%, calc(-100% - 10px));
+}
+
+.search.has-group .search-results {
+  max-height: 32vh;
+}
+
+/* ================================================================================
+   Wetter: Bergkette mit Temperaturen, Fakten-Kacheln, Lawine als eigener Abschnitt
+   ================================================================================ */
+.wx-peak {
+  padding-bottom: 0;
+}
+
+.wx-ridge {
+  position: relative;
+  margin: var(--sp-3) calc(var(--sp-4) * -1) 0;
+  aspect-ratio: 360 / 230;
+  overflow: hidden;
+  border-radius: 0 0 18px 18px;
+}
+
+.wx-ridge-art,
+.wx-ridge-art svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Schild über jeder Spitze: Wetter + Temperatur, Name, Höhe */
+.wx-ridge-peak {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 76px;
+  transform: translate(-50%, calc(-100% - 8px));
+  text-align: center;
+  line-height: 1.1;
+  pointer-events: none;
+}
+
+.wx-ridge-peak::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px #0b1226;
+}
+
+.wx-ridge-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px 3px 6px;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(22, 44, 96, 0.22);
+}
+
+.wx-ridge-t svg {
+  width: 16px;
+  height: 16px;
+  color: #1b2c5e;
+}
+
+.wx-ridge-t b {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.wx-ridge-name {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b1226;
+}
+
+.wx-ridge-peak small {
+  font-size: 10px;
+  font-weight: 600;
+  color: #4a5d88;
+}
+
+.wx-ridge-peak.is-valley .wx-ridge-t {
+  background: #e7eefb;
+  box-shadow: none;
+}
+
+/* Fakten: ruhige Kacheln, Symbol in eigenem Feld */
+:root:has(main.guest) .wx-fact {
+  position: relative;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  padding: 14px;
+  border-radius: 16px;
+}
+
+:root:has(main.guest) .wx-fact .wx-fact-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: #e8effb;
+  color: #1b2c5e;
+}
+
+:root:has(main.guest) .wx-fact .wx-fact-icon svg {
+  grid-row: auto;
+  width: 19px;
+  height: 19px;
+  margin: 0;
+  color: currentColor;
+}
+
+:root:has(main.guest) .wx-fact-snowflake .wx-fact-icon,
+:root:has(main.guest) .wx-fact-snow .wx-fact-icon {
+  background: #dfeafd;
+  color: #1f66d1;
+}
+
+:root:has(main.guest) .wx-fact-sun .wx-fact-icon {
+  background: #fff3d1;
+  color: #b86e00;
+}
+
+:root:has(main.guest) .wx-fact dt {
+  font-size: 12px;
+}
+
+:root:has(main.guest) .wx-fact dd strong {
+  font-family: var(--font-head);
+  font-size: 1.3rem;
+  font-weight: 750;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+:root:has(main.guest) .wx-fact-sun dd strong {
+  font-size: 1.1rem;
+}
+
+:root:has(main.guest) .wx-fact dd small {
+  margin-top: 2px;
+}
+
+/* Kompass oben rechts in der Wind-Kachel */
+.wx-compass {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #d5dff0;
+}
+
+.wx-compass i {
+  display: grid;
+  place-items: center;
+  transition: transform 600ms var(--ease);
+}
+
+.wx-compass svg {
+  width: 17px;
+  height: 17px;
+  color: #1f66d1;
+  stroke-width: 2.6;
+}
+
+.wx-compass small {
+  position: absolute;
+  top: -8px;
+  padding: 0 3px;
+  background: var(--paper);
+  font-size: 9.5px;
+  font-weight: 750;
+  color: var(--ink-3);
+}
+
+/* Lawine: eigener Abschnitt, dunkel abgesetzt, aber ohne Alarmfarbe */
+.wx-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: var(--sp-4) 2px 0;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.wx-section::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #d5dff0;
+}
+
+.wx-section svg {
+  width: 16px;
+  height: 16px;
+}
+
+:root:has(main.guest) .aval {
+  background: linear-gradient(150deg, #0f1a38, #1b2c5e);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(11, 18, 38, 0.28);
+}
+
+:root:has(main.guest) .aval .card-title,
+:root:has(main.guest) .aval strong {
+  color: #fff;
+}
+
+:root:has(main.guest) .aval small,
+:root:has(main.guest) .aval .muted {
+  color: #c5d0ea;
+}
+
+:root:has(main.guest) .aval .link-pill {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+:root:has(main.guest) .aval .tag {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+:root:has(main.guest) .aval-badge {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+:root:has(main.guest) .aval-badge .num {
+  color: #0b1226;
+}
+
+.wx-ridge-town {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.wx-ridge-town svg {
+  width: 15px;
+  height: 15px;
+}
+
+.wx-ridge-town small {
+  color: #c5d0ea;
+}
+
+.wx-ridge-town b {
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+}
+
+.wx-ridge-name {
+  text-shadow: 0 0 6px #eaf1fd, 0 0 3px #eaf1fd;
+}
+
+/* Tag starten: Lichtstreifen ziehen einmal durch die blaue Box */
+.day-panel {
+  position: relative;
+  overflow: hidden;
+  transform-origin: top left;
+}
+
+.day-panel.is-launch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(100deg, transparent 0 30%, rgba(255, 255, 255, 0.16) 38%, transparent 46%),
+    repeating-linear-gradient(100deg, transparent 0 22px, rgba(255, 255, 255, 0.07) 22px 24px);
+  background-size: 260% 100%, 100% 100%;
+  animation: day-launch 1.1s cubic-bezier(.3, .7, .3, 1) 0.25s both;
+  pointer-events: none;
+}
+
+@keyframes day-launch {
+  from { background-position: 120% 0, 0 0; opacity: 1; }
+  70% { opacity: 1; }
+  to { background-position: -60% 0, -120px 0; opacity: 0; }
+}
+
+/* ================================================================================
+   Tagesende: Karte groß oben, darüber schiebt sich die Zusammenfassung
+   ================================================================================ */
+.day-end-map {
+  height: max(320px, 52vh);
+}
+
+/* Karte läuft weich in die Seite aus */
+.day-end-map::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 450;
+  height: 90px;
+  background: linear-gradient(to bottom, rgba(238, 243, 251, 0), var(--snow));
+  pointer-events: none;
+}
+
+.day-end-body {
+  margin-top: -78px;
+  padding-top: 0;
+  background: none;
+}
+
+.day-end-body::before {
+  content: "";
+  position: absolute;
+  inset: 78px 0 0;
+  z-index: -1;
+  background: var(--snow);
+}
+
+.recap-hero.instrument {
+  gap: 0;
+  padding: 20px 18px 16px;
+  border-radius: 24px;
+  box-shadow: 0 6px 14px rgba(11, 18, 38, 0.22), 0 26px 50px rgba(11, 18, 38, 0.32);
+  animation: recap-rise 700ms cubic-bezier(.2, .9, .25, 1) both;
+}
+
+@keyframes recap-rise {
+  from { opacity: 0; transform: translateY(40px); }
+}
+
+.recap-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #c5d0ea;
+}
+
+.recap-kicker i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d391;
+}
+
+.recap-title {
+  margin: 6px 0 18px;
+  font-family: var(--font-head);
+  font-size: clamp(1.6rem, 7vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.recap-trio {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 0.8fr;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.recap-big-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.recap-big-stat .num {
+  font-family: var(--font-head);
+  font-size: clamp(1.9rem, 9vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.recap-big-stat small {
+  margin-left: 3px;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: #c5d0ea;
+  letter-spacing: 0;
+}
+
+.recap-big-label {
+  font-size: 12px;
+  font-weight: 650;
+  color: #c5d0ea;
+}
+
+.recap-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 14px 0 0;
+}
+
+.recap-row .stat dt {
+  font-size: 11px;
+  color: #c5d0ea;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recap-row .stat dd {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.recap-row .stat small {
+  margin-left: 2px;
+  font-size: 11px;
+  color: #c5d0ea;
+}
+
+/* Tagesfilm: Vorschau links, Text rechts, darunter Download und Teilen */
+.recap-film {
+  padding: 14px;
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+
+.recap-film-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.recap-film-preview {
+  position: relative;
+  flex: none;
+  width: 116px;
+  aspect-ratio: 300 / 220;
+  border-radius: 14px;
+  overflow: hidden;
+  background: url("../../assets/images/piste-lines.svg") center / 220px no-repeat, linear-gradient(135deg, #0b1226, #1b2c5e);
+}
+
+.recap-film-preview svg {
+  width: 100%;
+  height: 100%;
+}
+
+.recap-film-preview .trace-line.is-loop,
+.recap-film-preview .trace-shadow {
+  animation: trace-loop 4s linear infinite;
+}
+
+@keyframes trace-loop {
+  from { stroke-dashoffset: 1; }
+  85%, to { stroke-dashoffset: 0; }
+}
+
+.recap-film-play {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--sun);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(229, 69, 13, 0.4);
+}
+
+.recap-film-play svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.recap-film-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.recap-film-text strong {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.recap-film-text small {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.recap-film .recap-actions {
+  gap: 8px;
+}
+
+.recap-film .recap-file {
+  margin: -2px 0 2px;
+}
+
+/* Karte als eigene Ebene, sonst liegen Leaflets Ebenen über der Zusammenfassung */
+.day-end-map {
+  isolation: isolate;
+  z-index: 0;
+}
+
+/* Chip-Knopf: schmal, nur eine Batterie */
+.guest .topbar .pill.pill-chip {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  padding: 0;
+}
+
+.pill-chip .bat {
+  width: 24px;
+  height: 13px;
+  margin: 0 3px 0 0;
+  border-width: 2px;
+  border-radius: 4px;
+}
+
+.pill-chip .bat::before {
+  inset: 2px auto 2px 2px;
+  width: calc(var(--lvl) * 16px);
+  border-radius: 1.5px;
+}
+
+.pill-chip .bat::after {
+  right: -5px;
+  top: 3px;
+  width: 2.5px;
+  height: 5px;
+}
+
+/* --- Route auf der Karte: gleicher Knopf wie der Kartenfilter, nie orange -------------- */
+.guest .route-chip,
+.guest .route-chip.is-on {
+  display: inline-flex;
+  width: auto;
+  background: #fff;
+  color: var(--ink);
+}
+
+.guest .route-chip[hidden] {
+  display: none;
+}
+
+/* --- Schilder auf der Route: wie die normalen Kartenschilder ------------------------- */
+.mk-rsign span {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 3px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1.5px rgba(11, 18, 38, 0.08), 0 3px 8px rgba(22, 44, 96, 0.3);
+  transform: translate(-50%, -50%);
+}
+
+.mk-rsign i {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  font-style: normal;
+  font-family: var(--font-head);
+  font-size: 11px;
+}
+
+.mk-rsign svg {
+  width: 14px;
+  height: 14px;
+  margin-left: 3px;
+}
+
+.mk-rsign.is-piste i {
+  border-radius: 50%;
+}
+
+.mk-rsign i.diff-easy { background: #1f66d1; }
+.mk-rsign i.diff-intermediate { background: #e0242f; }
+.mk-rsign i.diff-advanced,
+.mk-rsign i.diff-expert { background: #0e0e10; }
+.mk-rsign i.diff-freeride { background: #f08a24; }
+
+/* --- Wetter-Kopf: Himmel bis zu den Bergen, davor die Kette mit den Temperaturen ------- */
+:root:has(main.guest) .wx-hero {
+  --sky: linear-gradient(180deg, #0b1226 0%, #1b2f66 55%, #4b78c8 100%);
+  padding-bottom: 14px;
+  background: #0b1226;
+  box-shadow: 0 18px 40px rgba(11, 18, 38, 0.35);
+}
+
+:root:has(main.guest) .wx-hero.wx-sun { --sky: linear-gradient(180deg, #0f2a66 0%, #2463c9 55%, #7fb8f7 100%); background: #0b1226; }
+:root:has(main.guest) .wx-hero.wx-partly { --sky: linear-gradient(180deg, #102a60 0%, #2a5fb8 55%, #86b2ea 100%); background: #0b1226; }
+:root:has(main.guest) .wx-hero.wx-cloud,
+:root:has(main.guest) .wx-hero.wx-fog { --sky: linear-gradient(180deg, #141d36 0%, #34477a 55%, #8399c6 100%); background: #0b1226; }
+:root:has(main.guest) .wx-hero.wx-snow { --sky: linear-gradient(180deg, #121e42 0%, #31508f 55%, #92ade0 100%); background: #0b1226; }
+:root:has(main.guest) .wx-hero.wx-rain,
+:root:has(main.guest) .wx-hero.wx-storm { --sky: linear-gradient(180deg, #0f1628 0%, #2a3a62 55%, #6479a3 100%); background: #0b1226; }
+
+.wx-hero .wx-hero-text,
+.wx-hero .wx-hero-icon {
+  z-index: 2;
+}
+
+.wx-hero .wx-ridge {
+  flex: 1 0 calc(100% + 36px);
+  z-index: 1;
+  margin: 4px -18px -2px;
+  overflow: visible;
+  border-radius: 0;
+}
+
+/* Himmel hinter allem, von ganz oben bis zu den Gipfeln */
+.wx-hero .wx-ridge::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 20%;
+  height: 900px;
+  z-index: -1;
+  background: var(--sky);
+}
+
+.wx-hero .wx-fx {
+  z-index: 1 !important;
+}
+
+:root:has(main.guest) .wx-hero .wx-hint,
+:root:has(main.guest) .wx-hero .wx-feels {
+  color: #dbe5f8;
+}
+
+.wx-hero .wx-ridge-name {
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(11, 18, 38, 0.8);
+}
+
+.wx-hero .wx-ridge-peak small {
+  color: #dbe5f8;
+  text-shadow: 0 1px 4px rgba(11, 18, 38, 0.8);
+}
+
+.wx-hero .wx-ridge-t {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.wx-hero .wx-ridge-peak::after {
+  box-shadow: 0 0 0 2px #0b1226, 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.wx-hero .wx-hours {
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Schilder auf der Route wie auf der Karte: weit draußen nur Kürzel bzw. Pistennummer,
+   beim Reinzoomen kommen die Namen dazu */
+.guest .map:not(.z-mid) .mk-rsign b {
+  display: none;
+}
+
+.guest .map:not(.z-mid) .mk-rsign span {
+  padding: 3px;
+}
+
+.guest .map:not(.z-mid) .mk-rsign.is-lift span {
+  padding: 2px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1.5px #fff, 0 3px 8px rgba(22, 44, 96, 0.35);
+}
+
+.guest .map:not(.z-mid) .mk-rsign.is-lift svg {
+  margin: 0 3px;
+  color: #fff;
+}
+
+.guest .map:not(.z-mid) .mk-rsign.is-piste span {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.guest .map:not(.z-mid) .mk-rsign.is-piste i {
+  box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(22, 44, 96, 0.35);
+}
+
+/* Wetter-Himmel: so wie das Wetter wirklich ist – sonnig hell, wolkig grau */
+:root:has(main.guest) .wx-hero { --sky: linear-gradient(180deg, #1f5fc4 0%, #4e8ee8 55%, #a9cdf7 100%); }
+:root:has(main.guest) .wx-hero.wx-sun { --sky: linear-gradient(180deg, #1668e3 0%, #4e9dfa 55%, #b8dcff 100%); }
+:root:has(main.guest) .wx-hero.wx-partly { --sky: linear-gradient(180deg, #2a6fd4 0%, #6aa8ee 55%, #cfe3fa 100%); }
+:root:has(main.guest) .wx-hero.wx-cloud { --sky: linear-gradient(180deg, #4e607f 0%, #8193b0 55%, #c9d3e2 100%); }
+:root:has(main.guest) .wx-hero.wx-fog { --sky: linear-gradient(180deg, #5d6b84 0%, #95a2b8 55%, #d6dde8 100%); }
+:root:has(main.guest) .wx-hero.wx-snow { --sky: linear-gradient(180deg, #56688c 0%, #8ea2c4 55%, #dde6f4 100%); }
+:root:has(main.guest) .wx-hero.wx-rain,
+:root:has(main.guest) .wx-hero.wx-storm { --sky: linear-gradient(180deg, #2f3c55 0%, #5b6b88 55%, #a9b6c9 100%); }
+
+/* Schrift oben bleibt auf hellem Himmel lesbar */
+.wx-hero .wx-hero-text,
+.wx-hero .wx-hero-icon {
+  text-shadow: 0 1px 10px rgba(11, 18, 38, 0.25);
+}
+
+/* Hütten: Holzschild mit Spitze – die Spitze sitzt genau auf der Hütte */
+.guest .mk-hut .mk-hut-badge {
+  position: absolute;
+  left: -2px;
+  top: -17px;
+  width: 32px;
+  height: 35px;
+  background-size: contain;
+}
+
+.guest .mk-hut .mk-label {
+  left: 33px;
+  top: -12px;
+}
+
+.map.has-group.group-huts .mk-hut {
+  display: block !important;
+}
+
+/* Zurück in der Route: deutlich als Knopf, dunkel wie die Kopfleiste */
+.guest .back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 16px 0 10px;
+  border-radius: 13px;
+  background: linear-gradient(120deg, #0b1226, #1b2c5e);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(11, 18, 38, 0.25);
+}
+
+.guest .back-btn svg {
+  width: 19px;
+  height: 19px;
+  color: #fff;
+  stroke-width: 2.6;
+}
+
+.guest .back-btn:active {
+  transform: scale(0.96);
+}
+
+/* Gruppe offen: oben Zurück, rechts Fertig */
+.search-head-back {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-done {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 11px;
+  background: linear-gradient(120deg, #0b1226, #1b2c5e);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.search-badge {
+  flex: none;
+  margin-left: auto;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: #e3f6ec;
+  color: #0a7a4b;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.sg-down {
+  background: #0a9a5e;
+  color: #fff;
 }

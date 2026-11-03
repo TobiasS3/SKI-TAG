@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "bricolage grotesque",
+        "createdAt": "2026-11-03T17:41:20.253Z",
+        "reason": "Claude: DESIGN.md line 74 names Bricolage Grotesque as the app's heading font; detector missed it"
+      }
+    ]
+  }
+}

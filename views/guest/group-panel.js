@@ -171,10 +171,10 @@ export function mountGroup(el, ctx, group) {
     const dot = e.target.closest('.radar-dot');
     if (dot) select(dot.dataset.chip, true);
   });
-  const radarScale = h('span', { class: 'radar-scale' });
   const radarTitle = h('h3', { class: 'card-title' });
   const radarCard = h('section', { class: 'card radar-card' },
-    h('div', { class: 'radar-head' }, radarTitle, radarScale),
+    h('div', { class: 'card-head' }, radarTitle,
+      h('button', { class: 'radar-all', onclick: showAll }, icon('map'), t('group.showAll'))),
     radar);
 
   function renderRadar() {
@@ -190,7 +190,6 @@ export function mountGroup(el, ctx, group) {
     const limit = alarm.on() ? alarm.range() : 0;
     const max = niceScale(Math.max(300, limit * 1.2, ...points.map((p) => p.d)));
     const rOf = (d) => Math.sqrt(Math.min(1, d / max)) * R;
-    radarScale.textContent = t('group.radarScale', { dist: distance(max) });
 
     // Ringe bei 1/16, 1/4 und ganzer Reichweite → im Wurzel-Maßstab gleichmäßig verteilt
     const rings = [max / 16, max / 4, max].map(niceRound);
@@ -254,18 +253,22 @@ export function mountGroup(el, ctx, group) {
 
   function buildList() {
     rows.clear();
-    replace(list, ...members.map((m) => {
+    replace(list, ...others.map((m) => {
       const status = h('span', { class: 'member-status' });
       const meta = h('span', { class: 'member-meta' });
       const battery = h('span', { class: 'chip-battery' });
-      const actions = m.me ? null : h('div', { class: 'member-actions' },
-        h('button', { class: 'btn btn-quiet btn-small', onclick: () => select(m.chip, true) }, icon('locate'), t('group.show')),
-        h('button', { class: 'btn btn-quiet btn-small', onclick: () => routeTo(m) }, icon('route'), t('group.routeTo')),
-        h('button', { class: 'btn btn-sun btn-small', onclick: () => signal([m]) }, icon('vibrate'), t('group.signal')));
+      // Zeile antippen: Karte fliegt hin. Hinfahren und Vibrieren gehen direkt, ohne Umweg.
       const li = h('li', {
         class: `member${m.me ? ' is-me' : ''}`,
         style: { '--c': m.color },
-        onclick: (e) => !m.me && !e.target.closest('button') && select(m.chip, false),
+        role: m.me ? null : 'button',
+        tabindex: m.me ? null : '0',
+        onclick: (e) => !m.me && !e.target.closest('button') && select(m.chip, true),
+        onkeydown: (e) => {
+          if (m.me || e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return;
+          e.preventDefault();
+          select(m.chip, true);
+        },
       },
         h('span', { class: `avatar${m.kid ? ' is-kid' : ''}` }, m.name[0], h('i', { class: 'avatar-signal' })),
         h('div', { class: 'member-text' },
@@ -275,7 +278,9 @@ export function mountGroup(el, ctx, group) {
             battery),
           status,
           meta),
-        actions);
+        m.me ? null : h('div', { class: 'member-quick' },
+          h('button', { 'aria-label': `${t('group.routeTo')}: ${m.name}`, onclick: () => routeTo(m) }, icon('route'), h('span', {}, t('group.routeShort'))),
+          h('button', { 'aria-label': `${t('group.signal')}: ${m.name}`, onclick: () => signal([m]) }, icon('vibrate'), h('span', {}, t('group.signalShort')))));
       rows.set(m.chip, { li, status, meta, battery });
       return li;
     }));
@@ -299,10 +304,15 @@ export function mountGroup(el, ctx, group) {
     if (carded && personCard.isConnected) renderCard();
     const me = ctx.me.pos;
     // Reichweiten-Alarm läuft immer – auch wenn der Gruppen-Tab zu ist
-    const far = alarm.check(others.map((m) => {
+    const dists = others.map((m) => {
       const l = live.get(m.chip);
       return l && me ? { m, d: geoDistance(me, [l.p.lat, l.p.lng]) } : null;
-    }).filter(Boolean));
+    }).filter(Boolean);
+    const far = alarm.check(dists);
+    // Für die Kopfleiste: wie geht es der Gruppe gerade?
+    const farthest = dists.reduce((best, x) => (!best || x.d > best.d ? x : best), null);
+    ctx.sheet.badge('group', far.length > 0);
+    renderLead(far, farthest);
     if (!shown()) return;
     rows.forEach(({ li, status, meta, battery }, chip) => {
       const m = members.find((x) => x.chip === chip);
@@ -321,16 +331,17 @@ export function mountGroup(el, ctx, group) {
         const d = geoDistance(me, pos);
         parts.push(`${distance(d)} ${compass(bearing(me, pos), getLang())}`);
       }
-      if (p && p.speed > 0.5) parts.push(`${Math.round(p.speed * 3.6)} km/h`);
       if (l && !m.me) {
-        const ago = Math.round((Date.now() - l.receivedAt) / 1000);
-        parts.push(ago > STALE_S ? t('group.noSignal') : ago < 5 ? t('group.liveNow') : t('group.ago', { s: ago }));
-        li.classList.toggle('is-stale', ago > STALE_S);
+        const stale = (Date.now() - l.receivedAt) / 1000 > STALE_S;
+        if (stale) parts.push(t('group.noSignal'));
+        li.classList.toggle('is-stale', stale);
       }
       meta.replaceChildren(...parts.map((part) => h('span', {}, part)));
       const bat = p?.battery ?? null;
-      battery.replaceChildren(...(bat == null ? [] : [batteryIcon(bat), `${bat}%`]));
-      battery.classList.toggle('is-low', bat != null && bat < 20);
+      // Akku nur zeigen, wenn er knapp wird
+      const low = bat != null && bat < 20;
+      battery.replaceChildren(...(low ? [batteryIcon(bat), `${bat}%`] : []));
+      battery.classList.toggle('is-low', low);
     });
 
     warnTargets = far.map((f) => f.m);
@@ -448,16 +459,18 @@ export function mountGroup(el, ctx, group) {
     if (!m) {
       replace(meetCard, h('p', { class: 'meet-empty' }, icon('flag'), h('span', {}, t('meet.hint'))));
       meetCard.classList.remove('is-set');
+      placeMeeting(race.el);
       return;
     }
     meetCard.classList.add('is-set');
+    placeMeeting(list); // Ausgemacht → wichtig, gehört nach oben
     const nowT = clockNow();
     const at = m.time ? todayAt(m.time) : null;
     const left = at ? (at - nowT) / 1000 : null;
-    const list = etas(m);
+    const arrivals = etas(m);
 
     // Für dich: rechtzeitig erinnern
-    const mine = list.find((x) => x.m.me);
+    const mine = arrivals.find((x) => x.m.me);
     if (at && mine?.eta && reminded !== `${m.name}${m.time}` && left - mine.eta < 120 && left > 0) {
       reminded = `${m.name}${m.time}`;
       toast(t('meet.leaveNow', { name: m.name, eta: duration(mine.eta) }), { icon: 'flag', ms: 7000 });
@@ -473,7 +486,7 @@ export function mountGroup(el, ctx, group) {
         m.time ? h('span', { class: 'meet-time' },
           h('strong', { class: 'num' }, m.time),
           h('small', {}, left > 0 ? t('meet.in', { time: duration(left) }) : t('meet.now'))) : null),
-      h('ul', { class: 'meet-list' }, list.map(({ m: x, eta }) => {
+      h('ul', { class: 'meet-list' }, arrivals.map(({ m: x, eta }) => {
         let state = '';
         if (eta != null && left != null) state = eta <= left ? 'is-ok' : eta <= left + 300 ? 'is-tight' : 'is-late';
         if (eta === 0) state = 'is-there';
@@ -487,6 +500,20 @@ export function mountGroup(el, ctx, group) {
       h('div', { class: 'meet-actions' },
         h('button', { class: 'btn btn-small', onclick: () => ctx.choose(ctx.meetingPlace()) }, icon('route'), t('meet.route')),
         h('button', { class: 'btn btn-quiet btn-small', onclick: () => ctx.setMeeting(null) }, icon('close'), t('meet.clear'))));
+  }
+
+  function placeMeeting(before) {
+    if (before.parentNode === el && meetCard.nextSibling !== before) el.insertBefore(meetCard, before);
+  }
+
+  /** Zeile unter dem Gruppennamen: geht es allen gut? */
+  function renderLead(far, farthest) {
+    const watching = alarm.on() && alarm.count() > 0;
+    lead.className = `muted small group-lead${far.length ? ' is-alert' : watching ? ' is-ok' : ''}`;
+    if (far.length > 1) lead.textContent = t('top.group.many', { n: far.length });
+    else if (far.length === 1) lead.textContent = t('top.group.one', { name: far[0].m.name, dist: distance(far[0].d) });
+    else if (watching) lead.textContent = t('top.group.ok');
+    else lead.textContent = t('group.lead', { n: members.length });
   }
 
   function routeTo(m) {
@@ -529,6 +556,8 @@ export function mountGroup(el, ctx, group) {
   }
 
   // --- Aufbau ------------------------------------------------------------------------------
+  const lead = h('p', { class: 'muted small group-lead' });
+
   function render() {
     buildList();
     renderFriend();
@@ -538,18 +567,17 @@ export function mountGroup(el, ctx, group) {
       h('header', { class: 'group-head' },
         h('div', {},
           h('h2', { class: 'title' }, group.name),
-          h('p', { class: 'muted small' }, t('group.lead', { n: members.length }))),
-        h('button', { class: 'btn btn-quiet btn-small', onclick: showAll }, icon('map'), t('group.showAll'))),
-      meetCard,
-      radarCard,
+          lead)),
       warning,
-      alarm.el,
       list,
-      friendCard,
-      race.el,
       h('div', { class: 'group-call' },
         h('button', { class: 'btn btn-block btn-sun', onclick: () => signal(others) }, icon('vibrate'), t('group.signalAll')),
         h('p', { class: 'muted small' }, t('group.signalExplain'))),
+      radarCard,
+      alarm.el,
+      meetCard,
+      race.el,
+      friendCard,
     );
     update();
   }

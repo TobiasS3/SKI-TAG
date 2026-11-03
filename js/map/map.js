@@ -2,7 +2,8 @@
 
 import { config } from '../config.js';
 
-export function createMap(el) {
+/** painted: gemalte Berge über der Topo-Karte (Gast-Ansicht) */
+export function createMap(el, { painted = false } = {}) {
   const map = L.map(el, {
     zoomControl: false,
     minZoom: 11,
@@ -11,11 +12,24 @@ export function createMap(el) {
     wheelPxPerZoomLevel: 90,
   }).setView(config.resort.center, config.resort.zoom);
 
-  L.tileLayer(config.tiles.url, {
-    maxZoom: config.tiles.maxZoom,
-    attribution: config.tiles.attribution,
-    className: 'map-tiles',
-  }).addTo(map);
+  if (painted) {
+    // Vorgemalte Winterkarte (tools/bake-terrain.py): liegt bei uns, das Handy rechnet nichts
+    L.tileLayer('assets/terrain/{z}/{x}/{y}.webp', {
+      minNativeZoom: 11,
+      maxNativeZoom: 15,
+      bounds: [[47.25093, 12.27017], [47.50728, 12.49549]],
+      className: 'terrain-tiles',
+      attribution: 'Karte © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, Gelände: <a href="https://registry.opendata.aws/terrain-tiles/">Terrain Tiles</a>',
+    }).addTo(map);
+    el.classList.add('style-painted');
+    map.setMaxZoom(16); // näher wird die vorgemalte Karte unscharf
+  } else {
+    L.tileLayer(config.tiles.url, {
+      maxZoom: config.tiles.maxZoom,
+      attribution: config.tiles.attribution,
+      className: 'map-tiles',
+    }).addTo(map);
+  }
 
   // Zoomstufe als Klasse – damit blendet CSS Details erst beim Reinzoomen ein
   const setZoomClass = () => {

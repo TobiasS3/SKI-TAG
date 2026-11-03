@@ -23,6 +23,8 @@ export const emptyDay = () => ({
   runs: [],         // { startTime, endTime, dist, drop, top, pistes: [] }
   liftsUsed: {},    // Name → Anzahl
   badges: [],
+  huts: [],         // besuchte Hütten (Hüttenpass)
+  doneCh: [],       // geschaffte Challenges
   afterLift: true,  // nächste Piste zählt als neue Abfahrt
 });
 
@@ -86,6 +88,12 @@ export function addPoint(day, p, skimap) {
       day.top = Math.max(day.top, kmh);
       if (run) run.top = Math.max(run.top, kmh);
     }
+  }
+
+  // Hüttenpass: wer nah an einer Hütte vorbeikommt oder dort steht, bekommt den Stempel
+  day.huts ||= [];
+  for (const hut of skimap.huts || []) {
+    if (!day.huts.includes(hut.name) && geoDistance(hut.pos, [p.lat, p.lng]) < 40) day.huts.push(hut.name);
   }
 
   day.points.push(point);
@@ -184,9 +192,8 @@ export function runList(day, { limit = Infinity } = {}) {
         h('strong', {}, r.pistes.slice(0, 2).join(', ') || t('day.run')),
         h('small', {},
           `${number(r.dist / 1000, 1)} km`,
-          r.drop ? `, ${number(r.drop)} hm` : '',
           r.endTime ? `, ${duration((r.endTime - r.startTime) / 1000)}` : `, ${t('day.runNow')}`)),
-      h('span', { class: 'run-top num' }, `${Math.round(r.top)}`, h('small', {}, 'km/h')))));
+      h('span', { class: 'run-top num' }, number(r.drop), h('small', {}, 'hm')))));
 }
 
 /** Abzeichen – erreichte farbig, offene grau */

@@ -11,6 +11,8 @@
   --ink: #0e0e10;           /* Text, schwarze Knöpfe */
   --ink-2: #55555d;
   --ink-3: #8e8e97;
+  --action: #0e0e10;        /* aktive Flächen und Hauptknöpfe (weiße Schrift darauf) */
+  --action-hover: #2a2a30;
 
   /* Akzente */
   --sky: #2f6dff;           /* du, Links, Info */

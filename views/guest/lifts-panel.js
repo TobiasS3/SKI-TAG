@@ -117,7 +117,7 @@ export function mountLifts(el, ctx, status, pistes) {
     return h('li', {},
       h('button', {
         class: `lift-row ${state}`,
-        onclick: () => ctx.choose({ type: 'piste', name: pisteName(p), ref: p.ref, diff: p.diff, pos: r.pos, node: r.node, piste: p }),
+        onclick: () => ctx.show({ type: 'piste', name: pisteName(p), ref: p.ref, diff: p.diff, pos: r.pos, node: r.node, piste: p }),
       },
       h('span', { class: `lift-icon disc diff-${p.diff}` }, h('span', {}, p.ref || '')),
       h('span', { class: 'lift-text' },
@@ -131,7 +131,7 @@ export function mountLifts(el, ctx, status, pistes) {
     return h('li', {},
       h('button', {
         class: `lift-row is-${s.state}`,
-        onclick: () => ctx.choose({ type: 'lift', name: lift.name, sub: lift.typeName, pos: r.pos, node: r.node, lift }),
+        onclick: () => ctx.show({ type: 'lift', name: lift.name, sub: lift.typeName, pos: r.pos, node: r.node, lift }),
       },
       h('span', { class: 'lift-icon' }, icon(liftIcon(lift.type))),
       h('span', { class: 'lift-text' },

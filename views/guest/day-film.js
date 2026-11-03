@@ -11,7 +11,7 @@ import { isoDay } from '../../js/utils/time.js';
 import { config } from '../../js/config.js';
 import { icon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
-import { speedColor } from '../../js/map/layers.js';
+import { TRACK_COLOR } from '../../js/map/layers.js';
 
 const W = 720;
 const H = 1280;
@@ -123,7 +123,7 @@ function createFilm(canvas, day, skimap) {
   const edges = skimap.edges.filter((e) => e.kind !== 'walk').map((e) => ({ e, xy: e.coords.map(([la, ln]) => P(la, ln)) }));
 
   // Zahlen über die Spur verteilt (für das Mitzählen)
-  const totals = { km: day.km || 0, descent: day.descent || 0, top: day.top || 0, runs: day.runs?.length || 0 };
+  const totals = { km: day.km || 0, descent: day.descent || 0, lifts: day.lifts || 0, runs: day.runs?.length || 0 };
   const date = new Date(day.startedAt || Date.now()).toLocaleDateString(getLang() === 'de' ? 'de-AT' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const ease = (x) => 1 - (1 - Math.min(1, Math.max(0, x))) ** 3;
@@ -180,7 +180,7 @@ function createFilm(canvas, day, skimap) {
         ctx.moveTo(...a.xy);
         ctx.lineTo(...b.xy);
         const lift = b.p.kind === 'lift';
-        ctx.strokeStyle = lift ? '#0e0e10' : speedColor(b.p.speed * 3.6);
+        ctx.strokeStyle = lift ? '#0e0e10' : TRACK_COLOR;
         ctx.lineWidth = lift ? 4 : 9;
         ctx.setLineDash(lift ? [4, 8] : []);
         ctx.stroke();
@@ -195,17 +195,6 @@ function createFilm(canvas, day, skimap) {
       ctx.lineWidth = 5;
       ctx.strokeStyle = '#fff';
       ctx.stroke();
-      if (drawP < 1 && head.p.kind !== 'lift') {
-        const kmh = `${Math.round(head.p.speed * 3.6)} km/h`;
-        ctx.font = '800 26px -apple-system, Helvetica, Arial, sans-serif';
-        const tw = ctx.measureText(kmh).width;
-        const [hx, hy] = head.xy;
-        ctx.fillStyle = '#0e0e10';
-        roundRect(hx + 20, hy - 46, tw + 24, 40, 12);
-        ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.fillText(kmh, hx + 32, hy - 17);
-      }
     }
 
     // Kopf: Logo, „Mein Skitag“, Ort + Datum
@@ -225,7 +214,7 @@ function createFilm(canvas, day, skimap) {
     const tiles = [
       [number(totals.km * f, 1), t('day.km')],
       [number(totals.descent * f), t('day.descent')],
-      [String(Math.round(totals.top * f)), 'km/h Top'],
+      [String(Math.round(totals.lifts * f)), t('day.lifts')],
       [String(Math.round(totals.runs * f)), t('day.runs')],
     ];
     const y0 = H - 380;
@@ -255,9 +244,9 @@ function createFilm(canvas, day, skimap) {
       ctx.font = '700 40px -apple-system, Helvetica, Arial, sans-serif';
       ctx.fillStyle = '#9a9aa4';
       ctx.fillText(t('day.km'), W / 2, H / 2 + 20);
-      ctx.fillStyle = '#ff6a13';
+      ctx.fillStyle = '#ff5b22';
       ctx.font = '800 34px -apple-system, Helvetica, Arial, sans-serif';
-      ctx.fillText(`${number(totals.descent)} m ↓  ·  ${Math.round(totals.top)} km/h  ·  ${totals.runs} ${t('day.runs')}`, W / 2, H / 2 + 100);
+      ctx.fillText(`${number(totals.descent)} m ↓  ·  ${totals.lifts} ${t('day.lifts')}  ·  ${totals.runs} ${t('day.runs')}`, W / 2, H / 2 + 100);
       if (logo.complete && logo.naturalWidth) ctx.drawImage(logo, W / 2 - 40, H - 260, 80, 80);
       ctx.fillStyle = '#fff';
       ctx.font = '800 40px -apple-system, Helvetica, Arial, sans-serif';

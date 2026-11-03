@@ -3,7 +3,7 @@
 // Lifte und Wetter öffnen sich als Fenster über die Knöpfe in der Kopfleiste.
 
 import { h, reducedMotion, isWide } from '../../js/utils/dom.js';
-import { t, toggleLang, translate } from '../../js/core/i18n.js';
+import { t, toggleLang, translate, getLang } from '../../js/core/i18n.js';
 import { on, emit } from '../../js/core/events.js';
 import { endSession } from '../../js/core/session.js';
 import { go } from '../../js/core/router.js';
@@ -17,7 +17,7 @@ import { meMarker, meetMarker } from '../../js/map/markers.js';
 import { todayAt, isoDay, now as clockNow } from '../../js/utils/time.js';
 import { temp } from '../../js/utils/format.js';
 import { config } from '../../js/config.js';
-import { icon } from '../../js/components/icons.js';
+import { icon, iconHTML, liftIcon } from '../../js/components/icons.js';
 import { createSheet } from '../../js/components/panel.js';
 import { confirmModal, infoModal } from '../../js/components/modal.js';
 import { toast } from '../../js/components/toast.js';
@@ -42,9 +42,10 @@ export async function mountGuest(root, session) {
   const leftLabel = h('span', { class: 'top-left-label' });
   const leftValue = h('span', { class: 'num top-left-value' });
   const timeBox = h('div', { class: 'top-time' }, leftLabel, leftValue);
-  const liftsBtn = h('button', { class: 'pill pill-lifts', onclick: () => openInfo('lifts') });
-  const weatherBtn = h('button', { class: 'pill pill-weather', onclick: () => openInfo('weather') });
-  const menuBtn = h('button', { class: 'avatar-btn', 'data-i18n-label': 'top.menu', 'aria-expanded': 'false' }, (session.name || '?')[0]);
+  const liftsBtn = h('button', { class: 'pill pill-lifts', onclick: () => openInfo('lifts', liftsBtn) });
+  const weatherBtn = h('button', { class: 'pill pill-weather', onclick: () => openInfo('weather', weatherBtn) });
+  // Chip-Knopf: Akku sofort sichtbar, antippen öffnet Chip, Zugang und Sprache
+  const menuBtn = h('button', { class: 'pill pill-chip', 'aria-expanded': 'false', 'aria-haspopup': 'menu' });
   const menu = h('div', { class: 'menu', hidden: true, role: 'menu' });
 
   const sheet = createSheet({
@@ -56,7 +57,7 @@ export async function mountGuest(root, session) {
     tabs: [
       { id: 'day', label: 'tab.day', icon: 'today', badge: true },
       { id: 'route', label: 'tab.route', icon: 'route' },
-      { id: 'group', label: 'tab.group', icon: 'users' },
+      { id: 'group', label: 'tab.group', icon: 'users', badge: true },
     ],
   });
 
@@ -64,6 +65,18 @@ export async function mountGuest(root, session) {
   const focusBtn = h('button', { class: 'icon-btn style-btn focus-btn', 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
     icon('eye'), h('span', { class: 'style-name' }));
   const focusMenu = h('div', { class: 'focus-menu', role: 'menu', hidden: true });
+
+  // Gibt es eine Route, steht dieser Knopf auf der Karte (wie der Kartenfilter: Auge + was gerade zu sehen ist).
+  // Route anzeigen → automatisch „Nur Route“; antippen zeigt wieder alles.
+  const routeChip = h('button', {
+    class: 'icon-btn style-btn route-chip',
+    hidden: true,
+    onclick: () => {
+      const turnOn = focus !== 'route';
+      setFocus(turnOn ? 'route' : 'all');
+      if (turnOn) routePanel.showOnMap();
+    },
+  }, icon('eye'), h('span', { class: 'style-name' }));
 
   const page = h('main', { class: 'guest' },
     mapEl,
@@ -75,7 +88,7 @@ export async function mountGuest(root, session) {
       weatherBtn,
       h('div', { class: 'menu-wrap' }, menuBtn, menu),
     ),
-    h('div', { class: 'map-controls' }, h('div', { class: 'focus-wrap' }, focusMenu, focusBtn), locateBtn),
+    h('div', { class: 'map-controls' }, routeChip, h('div', { class: 'focus-wrap' }, focusMenu, focusBtn), locateBtn),
     sheet.el,
   );
   root.append(page);
@@ -86,12 +99,14 @@ export async function mountGuest(root, session) {
   const connecting = showChipConnect(page, session, () => ({ pos: ctx?.me.pos, battery: ctx?.me.battery, group: groupName }));
 
   // --- Karte --------------------------------------------------------------------
-  const map = createMap(mapEl);
+  const map = createMap(mapEl, { painted: true });
   const [skimap, media] = await Promise.all([loadSkimap(), api.getMedia()]);
   setMedia(media);
   const area = limitToArea(map, skimap);
 
   let following = false;
+  let shownBattery; // zuletzt im Chip-Knopf gezeigter Akkustand
+  let menuReady = false; // Chip-Knopf erst zeichnen, wenn das Menü steht
   ctx = {
     connected: connecting, // Promise: Chip-Verbindungs-Bildschirm ist weg (Meldungen erst danach)
     session,
@@ -141,17 +156,25 @@ export async function mountGuest(root, session) {
   const routePanel = mountRoutePanel(sheet.body('route'), ctx);
   const choose = (place) => {
     closeInfo?.();
+    sheet.open('route'); // Bereich sofort auf, dann erst die Karte bewegen
     routePanel.setTarget(place);
-    sheet.open('route');
   };
   ctx.choose = choose;
+  /** Antippen: Bereich auf, Karte fliegt hin, Ort zeigen. Route erst auf Knopfdruck. */
+  const show = (place) => {
+    closeInfo?.();
+    sheet.open(sheet.current()); // Bereich auf, aber im selben Tab bleiben
+    routePanel.showPlace(place);
+  };
+  ctx.show = show;
 
   // Lifte + Wetter: Inhalt bleibt bestehen, das Fenster hängt ihn nur ein
   const infoBodies = { lifts: h('section', { class: 'sheet-pane' }), weather: h('section', { class: 'sheet-pane' }) };
   let closeInfo = null;
-  function openInfo(id) {
+  function openInfo(id, from) {
     closeInfo?.();
     closeInfo = infoModal({
+      from,
       body: infoBodies[id],
       label: t(id === 'lifts' ? 'tab.status' : 'tab.weather'),
       closeLabel: t('close'),
@@ -177,6 +200,11 @@ export async function mountGuest(root, session) {
     emit('focus', focus);
   }
   function renderFocus() {
+    routeChip.hidden = !hasRoute;
+    routeChip.classList.toggle('is-on', focus === 'route');
+    routeChip.setAttribute('aria-pressed', String(focus === 'route'));
+    routeChip.querySelector('.style-name').textContent = t(focus === 'route' ? 'focus.route' : 'focus.all');
+    focusBtn.parentElement.hidden = hasRoute;
     focusBtn.querySelector('.style-name').textContent = t(`focus.${focus}`);
     focusBtn.classList.toggle('is-on', focus !== 'all');
     focusMenu.replaceChildren(...FOCUS.map((f) => h('button', {
@@ -202,17 +230,32 @@ export async function mountGuest(root, session) {
   ctx.setFocus = setFocus;
   ctx.mapFocus = () => focus;
   /** Route-Tab meldet: gibt es gerade eine Route auf der Karte? */
+  let focusBeforeRoute = null;
   ctx.routeShown = (on) => {
+    const was = hasRoute;
     hasRoute = on;
-    if (!on && focus === 'route') setFocus('all');
-    else renderFocus();
+    mapEl.classList.toggle('has-route', on); // Während einer Route stehen nur ihre eigenen Schilder da
+    if (on && !was) {
+      // Neue Route: Karte zeigt gleich nur die Route
+      focusBeforeRoute = focus;
+      setFocus('route', { quiet: true });
+    } else if (!on && was) {
+      setFocus(focusBeforeRoute === 'track' ? 'track' : 'all', { quiet: true });
+      focusBeforeRoute = null;
+    } else {
+      renderFocus();
+    }
   };
 
   // Antippen auf der Karte
   const skiHandlers = {
-    onHut: (hut) => choose({ type: 'hut', name: hut.name, pos: hut.pos, node: hut.node, hut }),
-    onLift: (lift, e) => choose({ type: 'lift', name: lift.name, sub: lift.typeName, pos: skimap.nodes[e.a], node: e.a, lift }),
-    onPiste: (piste, e) => choose({
+    refined: true, // ohne Stationen, Lift-Schilder zum Antippen, weiche Pistenübergänge
+    towns: [['Kitzbühel', [47.4467, 12.3919]], ['Kirchberg', [47.4433, 12.3167]], ['Aurach', [47.4089, 12.4136]], ['Jochberg', [47.3772, 12.4203]], ['Mittersill', [47.2817, 12.4817]]],
+    // Kabinen fahren nur auf Liften, die wirklich laufen
+    liftRuns: (lift) => !ctx.liftStatus || isRunning(liftState(ctx.liftStatus, lift.name, clockNow())),
+    onHut: (hut) => show({ type: 'hut', name: hut.name, pos: hut.pos, node: hut.node, hut }),
+    onLift: (lift, e) => show({ type: 'lift', name: lift.name, sub: lift.typeName, pos: skimap.nodes[e.a], node: e.a, lift }),
+    onPiste: (piste, e) => show({
       type: 'piste', name: pisteName(piste), ref: piste.ref, diff: piste.diff,
       pos: skimap.nodes[e.a], node: skimap.coreSet.has(e.a) ? e.a : e.b, piste,
     }),
@@ -221,7 +264,68 @@ export async function mountGuest(root, session) {
   cleanups.push(() => skiLayers.destroy());
 
   // Suche oben
-  const search = createSearch({ onPick: choose });
+  // Vorschlag-Gruppe (z. B. alle Talabfahrten) leuchtet auf der Karte auf
+  let groupLayer = null;
+  const DIFF_COLOR = { easy: '#1f66d1', intermediate: '#e0242f', advanced: '#0e0e10', expert: '#0e0e10', freeride: '#f08a24' };
+  function showGroup(items, sg, all = []) {
+    groupLayer?.remove();
+    groupLayer = null;
+    mapEl.classList.toggle('has-group', !!items);
+    mapEl.classList.toggle('group-huts', sg?.id === 'huts'); // Hütten-Gruppe: Hütten bleiben sichtbar
+    if (!items) return;
+    const layers = [];
+    const esc = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+    const sign = (pos, cls, html, z = 0) => L.marker(pos, {
+      pane: 'routeSigns', interactive: false, keyboard: false, zIndexOffset: z,
+      icon: L.divIcon({ className: `mk-rsign ${cls}`, html: `<span>${html}</span>`, iconSize: [0, 0] }),
+    });
+    if (!map.getPane('routeSigns')) map.createPane('routeSigns').style.zIndex = 445;
+    for (const x of items) {
+      if (!x.lines) {
+        // Hütten: Ring um ihren Punkt
+        layers.push(L.circleMarker(x.pos, { pane: 'route', radius: 24, color: '#e5450d', weight: 3, fillColor: '#e5450d', fillOpacity: 0.12, interactive: false }));
+        continue;
+      }
+      layers.push(
+        L.polyline(x.lines, { pane: 'route', color: '#fff', weight: 12, opacity: 1, lineCap: 'round', interactive: false }),
+        L.polyline(x.lines, { pane: 'route', color: DIFF_COLOR[x.diff] || '#1f66d1', weight: 7, lineCap: 'round', interactive: false }),
+      );
+      // Unten: Punkt, wo man im Tal ankommt, mit Nummer und Name
+      if (x.loPos) {
+        layers.push(L.circleMarker(x.loPos, { pane: 'route', radius: 7, color: '#fff', weight: 3, fillColor: '#0b1226', fillOpacity: 1, interactive: false }));
+        layers.push(sign(x.loPos, 'is-piste is-end', `<i class="diff-${x.diff}">${esc(x.ref || '')}</i><b>${esc(x.name)}</b>`, 400));
+      }
+    }
+    // Talabfahrten: dazu die Gondeln, die unten wieder hinauffahren
+    if (sg?.id === 'valley') {
+      const ends = items.map((x) => x.loPos).filter(Boolean);
+      const lifts = all.filter((l) => l.type === 'lift' && l.low && ends.some((e) => geoDistance(e, l.low) < 300));
+      for (const l of lifts) {
+        layers.push(
+          L.polyline(l.lift.coords, { pane: 'route', color: '#0e1530', weight: 6, interactive: false }),
+          L.polyline(l.lift.coords, { pane: 'route', color: '#fff', weight: 2.2, dashArray: '1 7', lineCap: 'round', interactive: false }),
+        );
+        const mid = l.lift.coords[Math.floor(l.lift.coords.length / 2)];
+        layers.push(sign(mid, 'is-lift', `${l.lift.code ? `<i>${esc(l.lift.code)}</i>` : iconHTML(liftIcon(l.lift.type))}<b>${esc(l.name)}</b>`, 500));
+      }
+    }
+    groupLayer = L.layerGroup(layers).addTo(map);
+    const bounds = L.latLngBounds(items.flatMap((x) => (x.lines ? x.lines.flat() : [x.pos])));
+    if (!bounds.isValid()) return;
+    // Liste bleibt oben offen: Karte zeigt die Pisten im freien Teil darunter
+    requestAnimationFrame(() => {
+      const top = search.el.querySelector('.search-results')?.getBoundingClientRect().bottom || 200;
+      follow(false);
+      map.flyToBounds(bounds, {
+        paddingTopLeft: [30, top + 16],
+        paddingBottomRight: [30, sheet.visibleHeight() + 24],
+        maxZoom: 15,
+        duration: reducedMotion() ? 0 : 0.9,
+      });
+    });
+  }
+  cleanups.push(() => groupLayer?.remove());
+  const search = createSearch({ onPick: choose, onGroup: showGroup, getPos: () => ctx.me.pos });
   page.querySelector('.topbar').after(search.el);
 
   // --- Eigener Chip ---------------------------------------------------------------
@@ -251,6 +355,7 @@ export async function mountGuest(root, session) {
       routePanel.refresh();
     }
     if (following) map.panTo(centerFor(ctx.me.pos, map.getZoom()), { animate: true, duration: 0.8 });
+    if (p.battery !== shownBattery && menuReady) renderChip();
     emit('me', p);
   }, { start: valley?.a }));
 
@@ -284,7 +389,7 @@ export async function mountGuest(root, session) {
     closeInfo?.();
     routePanel.stop();
     dayEnd?.destroy();
-    dayEnd = showDayEnd(page, { day, skimap, animate, onLogout: logout, onReset: config.fakeData ? resetDay : null });
+    dayEnd = showDayEnd(page, { day, skimap, animate, name: session.name, onLogout: logout, onReset: config.fakeData ? resetDay : null });
   };
   cleanups.push(() => dayEnd?.destroy());
 
@@ -324,7 +429,7 @@ export async function mountGuest(root, session) {
     const m = ctx.meeting;
     if (!m) return;
     meetLayer = meetMarker(m.pos, m.time ? `${t('meet.title')} · ${m.time}` : t('meet.title'))
-      .on('click', () => choose(ctx.meetingPlace()))
+      .on('click', () => show(ctx.meetingPlace()))
       .addTo(map);
   }
   /** Treffpunkt setzen (place + Uhrzeit) oder mit null aufheben */
@@ -376,7 +481,8 @@ export async function mountGuest(root, session) {
       };
       setClosedLifts(skimap.lifts.map((l, i) => (passable(l) ? null : i)).filter((i) => i != null));
       const running = lifts.filter((x) => isRunning(liftState(liftStatus, x.lift.name, now))).length;
-      liftsBtn.replaceChildren(h('span', { class: 'pill-label' }, t('tab.status')),
+      liftsBtn.replaceChildren(
+        h('span', { class: 'pill-label' }, t('tab.status')),
         h('span', { class: 'pill-row' }, icon('gondola'), h('span', { class: 'num' }, String(running)), h('small', { class: 'num' }, `/${lifts.length}`)),
         icon('maximize', 'pill-more'));
       liftsBtn.setAttribute('aria-label', t('lifts.aria', { n: running, total: lifts.length }));
@@ -392,9 +498,10 @@ export async function mountGuest(root, session) {
     const top = mountainStation(weather);
     const a = weather.avalanche;
     const lvl = a?.current ? a.levelAbove : null;
-    weatherBtn.replaceChildren(h('span', { class: 'pill-label' }, t('tab.weather')),
+    weatherBtn.replaceChildren(
+      h('span', { class: 'pill-label' }, t('tab.weather')),
       h('span', { class: 'pill-row' }, icon(top.condition), h('span', { class: 'num' }, temp(top.temp)),
-        h('span', { class: 'aval-mini num', style: { '--c': AVAL_COLORS[lvl || 0] }, title: t('aval.title') }, lvl ?? '–')),
+        lvl ? h('span', { class: 'aval-mini num', style: { '--c': AVAL_COLORS[lvl] }, title: t('aval.title') }, lvl) : null),
       icon('maximize', 'pill-more'));
     weatherBtn.setAttribute('aria-label', `${t('weather.title')}: ${temp(top.temp)}, ${t(`cond.${top.condition}`)}. `
       + (lvl ? `${t('aval.title')}: ${lvl}, ${t(`aval.level.${lvl}`)}` : `${t('aval.title')}: ${t('aval.noReport')}`));
@@ -403,20 +510,49 @@ export async function mountGuest(root, session) {
   const clockTimer = setInterval(renderTop, 10000);
   cleanups.push(() => clearInterval(clockTimer));
 
-  // --- Menü -------------------------------------------------------------------------
+  // --- Chip-Knopf und Menü ---------------------------------------------------------------
+  function renderChip() {
+    shownBattery = ctx.me.battery;
+    const bat = shownBattery;
+    menuBtn.classList.toggle('is-low', bat != null && bat <= 20);
+    // Nur die Batterie, ungefähr gefüllt – die genaue Zahl steht im Menü
+    menuBtn.replaceChildren(
+      h('span', { class: 'bat', style: { '--lvl': String((bat ?? 0) / 100) }, 'aria-hidden': 'true' }),
+      icon('maximize', 'pill-more'));
+    menuBtn.setAttribute('aria-label', t('top.chipAria', { bat: bat ?? '–' }));
+    if (!menu.hidden) renderMenu();
+  }
+
   function renderMenu() {
+    const bat = ctx.me.battery;
+    // Bis Mitternacht: so lange gilt der Code
+    const left = Math.max(0, (todayAt('24:00') - clockNow()) / 60000);
     menu.replaceChildren(
-      h('p', { class: 'menu-who' }, h('strong', {}, session.name), h('small', {}, t('top.validUntil'))),
       h('div', { class: 'menu-chip' },
         h('span', { class: 'menu-chip-art', 'aria-hidden': 'true' }),
-        h('span', {}, h('strong', { class: 'num' }, session.chip), h('small', {}, t('chip.connected'))),
-        ctx.me.battery != null ? h('span', { class: 'menu-chip-bat num' }, `${ctx.me.battery}%`) : null),
-      h('button', { class: 'menu-item', role: 'menuitem', onclick: () => { toggleLang(); closeMenu(); } }, icon('globe'), t('lang.switch')),
-      h('button', { class: 'menu-item', role: 'menuitem', onclick: logout }, icon('logout'), t('top.logout')),
+        h('span', { class: 'menu-chip-text' },
+          h('strong', { class: 'num' }, session.chip),
+          h('small', {}, h('i', { class: 'menu-live' }), t('chip.connected'))),
+        bat != null ? h('span', { class: 'menu-chip-bat' },
+          h('strong', { class: 'num' }, `${bat} %`),
+          h('span', { class: 'menu-bat-bar' }, h('i', { style: { width: `${bat}%` } }))) : null),
+      h('div', { class: 'menu-access' },
+        icon('clock'),
+        h('span', {},
+          h('strong', {}, t('top.accessFor', { name: session.name })),
+          h('small', {}, t('top.accessLeft', { h: Math.floor(left / 60), m: String(Math.floor(left % 60)).padStart(2, '0') })))),
+      h('div', { class: 'menu-lang', role: 'group', 'aria-label': t('top.language') },
+        ['de', 'en'].map((code) => h('button', {
+          class: 'menu-lang-btn',
+          'aria-pressed': String(getLang() === code),
+          onclick: () => { if (getLang() !== code) toggleLang(); renderMenu(); },
+        }, code === 'de' ? 'Deutsch' : 'English'))),
       // Nur im Test-Modus: aufgezeichneten Tag löschen, um alles nochmal auszuprobieren
       config.fakeData ? h('button', { class: 'menu-item menu-test', role: 'menuitem', onclick: resetDay }, icon('today'), t('test.resetDay')) : null,
     );
   }
+  menuReady = true;
+  renderChip();
   const closeMenu = () => {
     menu.hidden = true;
     menuBtn.setAttribute('aria-expanded', 'false');
@@ -456,6 +592,7 @@ export async function mountGuest(root, session) {
   cleanups.push(on('lang', () => {
     translate(page);
     renderTop();
+    renderChip();
     renderFocus();
   }));
   renderFocus();

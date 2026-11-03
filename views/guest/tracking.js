@@ -1,6 +1,6 @@
 // „Mein Tag“: Aufzeichnung starten, Live-Werte, Spur auf der Karte.
 
-import { h, replace } from '../../js/utils/dom.js';
+import { h, replace, reducedMotion } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { load, save } from '../../js/core/storage.js';
@@ -17,8 +17,8 @@ import { renderSummary } from './day-summary.js';
 import { emptyDay, addPoint, altitudeChart, difficultyBar, runList, badgeRow } from './day-stats.js';
 import { playDayStart } from './day-start.js';
 import { topNote } from './top-note.js';
+import { checkChallenges, challengeCard, compareCard, explorerCard, hutPassCard, familyCard } from './day-challenges.js';
 
-const MAX_KMH = 100; // Tacho-Ende
 const KEY = () => `day-${isoDay()}`;
 const REMIND_MS = 2 * 60 * 1000; // so lange nach dem Einloggen ohne „Tag starten“ → Erinnerung oben
 
@@ -29,14 +29,11 @@ export function mountTracking(el, ctx) {
   day.points.forEach((p) => track.add(p));
 
   // --- Live-Ansicht -------------------------------------------------------------
-  const gauge = speedGauge();
   const now = h('p', { class: 'day-now' });
-  const altEl = h('span', { class: 'day-alt num' });
   const stats = {
+    runs: statCell('day.runs', true),
+    descent: statCell('day.descent', true),
     km: statCell('day.km'),
-    runs: statCell('day.runs'),
-    descent: statCell('day.descent'),
-    top: statCell('day.top'),
     lifts: statCell('day.lifts'),
     time: statCell('day.time'),
   };
@@ -47,14 +44,19 @@ export function mountTracking(el, ctx) {
   function render() {
     ctx.sheet.badge('day', day.status === 'running');
     if (day.status === 'idle') {
+      const step = (ic, title, text) => h('li', {},
+        h('span', { class: 'day-step-icon' }, icon(ic)),
+        h('span', {}, h('strong', {}, title), h('small', {}, text)));
       replace(el, h('div', { class: 'day-intro' },
-        h('div', { class: 'day-intro-art', 'aria-hidden': 'true', html: TRACK_ART }),
-        h('h2', { class: 'title' }, t('day.title')),
-        h('p', { class: 'muted' }, t('day.lead')),
-        h('ul', { class: 'day-features' },
-          ['day.f.speed', 'day.f.vert', 'day.f.runs', 'day.f.file'].map((k) => h('li', {}, icon('check'), t(k)))),
-        h('button', { class: 'btn btn-big btn-block day-start', onclick: start }, icon('play'), t('day.start')),
-        liftsLeft,
+        h('section', { class: 'day-hero' },
+          h('h2', { class: 'day-hero-title' }, t('day.title')),
+          h('p', {}, t('day.lead')),
+          h('button', { class: 'btn btn-sun btn-big btn-block day-start', onclick: start }, icon('play'), t('day.start')),
+          liftsLeft),
+        h('ol', { class: 'day-steps' },
+          step('play', t('day.step1'), t('day.step1Text')),
+          step('piste', t('day.step2'), t('day.step2Text')),
+          step('stop', t('day.step3'), t('day.step3Text'))),
       ));
       updateLiftsLeft();
       return;
@@ -74,13 +76,11 @@ export function mountTracking(el, ctx) {
         h('button', { class: 'btn btn-quiet btn-small', onclick: () => ctx.dayFullscreen?.(!full) },
           icon(full ? 'close' : 'expand'), t(full ? 'day.fullClose' : 'day.full'))),
       h('div', { class: 'day-live' },
-        h('div', { class: 'instrument day-instrument' },
-          h('div', { class: 'instrument-head' },
-            h('span', { class: 'day-rec' }, h('i'), t('day.started')),
-            h('span', { class: 'day-chip' }, ctx.session.chip)),
-          gauge.el,
-          h('div', { class: 'day-under-gauge' }, now, altEl),
-          h('dl', { class: 'day-stats' }, Object.values(stats).map((s) => s.el))),
+        h('section', { class: 'day-panel' },
+          h('span', { class: 'day-rec' }, h('i'), t('day.started')),
+          h('dl', { class: 'day-bigs' }, stats.runs.el, stats.descent.el),
+          h('dl', { class: 'day-smalls' }, stats.km.el, stats.lifts.el, stats.time.el),
+          now),
         extras,
         h('button', { class: 'btn btn-quiet btn-block', onclick: stop }, icon('stop'), t('day.stop')),
         liftsLeft,
@@ -92,15 +92,14 @@ export function mountTracking(el, ctx) {
   function updateLive() {
     if (day.status !== 'running') return;
     const me = ctx.me;
-    gauge.set(me.speed * 3.6);
     stats.km.set(number(day.km, 1), 'km');
     stats.runs.set(day.runs.length);
     stats.descent.set(number(day.descent), 'm');
-    stats.top.set(Math.round(day.top), 'km/h');
     stats.lifts.set(day.lifts);
     stats.time.set(duration(day.elapsed || 0));
-    now.replaceChildren(h('span', {}, t('day.now')), ' ', h('strong', {}, activity(me)));
-    altEl.replaceChildren(icon('mountain'), me.alt ? `${number(me.alt)} m` : '–');
+    // Tempo und Höhe bewusst klein, neben dem, was gerade passiert
+    now.replaceChildren(h('strong', {}, activity(me)),
+      h('span', { class: 'num' }, [`${Math.round(me.speed * 3.6)} km/h`, me.alt ? `${number(me.alt)} m` : null].filter(Boolean).join(' · ')));
     updateLiftsLeft();
   }
 
@@ -108,17 +107,23 @@ export function mountTracking(el, ctx) {
   function renderExtras() {
     const bar = difficultyBar(day);
     replace(extras,
+      challengeCard(day),
+      compareCard(day),
+      familyCard(day, ctx),
+      explorerCard(day),
+      hutPassCard(day, ctx),
       h('section', { class: 'card' },
         h('h3', { class: 'card-title' }, t('day.profile')),
         altitudeChart(day.points)),
       bar ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.byColor')), bar) : null,
       day.runs.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.runList')), runList(day, { limit: 5 })) : null,
-      h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day)),
+      day.badges.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day, { onlyEarned: true })) : null,
     );
   }
 
   function updateLiftsLeft() {
-    const left = (todayAt(config.resort.liftsClose) - clockNow()) / 1000;
+    // Auf die Minute abrunden: zeigt dasselbe wie die Kopfleiste
+    const left = Math.floor((todayAt(config.resort.liftsClose) - clockNow()) / 60000) * 60;
     liftsLeft.textContent = left > 0 ? t('day.liftsLeft', { time: duration(left) }) : t('top.liftsClosed');
   }
 
@@ -142,11 +147,12 @@ export function mountTracking(el, ctx) {
       toast(t('badge.unlocked', { name: t(`badge.${id}`) }), { icon: 'trophy' });
       navigator.vibrate?.([30, 40, 30]);
     }, i * 900));
+    const challenged = checkChallenges(day);
     if (day.points.length % 5 === 0) save(KEY(), day);
     updateLive();
     // Zusatz-Bereiche alle paar Signale oder wenn sich etwas Wichtiges tut
     extrasTick += 1;
-    if (fresh.length || extrasTick % 6 === 0) renderExtras();
+    if (fresh.length || challenged || extrasTick % 6 === 0) renderExtras();
   }
 
   // --- Erinnerung: 2 Minuten nach dem Einloggen noch nicht gestartet? ----------------------
@@ -178,7 +184,37 @@ export function mountTracking(el, ctx) {
     track.clear();
     save(KEY(), day);
     await playDayStart(e.currentTarget); // Drehkreuz-Moment auf dem Knopf, dann Live-Ansicht
+    const from = el.querySelector('.day-hero')?.getBoundingClientRect();
     render();
+    launch(from);
+  }
+
+  /**
+   * Übergang Start → Live: die blaue Box „fährt los“. Sie wächst aus der Start-Box in ihre
+   * neue Form, Lichtstreifen ziehen durch, die Inhalte kommen nacheinander, darunter gleitet
+   * alles weich herein. Bei „weniger Bewegung“ einfach sofort.
+   */
+  function launch(from) {
+    const panel = el.querySelector('.day-panel');
+    if (!panel || !from || reducedMotion() || !panel.animate) return;
+    const to = panel.getBoundingClientRect();
+    const ease = 'cubic-bezier(.2, .9, .25, 1)';
+    panel.classList.add('is-launch');
+    panel.animate([
+      { transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})`, borderRadius: '26px' },
+      { transform: 'none' },
+    ], { duration: 620, easing: ease });
+    [...panel.children].forEach((child, i) => child.animate([
+      { opacity: 0, transform: 'translateY(14px)' },
+      { opacity: 1, transform: 'none' },
+    ], { duration: 420, delay: 360 + i * 90, easing: ease, fill: 'backwards' }));
+    // Alles darunter kommt hinterher
+    const below = [el.querySelector('.day-bar'), ...el.querySelectorAll('.day-extras > *, .day-live > .btn, .day-left')].filter(Boolean);
+    below.forEach((node, i) => node.animate([
+      { opacity: 0, transform: 'translateY(36px)' },
+      { opacity: 1, transform: 'none' },
+    ], { duration: 520, delay: 520 + Math.min(i, 6) * 70, easing: ease, fill: 'backwards' }));
+    setTimeout(() => panel.classList.remove('is-launch'), 1600);
   }
 
   let justEnded = false;
@@ -214,11 +250,12 @@ export function mountTracking(el, ctx) {
   };
 }
 
-function statCell(key) {
+/** Ein Wert im Tagespanel. big = einer der zwei großen Werte */
+function statCell(key, big = false) {
   const value = h('span', { class: 'num' });
   const unit = h('small');
   const label = h('dt', {});
-  const el = h('div', { class: 'stat' }, label, h('dd', {}, value, unit));
+  const el = h('div', { class: big ? 'day-big' : 'day-small' }, h('dd', {}, value, unit), label);
   return {
     el,
     set(v, u = '') {
@@ -228,57 +265,3 @@ function statCell(key) {
     },
   };
 }
-
-/** Tacho: Halbkreis mit Skala, füllt sich mit dem Tempo. */
-function speedGauge() {
-  const R = 80;
-  const LEN = Math.PI * R;
-  const ticks = Array.from({ length: 11 }, (_, i) => {
-    const a = Math.PI - (i / 10) * Math.PI;
-    const r1 = 64;
-    const r2 = i % 5 ? 59 : 54;
-    return `<line x1="${(100 + Math.cos(a) * r1).toFixed(1)}" y1="${(100 - Math.sin(a) * r1).toFixed(1)}"
-      x2="${(100 + Math.cos(a) * r2).toFixed(1)}" y2="${(100 - Math.sin(a) * r2).toFixed(1)}" class="gauge-tick"/>`;
-  }).join('');
-  const el = h('div', { class: 'gauge', html: `
-    <svg viewBox="0 0 200 116" aria-hidden="true">
-      <defs>
-        <linearGradient id="gauge-grad" x1="0" x2="1">
-          <stop offset="0" stop-color="#2f6dff"/>
-          <stop offset=".5" stop-color="#7a5cff"/>
-          <stop offset=".78" stop-color="#ff6a13"/>
-          <stop offset="1" stop-color="#ff2d2d"/>
-        </linearGradient>
-      </defs>
-      <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--night-3)" stroke-width="14" stroke-linecap="round"/>
-      ${ticks}
-      <path class="gauge-bar" d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#gauge-grad)" stroke-width="14" stroke-linecap="round"
-        stroke-dasharray="${LEN}" stroke-dashoffset="${LEN}"/>
-    </svg>` });
-  const value = h('span', { class: 'gauge-value num' }, '0');
-  const label = h('span', { class: 'gauge-unit' }, 'km/h');
-  el.append(h('div', { class: 'gauge-read' }, value, label));
-  const bar = el.querySelector('.gauge-bar');
-  return {
-    el,
-    set(kmh) {
-      const f = Math.min(kmh, MAX_KMH) / MAX_KMH;
-      bar.style.strokeDashoffset = String(LEN * (1 - f));
-      value.textContent = Math.round(kmh);
-    },
-  };
-}
-
-// Kleine Zeichnung: Spur in Tempo-Farben den Hang hinunter
-const TRACK_ART = `
-<svg viewBox="0 0 320 120">
-  <defs>
-    <linearGradient id="art-grad" x1="1" x2="0">
-      <stop offset="0" stop-color="#2f6dff"/><stop offset=".55" stop-color="#ff6a13"/><stop offset="1" stop-color="#ff2d2d"/>
-    </linearGradient>
-  </defs>
-  <path d="M0 120 L0 70 C60 40 120 20 200 12 C250 8 290 10 320 14 V120Z" fill="#e8e8ec"/>
-  <path d="M286 18 C240 30 260 48 214 56 C168 64 196 80 150 88 C104 96 120 108 60 112"
-        fill="none" stroke-width="6" stroke-linecap="round" stroke="url(#art-grad)" class="art-line"/>
-  <circle cx="286" cy="18" r="8" fill="#2f6dff" stroke="#fff" stroke-width="3"/>
-</svg>`;

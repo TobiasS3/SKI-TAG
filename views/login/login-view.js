@@ -1,5 +1,6 @@
-// Startseite: Video einer fahrenden Gondel, Name + Code eingeben → richtige Ansicht.
+// Startseite: Flug über das Skigebiet, Name + Code eingeben → richtige Ansicht.
 
+import { mountHeroFilm } from './hero-film.js';
 import { h, reducedMotion } from '../../js/utils/dom.js';
 import { t, toggleLang, translate } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
@@ -10,18 +11,6 @@ import { config } from '../../js/config.js';
 import { icon } from '../../js/components/icons.js';
 import { temp } from '../../js/utils/format.js';
 
-// Video: Gondelbahn im Schnee, Drohnenflug in 4K (Pexels – freie Nutzung erlaubt, Namensnennung freiwillig).
-// Freies Material aus Kitzbühel gibt es (noch) nicht – siehe docs/bildnachweis.md.
-const VIDEO = {
-  src: 'assets/video/skitag-intro.mp4',
-  poster: 'assets/video/skitag-intro-poster.jpg',
-  // Handy hochkant: eigener Schnitt, in dem die Gondel oben im Bild hängt (nicht hinter der Code-Karte)
-  srcPortrait: 'assets/video/skitag-intro-hoch.mp4',
-  posterPortrait: 'assets/video/skitag-intro-hoch-poster.jpg',
-  place: 'Gondelbahn im Schnee',
-  credit: 'Pexels',
-  source: 'https://www.pexels.com/video/30115054/',
-};
 
 export async function mountLogin(root) {
   const nameInput = h('input', {
@@ -77,25 +66,12 @@ export async function mountLogin(root) {
   const board = h('dl', { class: 'login-board' });
   const demo = config.fakeData ? demoCodes(input, () => update()) : null;
 
-  // Video: stumm + playsinline, sonst spielt iOS es nicht automatisch ab.
-  // Weniger Bewegung gewünscht → nur das Standbild.
-  const portrait = matchMedia('(orientation: portrait)').matches;
-  const video = h('video', {
-    class: 'hero-video',
-    poster: portrait ? VIDEO.posterPortrait : VIDEO.poster,
-    muted: true,
-    loop: true,
-    playsinline: true,
-    preload: 'auto',
-    autoplay: reducedMotion() ? null : true,
-    'aria-hidden': 'true',
-  }, h('source', { src: portrait ? VIDEO.srcPortrait : VIDEO.src, type: 'video/mp4' }));
-  video.muted = true; // Attribut allein reicht manchen Browsern nicht
-  const caption = h('a', { class: 'hero-caption', target: '_blank', rel: 'noopener', href: VIDEO.source },
-    `${VIDEO.place}. Video: ${VIDEO.credit}`);
+  // Startfilm aus den echten Kartendaten (views/login/hero-film.js)
+  const canvas = h('canvas', { class: 'hero-film', 'aria-hidden': 'true' });
+  const caption = h('a', { class: 'hero-caption', target: '_blank', rel: 'noopener', href: 'https://www.openstreetmap.org/copyright', 'data-i18n': 'login.filmCredit' });
 
   const page = h('main', { class: 'login' },
-    h('div', { class: 'hero', 'aria-hidden': 'true' }, video, h('div', { class: 'hero-shade' })),
+    h('div', { class: 'hero', 'aria-hidden': 'true' }, canvas, h('div', { class: 'hero-shade' })),
     h('header', { class: 'login-top' },
       h('img', { class: 'login-logo', src: 'assets/images/logo.svg', alt: '', width: 34, height: 34 }),
       h('span', { class: 'login-brand' }, 'Ski Tag'),
@@ -116,8 +92,7 @@ export async function mountLogin(root) {
   root.append(page);
   translate(page);
 
-  // Autoplay kann blockiert sein (Stromsparmodus) – dann bleibt das Standbild stehen
-  if (!reducedMotion()) video.play?.().catch(() => {});
+  const film = mountHeroFilm(canvas);
 
   // --- Eingabe in die sechs Felder spiegeln ---------------------------------
   function update() {
@@ -209,7 +184,7 @@ export async function mountLogin(root) {
   if (!matchMedia('(pointer: coarse)').matches) nameInput.focus({ preventScroll: true });
 
   return () => {
-    video.pause();
+    film.destroy();
     offLang();
   };
 }

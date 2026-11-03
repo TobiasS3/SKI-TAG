@@ -33,10 +33,14 @@ export function confirmModal({ title, text, ok, cancel, danger = false }) {
   });
 }
 
-export function infoModal({ body, label, closeLabel, onClose }) {
+export function infoModal({ body, label, closeLabel, onClose, from }) {
+  let closed = false;
   const close = () => {
-    backdrop.remove();
+    if (closed) return;
+    closed = true;
     removeEventListener('keydown', onKey);
+    backdrop.classList.add('is-closing');
+    setTimeout(() => backdrop.remove(), 190);
     onClose?.();
   };
   const onKey = (e) => e.key === 'Escape' && close();
@@ -49,6 +53,13 @@ export function infoModal({ body, label, closeLabel, onClose }) {
     ),
   );
   document.body.append(backdrop);
+  // Wächst aus dem Knopf, von dem es kommt
+  if (from) {
+    const a = from.getBoundingClientRect();
+    const box = backdrop.firstElementChild;
+    const b = box.getBoundingClientRect();
+    box.style.transformOrigin = `${a.left + a.width / 2 - b.left}px ${a.top + a.height / 2 - b.top}px`;
+  }
   addEventListener('keydown', onKey);
   closeBtn.focus();
   return close;

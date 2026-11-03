@@ -212,7 +212,9 @@ export function searchIndex() {
     if (e.kind !== 'lift' || seenLift.has(e.ref)) return;
     seenLift.add(e.ref);
     const lift = map.lifts[e.ref];
-    items.push({ type: 'lift', name: lift.name, sub: lift.typeName, pos: map.nodes[e.a], node: e.a, lift });
+    // Talstation = der tiefere Endpunkt
+    const low = (map.ele[e.a] || 0) <= (map.ele[e.b] || 0) ? e.a : e.b;
+    items.push({ type: 'lift', name: lift.name, sub: lift.typeName, pos: map.nodes[e.a], node: e.a, lift, low: map.nodes[low], lowEle: map.ele[low] });
   });
   const seenPiste = new Map();
   map.edges.forEach((e) => {
@@ -223,11 +225,30 @@ export function searchIndex() {
     if (!seenPiste.has(key)) {
       // Ziel = Anfang der Piste, wenn er im Kern liegt
       const node = map.coreSet.has(e.a) ? e.a : nearestNode(map.nodes[e.a]);
-      seenPiste.set(key, { type: 'piste', name: p.name || `Piste ${p.ref}`, ref: p.ref, diff: p.diff, pos: map.nodes[e.a], node, piste: p });
+      seenPiste.set(key, {
+        type: 'piste', name: p.name || `Piste ${p.ref}`, ref: p.ref, diff: p.diff, pos: map.nodes[e.a], node, piste: p,
+        lines: [], lo: Infinity, hi: 0,
+      });
     } else if (!seenPiste.get(key).ref && p.ref) {
       seenPiste.get(key).ref = p.ref;
     }
+    // Für die Vorschläge: alle Linien der Piste und wie tief sie hinunter reicht
+    const item = seenPiste.get(key);
+    item.lines.push(e.coords);
+    for (const n of [e.a, e.b]) {
+      if (!map.ele[n]) continue;
+      if (map.ele[n] < item.lo) { item.loPos = map.nodes[n]; item.loNode = n; } // tiefster Punkt: hier kommt man unten an
+      item.lo = Math.min(item.lo, map.ele[n]);
+      if (map.ele[n] > item.hi) { item.hiNode = n; item.hiPos = map.nodes[n]; } // Start oben
+      item.hi = Math.max(item.hi, map.ele[n]);
+    }
   });
+  // Ziel einer Piste = ihr Start ganz oben (dorthin kommt man mit dem Lift, auch wenn ein Stück gesperrt ist)
+  for (const item of seenPiste.values()) {
+    if (item.hiNode == null) continue;
+    item.node = map.coreSet.has(item.hiNode) ? item.hiNode : nearestNode(item.hiPos, map.nodeArea[item.hiNode]);
+    item.pos = item.hiPos;
+  }
   items.push(...seenPiste.values());
   return items;
 }

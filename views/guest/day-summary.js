@@ -8,42 +8,100 @@ import { icon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
 import { saveFile, isIOS } from '../../js/services/export.js';
 import { skimap } from '../../js/services/slopes.js';
-import { speedColor } from '../../js/map/layers.js';
 import { altitudeChart, difficultyBar, runList, badgeRow } from './day-stats.js';
+import { challengeCard, compareCard } from './day-challenges.js';
 import { recordFilm, filmFormat, filmName } from './day-film.js';
 
-export function renderSummary(day, { onNew } = {}) {
-  const date = new Date(day.startedAt).toLocaleDateString(getLang() === 'de' ? 'de-AT' : 'en-GB', {
-    weekday: 'long', day: 'numeric', month: 'long',
-  });
-  const pisteTime = day.points.filter((p) => p.kind === 'piste' && p.speed > 1).length;
-  const avg = pisteTime ? day.points.filter((p) => p.kind === 'piste' && p.speed > 1).reduce((s, p) => s + p.speed * 3.6, 0) / pisteTime : 0;
-
+export function renderSummary(day, { onNew, onFilm, name } = {}) {
   return h('div', { class: 'recap' },
-    // Kopf: großer Wert auf Schwarz
+    // Kopf: persönliche Zeile, drei große Zahlen, darunter der Rest
     h('section', { class: 'instrument recap-hero' },
-      h('div', { class: 'instrument-head' }, h('span', {}, date), h('span', { class: 'day-chip' }, t('day.recap'))),
-      h('div', { class: 'recap-big' },
-        h('span', { class: 'num recap-km' }, number(day.km, 1)),
-        h('span', { class: 'recap-unit' }, t('day.km'))),
-      speedProfile(day.points),
-      h('dl', { class: 'day-stats' },
-        tile('day.runs', day.runs.length),
-        tile('day.descent', number(day.descent), 'm'),
-        tile('day.top', Math.round(day.top), 'km/h'),
-        tile('day.avg', Math.round(avg), 'km/h'),
+      h('p', { class: 'recap-kicker' }, h('i'), t('day.recap')),
+      h('h2', { class: 'recap-title' }, headline(day, name)),
+      h('div', { class: 'recap-trio' },
+        big('day.descent', number(day.descent), 'm'),
+        big('day.km', number(day.km, 1), 'km'),
+        big('day.runs', day.runs.length, '')),
+      h('dl', { class: 'recap-row' },
+        tile('day.lifts', day.lifts),
         tile('day.maxAlt', number(day.maxAlt), 'm'),
+        tile('pass.title', (day.huts || []).length),
         tile('day.time', duration(day.elapsed || 0)))),
 
+    filmCard(day, onFilm),
+    challengeCard(day),
+    compareCard(day),
+    h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day)),
     h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.profile')), altitudeChart(day.points)),
     difficultyBar(day) ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.byColor')), difficultyBar(day)) : null,
     day.runs.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.runList')), runList(day)) : null,
     favouriteLifts(day),
-    h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day)),
-
-    downloadBlock(day),
     onNew ? h('button', { class: 'btn btn-quiet btn-block', onclick: onNew }, icon('play'), t('day.again')) : null,
   );
+}
+
+/** Ein Satz, der zum Tag passt – mit Vornamen, wenn wir ihn kennen */
+function headline(day, name) {
+  const key = day.descent >= 3000 ? 'big' : day.runs.length ? 'good' : 'short';
+  return name ? t(`recap.head.${key}`, { name }) : t(`recap.head.${key}.anon`);
+}
+
+function big(key, value, unit) {
+  return h('div', { class: 'recap-big-stat' },
+    h('span', { class: 'num' }, String(value), unit ? h('small', {}, unit) : null),
+    h('span', { class: 'recap-big-label' }, t(key)));
+}
+
+/** Tagesfilm: Vorschau Ihrer Spur, antippen spielt ihn ab; darunter Download und Teilen */
+function filmCard(day, onFilm) {
+  const preview = h(onFilm ? 'button' : 'div', {
+    class: 'recap-film-preview',
+    onclick: onFilm || null,
+    'aria-label': onFilm ? t('film.cta') : null,
+    html: traceSVG(day.points, { loop: true }),
+  });
+  if (onFilm) preview.append(h('span', { class: 'recap-film-play' }, icon('play')));
+  return h('section', { class: 'recap-film' },
+    h('div', { class: 'recap-film-head' },
+      preview,
+      h('div', { class: 'recap-film-text' },
+        h('strong', {}, t('film.cta')),
+        h('small', {}, t('film.ctaHint')))),
+    downloadBlock(day));
+}
+
+/** Ihre Spur als SVG (flach projiziert), zeichnet sich von selbst; ein Punkt fährt sie ab. */
+export function traceSVG(points, { loop = false } = {}) {
+  const W = 300;
+  const H = 220;
+  let d;
+  if (points.length > 1) {
+    const lat0 = (points[0].lat * Math.PI) / 180;
+    const xs = points.map((p) => p.lng * Math.cos(lat0));
+    const ys = points.map((p) => -p.lat);
+    const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+    const k = Math.min((W - 30) / (maxX - minX || 1), (H - 30) / (maxY - minY || 1));
+    const ox = (W - (maxX - minX) * k) / 2;
+    const oy = (H - (maxY - minY) * k) / 2;
+    // höchstens ~400 Punkte, sonst wird der Pfad unnötig groß
+    const step = Math.max(1, Math.floor(points.length / 400));
+    d = xs.filter((_, i) => i % step === 0 || i === xs.length - 1)
+      .map((x, i) => {
+        const j = Math.min(points.length - 1, i * step);
+        return `${i ? 'L' : 'M'}${(ox + (xs[j] - minX) * k).toFixed(1)} ${(oy + (ys[j] - minY) * k).toFixed(1)}`;
+      }).join(' ');
+  } else {
+    // Noch keine Spur: eine Abfahrt als Platzhalter
+    d = 'M40 30 C 200 50, 80 110, 220 130 S 120 200, 260 200';
+  }
+  const motion = loop
+    ? '<animateMotion dur="4s" repeatCount="indefinite" path="' + d + '"/>'
+    : `<animateMotion dur="2s" fill="freeze" path="${d}" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 .05 .4 1"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}">
+    <path d="${d}" class="trace-shadow" pathLength="1"/>
+    <path d="${d}" class="trace-line${loop ? ' is-loop' : ''}" pathLength="1" stroke="#ff6a2b"/>
+    <circle r="${loop ? 9 : 6}" class="trace-dot">${motion}</circle>
+  </svg>`;
 }
 
 /**
@@ -123,19 +181,3 @@ function favouriteLifts(day) {
       list.map(([lift, n]) => h('li', {}, icon('gondola'), h('span', {}, lift), h('b', { class: 'num' }, `${n}×`)))));
 }
 
-/** Tempo über den Tag als farbige Balken – jeder Balken ein Zeitabschnitt. */
-function speedProfile(points) {
-  const BARS = 48;
-  if (points.length < 2) return null;
-  const per = Math.ceil(points.length / BARS);
-  const bars = [];
-  for (let i = 0; i < points.length; i += per) {
-    const slice = points.slice(i, i + per).filter((p) => p.kind === 'piste');
-    bars.push(slice.length ? Math.max(...slice.map((p) => p.speed * 3.6)) : 0);
-  }
-  const max = Math.max(60, ...bars);
-  return h('div', { class: 'profile', 'aria-hidden': 'true' },
-    bars.map((kmh, i) => h('span', {
-      style: { height: `${Math.max(4, (kmh / max) * 100)}%`, background: kmh ? speedColor(kmh) : 'var(--night-3)', animationDelay: `${i * 18}ms` },
-    })));
-}

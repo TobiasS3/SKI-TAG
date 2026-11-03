@@ -123,7 +123,7 @@ export function mountRangeAlarm(groupId, myChip, people, { onChange }) {
           h('h3', { class: 'card-title' }, t('range.title')),
           h('p', { class: 'muted small' }, cfg.on ? t('range.lead') : t('range.offLead'))),
         toggle),
-      h('div', { class: 'range-body' },
+      !cfg.on ? null : h('div', { class: 'range-body' },
         h('div', { class: 'range-row' },
           slider,
           value),

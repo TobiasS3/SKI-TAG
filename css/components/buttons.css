@@ -10,7 +10,7 @@
   border-radius: var(--r-pill);
   font-weight: 650;
   letter-spacing: -0.01em;
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: transform var(--t-fast) var(--ease), background var(--t-fast), box-shadow var(--t-fast);
@@ -20,7 +20,7 @@
 }
 
 .btn:hover {
-  background: #2a2a30;
+  background: var(--action-hover);
 }
 
 .btn:active {
@@ -62,7 +62,7 @@
 }
 
 .btn-quiet:hover {
-  background: #e8e8ec;
+  background: var(--line);
 }
 
 .btn-danger {
@@ -126,7 +126,7 @@
 
 .choice[aria-pressed="true"] {
   border-color: var(--ink);
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }

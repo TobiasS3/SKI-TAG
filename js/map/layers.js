@@ -4,7 +4,7 @@
 // am Handy viel flüssiger). Ausblenden („nur Route zeigen“) geht deshalb über die Ebenen (Panes),
 // Marker (Hütten, Schilder) haben die CSS-Klasse „sk“ – siehe css/components/map.css.
 
-import { hutMarker, pisteDisc, goalMarker } from './markers.js';
+import { hutMarker, pisteDisc, goalMarker } from './markers.js?v=7';
 import { lineLength, pointAlong, distance } from './geo.js';
 import { reducedMotion } from '../utils/dom.js';
 import { iconHTML, liftIcon } from '../components/icons.js';
@@ -35,22 +35,41 @@ export function drawSkimap(map, skimap, handlers = {}) {
   const pistes = L.layerGroup().addTo(map);
   const labels = L.layerGroup().addTo(map);
 
-  // Pisten: weißer Rand unten, Farbe oben – gut lesbar auf jeder Karte
+  // Pisten: erst alle weißen Ränder, dann alle Farben – sonst schneidet ein Rand die Nachbarpiste ab.
+  // refined: Linien geglättet, und wo Rot auf Blau trifft, läuft die Farbe sanft ineinander.
+  const refined = !!handlers.refined;
   const longest = new Map(); // Pistennummer → längstes Stück (für das Schild)
-  for (const e of skimap.edges) {
-    if (e.kind !== 'piste') continue;
+  const pisteEdges = skimap.edges.filter((e) => e.kind === 'piste');
+  const lineOf = new Map(pisteEdges.map((e) => [e, refined ? smoothLine(e.coords) : e.coords]));
+  for (const e of pisteEdges) {
+    L.polyline(lineOf.get(e), { renderer: pisteCanvas, color: '#fff', weight: refined ? 6 : 7.5, opacity: 0.9, interactive: false, lineJoin: 'round' }).addTo(pistes);
+  }
+  const colorsAt = new Map(); // Knoten → Farben der Pisten, die dort enden
+  for (const e of pisteEdges) {
+    const color = PISTE_COLOR[skimap.pistes[e.ref].diff];
+    for (const n of [e.a, e.b]) {
+      if (!colorsAt.has(n)) colorsAt.set(n, new Set());
+      colorsAt.get(n).add(color);
+    }
+  }
+  for (const e of pisteEdges) {
     const p = skimap.pistes[e.ref];
     const color = PISTE_COLOR[p.diff];
-    L.polyline(e.coords, { renderer: pisteCanvas, color: '#fff', weight: 7, opacity: 0.9, interactive: false }).addTo(pistes);
-    const line = L.polyline(e.coords, {
+    const coords = lineOf.get(e);
+    const line = L.polyline(coords, {
       renderer: pisteCanvas,
       color,
-      weight: 3.5,
-      opacity: 0.95,
+      weight: refined ? 3.2 : 4,
+      opacity: 1,
+      lineJoin: 'round',
       dashArray: p.diff === 'freeride' ? '6 6' : null,
     }).addTo(pistes);
     line.on('click', () => handlers.onPiste?.(p, e));
     if (p.ref && (!longest.has(p.ref) || longest.get(p.ref).len < e.len)) longest.set(p.ref, e);
+    if (refined && p.diff !== 'freeride') {
+      fadeEnd(coords, color, colorsAt.get(e.a), pistes, pisteCanvas);
+      fadeEnd([...coords].reverse(), color, colorsAt.get(e.b), pistes, pisteCanvas);
+    }
   }
   for (const [, e] of longest) {
     const mid = pointAlong(e.coords, e.len / 2);
@@ -66,14 +85,20 @@ export function drawSkimap(map, skimap, handlers = {}) {
     const lift = skimap.lifts[e.ref];
     // Seil: dunkle Linie, darauf feine helle Striche
     const line = L.polyline(lift.coords, {
-      renderer: liftCanvas, color: '#0e0e10', weight: 3, opacity: 0.9,
+      renderer: liftCanvas, color: '#0b1226', weight: 3, opacity: 0.95,
     }).addTo(lifts);
-    L.polyline(lift.coords, {
-      renderer: liftCanvas, color: '#ffffff', weight: 1, opacity: 0.8, dashArray: '1 7', interactive: false,
-    }).addTo(lifts);
+    if (!refined) {
+      L.polyline(lift.coords, {
+        renderer: liftCanvas, color: '#ffffff', weight: 1, opacity: 0.8, dashArray: '1 7', interactive: false,
+      }).addTo(lifts);
+    }
     line.bindTooltip(lift.name, { sticky: true, className: 'map-tip' });
     line.on('click', () => handlers.onLift?.(lift, e));
     const icon = liftIcon(lift.type);
+    if (refined) {
+      liftChip(lift, e, icon, handlers).addTo(lifts);
+      continue;
+    }
     const bottom = skimap.ele[e.a] <= skimap.ele[e.b] ? e.a : e.b;
     if ((icon === 'gondola' && skimap.ele[bottom] < VALLEY_ELE) || VALLEY_EXTRA[lift.name]) {
       // Talbahn: großes Schild an der Talstation, schon in der Übersicht sichtbar
@@ -111,7 +136,7 @@ export function drawSkimap(map, skimap, handlers = {}) {
       keyboard: false,
     }).addTo(lifts);
   }
-  const stopCabins = animateCabins(map, skimap, liftEdges);
+  const stopCabins = animateCabins(map, skimap, liftEdges, handlers.liftRuns);
 
   // Gipfel und Bergstationen mit Höhe – geben der Karte Orientierung
   const peaks = L.layerGroup().addTo(map);
@@ -122,6 +147,15 @@ export function drawSkimap(map, skimap, handlers = {}) {
         html: `<span><b>${escapeHTML(peak.name)}</b><small>${peak.ele} m</small></span>`,
         iconSize: [0, 0],
       }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(peaks);
+  }
+
+  // Orte zur Orientierung (die vorgemalte Karte hat keine Beschriftung)
+  for (const [name, pos] of handlers.towns || []) {
+    L.marker(pos, {
+      icon: L.divIcon({ className: 'mk-town', html: `<span>${escapeHTML(name)}</span>`, iconSize: [0, 0] }),
       interactive: false,
       keyboard: false,
     }).addTo(peaks);
@@ -149,6 +183,65 @@ export function drawSkimap(map, skimap, handlers = {}) {
       cancelAnimationFrame(frame);
     },
   };
+}
+
+/** Weicher Verlauf (Chaikin): aus eckigen Kartenpunkten wird eine fließende Linie, Enden bleiben fest */
+function smoothLine(coords) {
+  if (coords.length < 3) return coords;
+  let pts = coords;
+  for (let round = 0; round < 2; round++) {
+    const next = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [a, b] = [pts[i], pts[i + 1]];
+      next.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+    }
+    next.push(pts[pts.length - 1]);
+    pts = next;
+  }
+  return pts;
+}
+
+const mixColor = (a, b, f) => {
+  const ch = (c, i) => parseInt(c.slice(1 + i * 2, 3 + i * 2), 16);
+  return `rgb(${[0, 1, 2].map((i) => Math.round(ch(a, i) + (ch(b, i) - ch(a, i)) * f)).join(',')})`;
+};
+
+/** Trifft die Piste am Anfang von coords auf eine andersfarbige: auf den letzten Metern zur Mitte hin mischen */
+function fadeEnd(coords, color, here, layer, renderer) {
+  const other = [...(here || [])].find((c) => c !== color);
+  const len = lineLength(coords);
+  if (!other || len < 40) return;
+  const reach = Math.min(70, len / 2);
+  const STEPS = 4;
+  for (let i = 0; i < STEPS; i++) {
+    const from = pointAlong(coords, (reach * i) / STEPS);
+    const to = pointAlong(coords, (reach * (i + 1)) / STEPS);
+    L.polyline([from, to], {
+      renderer, color: mixColor(color, other, 0.5 * (1 - (i + 0.5) / STEPS)), weight: 3.2, opacity: 1, interactive: false,
+    }).addTo(layer);
+  }
+}
+
+/** Lift-Schild: von weitem nur der Code (B3). Antippen zeigt den Namen und öffnet direkt den Lift mit Bild. */
+function liftChip(lift, e, icon, handlers) {
+  const main = !SMALL_LIFTS.has(lift.type);
+  const marker = L.marker(pointAlong(lift.coords, lineLength(lift.coords) / 2), {
+    icon: L.divIcon({
+      className: `sk mk-chip${main ? ' is-main' : ''}`,
+      html: `<span>${lift.code ? `<i>${escapeHTML(lift.code)}</i>` : iconHTML(icon)}<b>${escapeHTML(lift.name)}</b></span>`,
+      iconSize: [0, 0],
+    }),
+    title: lift.name,
+    zIndexOffset: main ? 300 : 200,
+  });
+  marker.on('click', () => {
+    const el = marker.getElement();
+    el?.closest('.leaflet-container')?.querySelectorAll('.mk-chip.is-open').forEach((x) => x.classList.remove('is-open'));
+    el?.classList.add('is-open');
+    marker.setZIndexOffset(800);
+    handlers.onLift?.(lift, e);
+  });
+  return marker;
 }
 
 const SMALL_LIFTS = new Set(['t-bar', 'j-bar', 'platter', 'rope_tow', 'magic_carpet']);
@@ -206,6 +299,16 @@ function declutter(map) {
     if (placed.some((p) => hit(el.getBoundingClientRect(), p))) el.classList.add('is-hidden');
   });
 
+  // Lift-Schilder: wichtige Bahnen zuerst, was sich überdeckt, verschwindet. Geöffnete bleiben immer.
+  const chips = [...root.querySelectorAll('.mk-chip')].sort((a, b) => Number(b.classList.contains('is-open')) - Number(a.classList.contains('is-open')) || Number(b.classList.contains('is-main')) - Number(a.classList.contains('is-main')));
+  const chipTaken = [...root.querySelectorAll('.mk-peak span:not(.is-hidden)')].map((el) => el.getBoundingClientRect());
+  chips.forEach((c) => {
+    c.classList.remove('is-hidden');
+    const r = c.firstElementChild.getBoundingClientRect();
+    if (!c.classList.contains('is-open') && chipTaken.some((t) => hit(r, t))) c.classList.add('is-hidden');
+    else chipTaken.push(r);
+  });
+
   const hutLabels = map.getZoom() >= 15 ? ', .mk-hut .mk-label' : '';
   const labels = [...root.querySelectorAll(`.mk-lift.is-main span, .mk-lift:not(.is-main):not(.is-route) span${hutLabels}`)];
   // 2. Lift- und Hüttennamen: sichtbare Talbahnen, Gipfel und Symbole zählen als belegt
@@ -221,35 +324,36 @@ function declutter(map) {
 }
 
 /**
- * Kabinen fahren die Lifte hoch – nur sichtbar, wenn man nah genug dran ist.
- * Eine eigene Leinwand in der Ebene „cabins“: zeichnet nur Kabinen im Bild, ~12 Bilder/s,
- * und pausiert, solange die Karte gezogen oder gezoomt wird (dann fährt die Leinwand einfach mit).
+ * Kabinen fahren auf den Liftlinien – man sieht sofort: das ist ein Lift, und er läuft.
+ * Hoch auf der einen Seite des Seils, runter auf der anderen. Gesperrte Lifte stehen still.
+ * Eigene Leinwand in der Ebene „cabins“, nur was im Bild ist, ~25 Bilder/s.
  */
-function animateCabins(map, skimap, liftEdges) {
+const samePoint = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) < 0.002;
+
+function animateCabins(map, skimap, liftEdges, liftRuns) {
   const cabins = [];
   for (const e of liftEdges) {
     const lift = skimap.lifts[e.ref];
     if (lift.type === 'magic_carpet' || lift.type === 'rope_tow') continue;
     const len = lineLength(lift.coords);
-    const drag = ['t-bar', 'j-bar', 'platter'].includes(lift.type);
-    const count = Math.max(2, Math.min(drag ? 8 : 14, Math.round(len / (drag ? 120 : 150))));
-    const speed = { cable_car: 10, gondola: 6, chair_lift: 5, mixed_lift: 5 }[lift.type] || 3;
-    // Gondeln = Kästchen, Sessel/Bügel = Punkte. Dunkel mit weißem Rand – nicht rot, sonst sehen sie
-    // aus wie rote Pisten, und nicht weiß gefüllt, sonst wie die Stationen.
-    const box = liftIcon(lift.type) === 'gondola';
+    const count = Math.max(3, Math.min(10, Math.round(len / 260)));
+    const speed = { cable_car: 15, gondola: 13, chair_lift: 10, mixed_lift: 10 }[lift.type] || 8;
     const bounds = L.latLngBounds(lift.coords);
+    lift.upward = skimap.ele[e.a] <= skimap.ele[e.b] === samePoint(lift.coords[0], skimap.nodes[e.a]);
     for (let i = 0; i < count; i++) {
-      cabins.push({ coords: lift.coords, len, offset: (i / count) * len, speed, r: drag ? 2.2 : box ? 3.6 : 3, box, bounds });
+      cabins.push({ lift, coords: lift.coords, len, offset: (i / count) * len, speed, bounds, i });
     }
   }
 
   const pane = map.getPane('cabins');
   const canvas = L.DomUtil.create('canvas', 'cabins-canvas', pane);
   const ctx = canvas.getContext('2d');
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = Math.min(1.5, window.devicePixelRatio || 1);
   let frame = 0;
   let last = 0;
   let moving = false;
+  let stopped = new Set();
+  let checked = 0;
   const start = performance.now();
 
   function place() {
@@ -261,35 +365,47 @@ function animateCabins(map, skimap, liftEdges) {
     L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
   }
 
+  // Eine Kabine für alle Lifte: einheitlich, weiß mit dunklem Rand
+  function cabin(x, y, zoom) {
+    const k = zoom >= 15 ? 1.2 : zoom >= 14 ? 1 : zoom >= 13 ? 0.85 : 0.7;
+    ctx.beginPath();
+    ctx.roundRect(x - 4 * k, y - 4 * k, 8 * k, 8 * k, 2.4 * k);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = '#0b1226';
+    ctx.stroke();
+  }
+
   function draw(now) {
+    if (now - checked > 5000) {
+      checked = now;
+      stopped = new Set(skimap.lifts.filter((l) => liftRuns && !liftRuns(l)));
+    }
     const s = (now - start) / 1000;
+    const zoom = map.getZoom();
+    const stride = zoom < 13 ? 4 : zoom < 14 ? 2 : 1;
     const view = map.getBounds().pad(0.05);
+    const mpp = (40075016 * Math.cos((map.getCenter().lat * Math.PI) / 180)) / (256 * 2 ** zoom);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = '#fff';
     for (const c of cabins) {
-      if (!view.intersects(c.bounds)) continue;
-      const at = (c.offset + s * c.speed * 3) % c.len; // dreifach schnell, sieht lebendiger aus
-      const pos = pointAlong(c.coords, at);
-      const pt = map.latLngToContainerPoint(pos);
-      ctx.beginPath();
-      if (c.box) ctx.roundRect(pt.x - c.r, pt.y - c.r, c.r * 2, c.r * 2, 1.5);
-      else ctx.arc(pt.x, pt.y, c.r, 0, Math.PI * 2);
-      ctx.fillStyle = '#2a2a30';
-      ctx.fill();
-      ctx.stroke();
+      if (c.i % stride || stopped.has(c.lift) || !view.intersects(c.bounds)) continue;
+      // Alle Kabinen fahren nur bergauf: am tieferen Ende der Linie beginnen
+      const run = (c.offset + s * c.speed * mpp) % c.len;
+      const pt = map.latLngToContainerPoint(pointAlong(c.coords, c.lift.upward === false ? c.len - run : run));
+      cabin(pt.x, pt.y, zoom);
     }
   }
 
   const tick = (now) => {
     frame = requestAnimationFrame(tick);
-    if (moving || document.hidden || now - last < 80) return; // ~12 Bilder/s
+    if (moving || document.hidden || now - last < 66) return; // ~15 Bilder/s, schont den Akku
     last = now;
     draw(now);
   };
 
-  const visible = () => map.getZoom() >= 13.5;
+  const visible = () => map.getZoom() >= 12;
   const onStart = () => { moving = true; };
   const onZoomStart = () => { moving = true; canvas.style.visibility = 'hidden'; };
   const onEnd = () => {
@@ -345,78 +461,104 @@ function findPeaks(skimap) {
 
 const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-/** Route: orange Linie mit schwarzem Rand und feinen weißen Strichen. */
-export function drawRoute(map, coords, steps = []) {
+/** Route: kräftige Linie mit schwarzem Rand und laufenden Strichen. Farbe wählt die Ansicht. */
+export function drawRoute(map, coords, steps = [], { color = '#ff6a13', flow = '#fff' } = {}) {
+  // Schilder liegen in einer eigenen Ebene über der Linie, nicht dahinter
+  if (!map.getPane('routeSigns')) map.createPane('routeSigns').style.zIndex = 445;
   const group = L.layerGroup([
     L.polyline(coords, { pane: 'route', color: '#fff', weight: 13, opacity: 1, interactive: false }),
     L.polyline(coords, { pane: 'route', color: '#0e0e10', weight: 9.5, opacity: 0.95, interactive: false }),
-    L.polyline(coords, { pane: 'route', color: '#ff6a13', weight: 6, opacity: 1, interactive: false, className: 'route-core' }),
-    L.polyline(coords, { pane: 'route', color: '#fff', weight: 2, opacity: 0.95, dashArray: '2 14', interactive: false, className: 'route-flow' }),
+    L.polyline(coords, { pane: 'route', color, weight: 6, opacity: 1, interactive: false, className: 'route-core' }),
+    L.polyline(coords, { pane: 'route', color: flow, weight: 2, opacity: 0.95, dashArray: '2 14', interactive: false, className: 'route-flow' }),
   ]);
+  // Liftstücke der Route sieht man als Lift: dunkel mit weißen Punkten, wie auf der Karte
+  for (const step of steps) {
+    if (step.kind !== 'lift') continue;
+    group.addLayer(L.polyline(step.coords, { pane: 'route', color: '#0e1530', weight: 7, opacity: 1, interactive: false, className: 'route-lift' }));
+    group.addLayer(L.polyline(step.coords, { pane: 'route', color: '#fff', weight: 2.5, opacity: 1, dashArray: '1 8', lineCap: 'round', interactive: false }));
+  }
   // Schilder auf der Route: Liftname bzw. Pistennummer – nur das, was du wirklich fährst
   for (const step of steps) {
     const sign = routeSign(step);
     if (sign) group.addLayer(sign);
   }
   group.addLayer(goalMarker(coords[coords.length - 1]));
-  return group.addTo(map);
+  group.addTo(map);
+  // Schilder dürfen sich nicht überdecken: Lifte zuerst, Pisten nur wo Platz ist
+  const declutter = () => {
+    const signs = [...map.getContainer().querySelectorAll('.mk-rsign')]
+      .sort((a, b) => b.classList.contains('is-lift') - a.classList.contains('is-lift'));
+    const placed = [];
+    for (const el of signs) {
+      el.style.visibility = '';
+      const r = el.firstElementChild?.getBoundingClientRect();
+      if (!r) continue;
+      const hit = placed.some((p) => r.left < p.right + 4 && r.right > p.left - 4 && r.top < p.bottom + 3 && r.bottom > p.top - 3);
+      if (hit) el.style.visibility = 'hidden';
+      else placed.push(r);
+    }
+  };
+  requestAnimationFrame(declutter);
+  map.on('zoomend', declutter);
+  group.on('remove', () => map.off('zoomend', declutter));
+  return group;
 }
 
 function routeSign(step) {
   const pos = pointAlong(step.coords, lineLength(step.coords) / 2);
-  const opts = { pane: 'route', interactive: false, keyboard: false };
+  const opts = { pane: 'routeSigns', interactive: false, keyboard: false };
+  const item = step.item;
   if (step.kind === 'lift') {
-    const icon = liftIcon(step.item.type);
+    // wie das Liftschild auf der Karte: Kürzel (oder Symbol) + Name
+    const lead = item.code ? `<i>${escapeHTML(item.code)}</i>` : iconHTML(liftIcon(item.type));
     return L.marker(pos, {
       ...opts,
-      icon: L.divIcon({ className: 'mk-lift is-route', html: `<span>${iconHTML(icon)}${escapeHTML(step.item.name)}</span>`, iconSize: [0, 0] }),
+      zIndexOffset: 500,
+      icon: L.divIcon({ className: 'mk-rsign is-lift', html: `<span>${lead}<b>${escapeHTML(item.name)}</b></span>`, iconSize: [0, 0] }),
     });
   }
-  if (!step.item.ref) return null;
+  if (!item.ref && !item.name) return null;
+  // Piste: farbige Scheibe mit Nummer + Name
+  const disc = item.ref ? `<i class="diff-${item.diff}">${escapeHTML(item.ref)}</i>` : `<i class="diff-${item.diff}"></i>`;
   return L.marker(pos, {
     ...opts,
-    icon: L.divIcon({
-      className: `mk-disc is-route diff-${step.item.diff}`,
-      html: `<span>${escapeHTML(step.item.ref)}</span>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    }),
+    zIndexOffset: 400,
+    icon: L.divIcon({ className: 'mk-rsign is-piste', html: `<span>${disc}${item.name ? `<b>${escapeHTML(item.name)}</b>` : ''}</span>`, iconSize: [0, 0] }),
   });
 }
 
-/** Farbe nach Tempo (km/h) für die eigene Spur. */
-export function speedColor(kmh) {
-  if (kmh < 15) return '#9db7ff';
-  if (kmh < 30) return '#2f6dff';
-  if (kmh < 45) return '#7a5cff';
-  if (kmh < 60) return '#ff6a13';
-  return '#ff2d2d';
-}
+/** Eigene Spur: Orange mit weißem Rand. */
+export const TRACK_COLOR = '#ff5b22';
 
 /**
- * Eigene Spur, Stück für Stück. Gleiche Farbe = eine Linie (schont den Browser).
+ * Eigene Spur, Stück für Stück: Abfahrten kräftig mit weißem Rand, Liftfahrten fein gepunktet.
  * add({ lat, lng, speed, kind }) hängt einen Punkt an.
  */
 export function createTrack(map) {
   const group = L.layerGroup().addTo(map);
   let line = null;
+  let casing = null;
   let key = null;
   let lastPos = null;
 
   return {
     add(p) {
       const pos = [p.lat, p.lng];
-      const k = p.kind === 'lift' ? 'lift' : speedColor(p.speed * 3.6);
+      const k = p.kind === 'lift' ? 'lift' : 'run';
       // Großer Sprung (z. B. Chip kurz ohne Empfang): keine gerade Linie quer übers Gebiet
       if (lastPos && distance(lastPos, pos) > 400) {
         lastPos = null;
         line = null;
       }
       if (k !== key || !line) {
-        line = L.polyline(lastPos ? [lastPos, pos] : [pos], {
+        const start = lastPos ? [lastPos, pos] : [pos];
+        casing = k === 'run'
+          ? L.polyline(start, { pane: 'track', color: '#fff', weight: 7, opacity: 1, lineCap: 'round', interactive: false }).addTo(group)
+          : null;
+        line = L.polyline(start, {
           pane: 'track',
-          color: k === 'lift' ? '#4b6072' : k,
-          weight: k === 'lift' ? 2.5 : 5,
+          color: k === 'lift' ? '#0b1226' : TRACK_COLOR,
+          weight: k === 'lift' ? 2.5 : 4,
           opacity: k === 'lift' ? 0.7 : 1,
           dashArray: k === 'lift' ? '1 7' : null,
           lineCap: 'round',
@@ -425,12 +567,14 @@ export function createTrack(map) {
         key = k;
       } else {
         line.addLatLng(pos);
+        casing?.addLatLng(pos);
       }
       lastPos = pos;
     },
     clear() {
       group.clearLayers();
       line = null;
+      casing = null;
       key = null;
       lastPos = null;
     },

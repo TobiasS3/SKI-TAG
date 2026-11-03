@@ -18,7 +18,7 @@
   gap: var(--sp-3);
   padding: 12px 16px;
   border-radius: var(--r-m);
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   font-weight: 550;
   box-shadow: var(--shadow-float);

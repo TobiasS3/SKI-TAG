@@ -26,6 +26,18 @@ Neue Hütten-Fotos sucht `python3 tools/fetch-commons-photos.py` – nur Treffer
 Danach von Hand prüfen: Falsche Treffer kommen in `WRONG` im Skript (z. B. „Red Bull“ = Fußballfoto).
 Hütten ohne Foto zeigen eine gezeichnete Bergszene. Echte Fotos aller Hütten → über KitzSki als Partner.
 
+## Startfilm
+
+Der Login zeigt seit November 2026 einen selbst gezeichneten Film (`views/login/hero-film.js`) aus den Kartendaten von OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL). Die Videos unten werden nicht mehr verwendet.
+
+## Gemalte Karte
+
+`assets/terrain/` ist mit `tools/bake-terrain.py` aus den frei nutzbaren [Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) (Mapzen, auf AWS) vorgerechnet und liegt bei uns. KitzSkis Panoramabild wird nicht verwendet. Wald, Wasser, Straßen, Häuser und Gipfel stammen aus OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL).
+
+## Schrift
+
+Bricolage Grotesque (SIL Open Font License), selbst gehostet in `assets/fonts/`.
+
 ## Video – im Repo
 
 | Datei | Motiv | Quelle | Lizenz |

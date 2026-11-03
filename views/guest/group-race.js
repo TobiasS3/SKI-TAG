@@ -1,4 +1,5 @@
-// Gruppe: Rangliste des Tages (Top-Speed, Tiefenmeter, Pisten-km, Abfahrten) und Gruppen-Rekorde.
+// Gruppe: Rangliste des Tages (Abfahrten, Tiefenmeter, Pisten-km) und Gruppen-Rekorde.
+// Bewusst ohne Tempo: Ski Tag steht für Sicherheit, auch Kinder stehen in dieser Liste.
 // Gezählt wird insgesamt über den Tag, nicht pro Piste.
 //
 // Eigene Werte kommen aus „Mein Tag“, die der anderen aus ihren Chip-Signalen (gleiche Auswertung).
@@ -15,10 +16,9 @@ import { skimap } from '../../js/services/slopes.js';
 import { emptyDay, addPoint } from './day-stats.js';
 
 const CATS = [
-  { id: 'top', unit: 'km/h', value: (d) => Math.round(d.top), fmt: (v) => String(v) },
+  { id: 'runs', unit: '', value: (d) => d.runs.length, fmt: (v) => String(v) },
   { id: 'descent', unit: 'm', value: (d) => Math.round(d.descent), fmt: (v) => number(v) },
   { id: 'km', unit: 'km', value: (d) => d.km, fmt: (v) => number(v, 1) },
-  { id: 'runs', unit: '', value: (d) => d.runs.length, fmt: (v) => String(v) },
 ];
 
 export function mountRace(ctx, groupId, members) {
@@ -30,7 +30,7 @@ export function mountRace(ctx, groupId, members) {
     if (!m.me) stats.set(m.chip, { ...emptyDay(), ...saved[m.chip], points: [] });
   });
   let records = load(REC_KEY, {});
-  let cat = 'top';
+  let cat = 'runs';
   let ticks = 0;
   const el = h('section', { class: 'card race' });
 
@@ -106,7 +106,7 @@ export function mountRace(ctx, groupId, members) {
       })),
       !mine() ? h('p', { class: 'muted small' }, t('race.startDay')) : null,
       rec ? h('p', { class: 'race-record' }, icon('trophy'),
-        h('span', {}, t('race.record'), ' ', h('strong', {}, `${c.fmt(rec.value)} ${c.unit}`.trim()), ` – ${rec.name}, ${dateLabel(rec.date)}`)) : null,
+        h('span', {}, t('race.record'), ' ', h('strong', {}, `${c.fmt(rec.value)} ${c.unit}`.trim()), `, ${rec.name}, ${dateLabel(rec.date)}`)) : null,
     );
   }
 

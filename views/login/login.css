@@ -252,7 +252,7 @@
 }
 
 .code-slot.is-filled {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
   animation: slot-pop var(--t-med) var(--ease-spring);
@@ -263,7 +263,7 @@
   position: absolute;
   width: 2px;
   height: 28px;
-  background: var(--ink);
+  background: var(--action);
   animation: caret 1s steps(1) infinite;
 }
 
@@ -345,7 +345,7 @@
 }
 
 .board-cell {
-  flex: 1;
+  flex: 1 1 auto; /* Breite nach Inhalt: „8:30–16:30“ braucht mehr Platz als „-4°“ */
   min-width: 0;
 }
 
@@ -366,7 +366,7 @@
 
 .board-cell dd {
   margin: 4px 0 0;
-  font-size: 1.45rem;
+  font-size: clamp(1.05rem, 5.2vw, 1.45rem);
   white-space: nowrap;
 }
 
