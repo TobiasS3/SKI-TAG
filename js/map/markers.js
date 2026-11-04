@@ -47,6 +47,20 @@ export function hutMarker(hut) {
   });
 }
 
+/** Parkplatz: blaues P-Schild wie an der Straße, Name ab Zoom 15. */
+export function parkingMarker(p) {
+  return L.marker(p.pos, {
+    icon: L.divIcon({
+      className: 'sk mk-park',
+      html: `<span class="mk-park-badge">P</span><span class="mk-label">${escape(p.name)}</span>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    }),
+    title: p.name,
+    riseOnHover: true,
+  });
+}
+
 /** Pistennummer wie auf den Schildern: runde Scheibe in Pistenfarbe. */
 export function pisteDisc(pos, piste) {
   return L.marker(pos, {

@@ -38,6 +38,7 @@ export function createMap(el, { painted = false } = {}) {
     el.classList.toggle('z-mid', map.getZoom() >= 13.5);
     el.classList.toggle('z-near', z >= 14);
     el.classList.toggle('z-close', z >= 15);
+    el.classList.toggle('z-names', map.getZoom() >= 14.4); // ab hier stehen die Liftnamen da
   };
   map.on('zoomend', setZoomClass);
   setZoomClass();

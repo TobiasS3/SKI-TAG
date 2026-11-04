@@ -43,6 +43,9 @@ export const api = {
   /** Pisten, Lifte, Hütten + Netz (aus OpenStreetMap, siehe tools/build-skimap.py) */
   getSkimap: () => getJSON('data/skimap/kitzski.json'),
 
+  /** Parkplätze an den Talstationen (aus OpenStreetMap, gebaut mit tools/build-parking.py) */
+  getParking: () => getJSON('data/skimap/parking.json'),
+
   /**
    * Wetter: live von Open-Meteo, Lawinen live vom Lawinenwarndienst Tirol.
    * Ohne Internet → Fake-Wetter mit Hinweis „Beispieldaten“.

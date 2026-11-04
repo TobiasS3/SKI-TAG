@@ -5516,18 +5516,18 @@
 }
 
 .mk-chip.is-open span,
-.z-close .mk-chip span {
+.z-names .mk-chip span {
   background: #fff;
   color: var(--ink);
 }
 
 .mk-chip.is-open b,
-.z-close .mk-chip b {
+.z-names .mk-chip b {
   display: inline;
 }
 
 .mk-chip.is-open i,
-.z-close .mk-chip i {
+.z-names .mk-chip i {
   padding: 0 4px;
   border-radius: 4px;
   background: var(--ink);
@@ -7687,4 +7687,363 @@ small.wx-range-t {
 .sg-down {
   background: #0a9a5e;
   color: #fff;
+}
+
+/* --- Schnellsuche: Gruppe als schmale Leiste, die Karte bekommt den Platz ----------- */
+.search.has-group .search-results {
+  max-height: none;
+  overflow: visible;
+  padding-bottom: 8px;
+}
+
+.search-head-back .search-back small {
+  color: var(--ink-3);
+  font-weight: 650;
+}
+
+.search-strip-wrap {
+  padding: 0;
+}
+
+.search-strip {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 2px 10px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.search-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.search-card {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 200px;
+  padding: 8px 10px 8px 8px;
+  border-radius: 13px;
+  background: var(--ice);
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.search-card:active {
+  transform: scale(0.97);
+}
+
+.search-card .place-logo {
+  flex: none;
+  width: 34px;
+  height: 34px;
+}
+
+.search-card .search-text strong {
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-card .search-text small {
+  font-size: 11.5px;
+}
+
+.search-card .search-badge {
+  display: none;
+}
+
+.search-card:first-child .search-badge {
+  display: inline;
+  position: absolute;
+}
+
+/* Hütte in der Gruppe: Holzschild mit Spitze + Name, immer lesbar */
+.mk-ghut {
+  position: relative;
+}
+
+.mk-ghut-pin {
+  position: absolute;
+  left: -16px;
+  top: -35px;
+  width: 32px;
+  height: 35px;
+  background: url("../../assets/images/hut.svg") center / contain no-repeat;
+  filter: drop-shadow(0 2px 3px rgba(22, 44, 96, 0.35));
+  cursor: pointer;
+}
+
+.mk-ghut b {
+  position: absolute;
+  left: 18px;
+  top: -30px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 7px rgba(22, 44, 96, 0.3);
+}
+
+/* Einzelne Treffer (Streif, 3S Bahn): Name immer, egal wie weit draußen */
+.guest .map .mk-rsign.is-always b {
+  display: inline !important;
+}
+
+.guest .map .mk-rsign.is-always span {
+  padding: 3px 8px 3px 3px !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 1.5px rgba(11, 18, 38, 0.08), 0 3px 8px rgba(22, 44, 96, 0.3) !important;
+}
+
+.guest .map .mk-rsign.is-always.is-lift i {
+  background: var(--ink);
+}
+
+.guest .map .mk-rsign.is-always svg {
+  color: var(--ink) !important;
+}
+
+.search-card > svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-left: auto;
+  color: var(--ink-3);
+}
+
+.search-card .search-text {
+  min-width: 0;
+}
+
+.search-card small.is-fast {
+  color: #0a7a4b;
+  font-weight: 700;
+}
+
+.search-strip-wrap.is-single .search-card {
+  width: 100%;
+}
+
+/* --- Schnellsuche: Filter in der Gruppe (Talabfahrten → Parkplatz / Kassa, Parkplätze → Ort) --- */
+.search-filters-wrap {
+  padding: 0;
+}
+
+.search-filters {
+  display: flex;
+  gap: 6px;
+  padding: 2px 10px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.search-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.search-filter {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 650;
+  white-space: nowrap;
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
+}
+
+.search-filter small {
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.search-filter.is-on {
+  border-color: #0b1226;
+  background: #0b1226;
+  color: #fff;
+}
+
+.search-filter.is-on small {
+  color: #aebbdb;
+}
+
+.search-filter:disabled {
+  opacity: 0.45;
+}
+
+.search-filter:focus-visible,
+.search-card-go:focus-visible {
+  outline: 2.5px solid var(--sky);
+  outline-offset: 2px;
+}
+
+.search-empty {
+  padding: 6px 16px 12px;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+/* Gewählte Karte: nur sie steht auf der Karte; der Pfeil-Knopf startet die Route */
+.search-card {
+  position: relative;
+  border: 1.5px solid transparent;
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
+}
+
+.search-card.is-selected {
+  border-color: #0b1226;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(22, 44, 96, 0.16);
+}
+
+.search-card-go {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: -4px -4px -4px auto;
+  border-radius: 11px;
+  background: #e5450d;
+  color: #fff;
+}
+
+.search-card-go svg {
+  width: 19px;
+  height: 19px;
+}
+
+.search-card-go:active {
+  transform: scale(0.94);
+}
+
+/* Parkplätze: blaues P wie auf dem Straßenschild */
+.sg-parking {
+  background: #1f55d6;
+  color: #fff;
+}
+
+.mk-park-badge {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  background: #1f55d6;
+  color: #fff;
+  font: 800 12px/1 var(--font);
+  box-shadow: 0 2px 5px rgba(22, 44, 96, 0.35);
+  cursor: pointer;
+}
+
+.guest .mk-park .mk-label {
+  left: 24px;
+  top: 1px;
+  padding: 2px 7px;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 650;
+  text-shadow: none;
+  box-shadow: 0 2px 6px rgba(22, 44, 96, 0.25);
+}
+
+.guest .map:not(.z-mid) .mk-park {
+  display: none;
+}
+
+/* Parkplatz in einer Gruppe: P größer, Name immer daneben */
+.mk-gpark {
+  position: relative;
+}
+
+.mk-gpark .mk-park-badge {
+  position: absolute;
+  left: -13px;
+  top: -13px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.mk-gpark b {
+  position: absolute;
+  left: 17px;
+  top: -11px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 7px rgba(22, 44, 96, 0.3);
+}
+
+.place-logo.is-parking {
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 9px;
+  background: #1f55d6;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 1px 3px rgba(22, 44, 96, 0.25);
+}
+
+.place-logo.is-parking.is-big {
+  font-size: 1.7rem;
+}
+
+/* Kassa der Talstation: hier wird der Chip am Abend zurückgegeben */
+.guest .map .mk-rsign.is-kassa span {
+  background: #0b1226 !important;
+  color: #fff;
+}
+
+.guest .map .mk-rsign.is-kassa b {
+  color: #fff;
+}
+
+.guest .map .mk-rsign.is-kassa svg {
+  color: #fff !important;
+}
+
+.guest .map .mk-rsign.is-kassa svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+}
+
+.search-card .search-text small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Kassa-Schild unter der Talstation, damit der eigene Punkt (steht oft dort) es nicht verdeckt */
+.guest .map .mk-rsign.is-kassa span {
+  transform: translate(-50%, 24px);
 }

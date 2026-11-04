@@ -156,6 +156,7 @@ export async function mountGuest(root, session) {
   const routePanel = mountRoutePanel(sheet.body('route'), ctx);
   const choose = (place) => {
     closeInfo?.();
+    search?.closeGroup(); // eine Route ersetzt die markierte Gruppe
     sheet.open('route'); // Bereich sofort auf, dann erst die Karte bewegen
     routePanel.setTarget(place);
   };
@@ -236,6 +237,7 @@ export async function mountGuest(root, session) {
     hasRoute = on;
     mapEl.classList.toggle('has-route', on); // Während einer Route stehen nur ihre eigenen Schilder da
     if (on && !was) {
+      search.closeGroup(); // markierte Gruppe aus der Schnellsuche weicht der Route
       // Neue Route: Karte zeigt gleich nur die Route
       focusBeforeRoute = focus;
       setFocus('route', { quiet: true });
@@ -254,6 +256,7 @@ export async function mountGuest(root, session) {
     // Kabinen fahren nur auf Liften, die wirklich laufen
     liftRuns: (lift) => !ctx.liftStatus || isRunning(liftState(ctx.liftStatus, lift.name, clockNow())),
     onHut: (hut) => show({ type: 'hut', name: hut.name, pos: hut.pos, node: hut.node, hut }),
+    onParking: (p) => show({ type: 'parking', name: p.name, sub: `${p.station} · ${p.town}`, pos: p.pos, node: p.node, parking: p }),
     onLift: (lift, e) => show({ type: 'lift', name: lift.name, sub: lift.typeName, pos: skimap.nodes[e.a], node: e.a, lift }),
     onPiste: (piste, e) => show({
       type: 'piste', name: pisteName(piste), ref: piste.ref, diff: piste.diff,
@@ -266,13 +269,16 @@ export async function mountGuest(root, session) {
   // Suche oben
   // Vorschlag-Gruppe (z. B. alle Talabfahrten) leuchtet auf der Karte auf
   let groupLayer = null;
+  let groupDeclutter = () => {};
   const DIFF_COLOR = { easy: '#1f66d1', intermediate: '#e0242f', advanced: '#0e0e10', expert: '#0e0e10', freeride: '#f08a24' };
-  function showGroup(items, sg, all = []) {
+  function showGroup(items, sg, all = [], { filter = null, focus = false } = {}) {
     groupLayer?.remove();
     groupLayer = null;
     mapEl.classList.toggle('has-group', !!items);
-    mapEl.classList.toggle('group-huts', sg?.id === 'huts'); // Hütten-Gruppe: Hütten bleiben sichtbar
     if (!items) return;
+    // Neue Gruppe: ein offener Ort und der große Bereich gehen weg, damit man die Karte sieht
+    routePanel.closePreview();
+    sheet.collapse();
     const layers = [];
     const esc = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
     const sign = (pos, cls, html, z = 0) => L.marker(pos, {
@@ -280,12 +286,38 @@ export async function mountGuest(root, session) {
       icon: L.divIcon({ className: `mk-rsign ${cls}`, html: `<span>${html}</span>`, iconSize: [0, 0] }),
     });
     if (!map.getPane('routeSigns')) map.createPane('routeSigns').style.zIndex = 445;
+    // P-Schild für einen Parkplatz, Name immer daneben, antippen öffnet ihn
+    const parkSign = (p) => L.marker(p.pos, {
+      pane: 'routeSigns', zIndexOffset: 550, keyboard: false,
+      icon: L.divIcon({ className: 'mk-gpark', html: `<span class="mk-park-badge">P</span><b>${esc(p.name)}</b>`, iconSize: [0, 0] }),
+    }).on('click', () => show(p));
+    const parks = new Set(); // jeden Parkplatz nur einmal
     for (const x of items) {
-      if (!x.lines) {
-        // Hütten: Ring um ihren Punkt
-        layers.push(L.circleMarker(x.pos, { pane: 'route', radius: 24, color: '#e5450d', weight: 3, fillColor: '#e5450d', fillOpacity: 0.12, interactive: false }));
+      if (x.type === 'parking') {
+        parks.add(x.parking.osm);
+        layers.push(parkSign(x));
         continue;
       }
+      if (x.type === 'hut') {
+        // Hütte: dasselbe Holzschild wie auf der Karte, Name immer daneben, antippen öffnet sie
+        layers.push(L.marker(x.pos, {
+          pane: 'routeSigns', zIndexOffset: 600, keyboard: false,
+          icon: L.divIcon({ className: 'mk-ghut', html: `<span class="mk-ghut-pin"></span><b>${esc(x.name)}</b>`, iconSize: [0, 0] }),
+        }).on('click', () => show(x)));
+        continue;
+      }
+      if (x.type === 'lift') {
+        // Lift: dunkle Linie mit weißen Punkten, Schild in der Mitte
+        layers.push(
+          L.polyline(x.lift.coords, { pane: 'route', color: '#fff', weight: 11, interactive: false }),
+          L.polyline(x.lift.coords, { pane: 'route', color: '#0e1530', weight: 7, interactive: false }),
+          L.polyline(x.lift.coords, { pane: 'route', color: '#fff', weight: 2.5, dashArray: '1 8', lineCap: 'round', interactive: false }),
+          sign(x.lift.coords[Math.floor(x.lift.coords.length / 2)], 'is-lift is-always',
+            `${x.lift.code ? `<i>${esc(x.lift.code)}</i>` : iconHTML(liftIcon(x.lift.type))}<b>${esc(x.name)}</b>`, 500),
+        );
+        continue;
+      }
+      if (!x.lines) continue;
       layers.push(
         L.polyline(x.lines, { pane: 'route', color: '#fff', weight: 12, opacity: 1, lineCap: 'round', interactive: false }),
         L.polyline(x.lines, { pane: 'route', color: DIFF_COLOR[x.diff] || '#1f66d1', weight: 7, lineCap: 'round', interactive: false }),
@@ -293,11 +325,17 @@ export async function mountGuest(root, session) {
       // Unten: Punkt, wo man im Tal ankommt, mit Nummer und Name
       if (x.loPos) {
         layers.push(L.circleMarker(x.loPos, { pane: 'route', radius: 7, color: '#fff', weight: 3, fillColor: '#0b1226', fillOpacity: 1, interactive: false }));
-        layers.push(sign(x.loPos, 'is-piste is-end', `<i class="diff-${x.diff}">${esc(x.ref || '')}</i><b>${esc(x.name)}</b>`, 400));
+        layers.push(sign(x.loPos, `is-piste is-end${items.length === 1 ? ' is-always' : ''}`, `<i class="diff-${x.diff}">${esc(x.ref || '')}</i><b>${esc(x.name)}</b>`, 400));
+      }
+      // Ziel Parkplatz: unten das P-Schild dazu (bei einer einzelnen Abfahrt immer)
+      if (x.park && (filter === 'park' || focus) && !parks.has(x.park.parking.osm)) {
+        parks.add(x.park.parking.osm);
+        layers.push(parkSign(x.park));
       }
     }
     // Talabfahrten: dazu die Gondeln, die unten wieder hinauffahren
-    if (sg?.id === 'valley') {
+    // (nicht beim Ziel Parkplatz/Kassa – da will man heim, nicht wieder hinauf)
+    if (sg?.id === 'valley' && filter !== 'park' && filter !== 'kassa') {
       const ends = items.map((x) => x.loPos).filter(Boolean);
       const lifts = all.filter((l) => l.type === 'lift' && l.low && ends.some((e) => geoDistance(e, l.low) < 300));
       for (const l of lifts) {
@@ -309,23 +347,55 @@ export async function mountGuest(root, session) {
         layers.push(sign(mid, 'is-lift', `${l.lift.code ? `<i>${esc(l.lift.code)}</i>` : iconHTML(liftIcon(l.lift.type))}<b>${esc(l.name)}</b>`, 500));
       }
     }
+    // Ziel Kassa: Schild an der Talstation, wo der Chip zurückgegeben wird
+    let kassaPos = null;
+    if (sg?.id === 'valley' && filter === 'kassa' && rental) {
+      const st = all.find((l) => l.type === 'lift' && l.name === rental);
+      kassaPos = st?.low || null;
+      if (st?.low) layers.push(sign(st.low, 'is-kassa is-always', `${iconHTML('flag')}<b>${esc(t('search.kassaSign', { name: rental }))}</b>`, 600));
+    }
     groupLayer = L.layerGroup(layers).addTo(map);
-    const bounds = L.latLngBounds(items.flatMap((x) => (x.lines ? x.lines.flat() : [x.pos])));
+    // Namen dürfen sich nicht überdecken: was zuerst in der Liste steht, gewinnt
+    const declutter = () => {
+      const placed = [];
+      // Kassa-Schild gewinnt immer, dann die Reihenfolge der Liste
+      [...mapEl.querySelectorAll('.mk-rsign.is-kassa span'), ...mapEl.querySelectorAll('.mk-ghut b, .mk-gpark b, .mk-rsign:not(.is-kassa) span')].forEach((label) => {
+        label.style.visibility = '';
+        const r = label.getBoundingClientRect();
+        if (placed.some((q) => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2)) label.style.visibility = 'hidden';
+        else placed.push(r);
+      });
+    };
+    map.off('zoomend', groupDeclutter);
+    groupDeclutter = declutter;
+    map.on('zoomend', declutter);
+    setTimeout(declutter, 1000);
+    const bounds = L.latLngBounds(items.flatMap((x) => [
+      ...(x.lines ? x.lines.flat() : x.type === 'lift' ? x.lift.coords : [x.pos]),
+      ...(x.park && (filter === 'park' || focus) ? [x.park.pos] : []),
+    ]));
+    if (kassaPos) bounds.extend(L.latLng(kassaPos).toBounds(500)); // Kassa-Schild mit Platz fürs Schild
     if (!bounds.isValid()) return;
     // Liste bleibt oben offen: Karte zeigt die Pisten im freien Teil darunter
     requestAnimationFrame(() => {
       const top = search.el.querySelector('.search-results')?.getBoundingClientRect().bottom || 200;
       follow(false);
+      // Einzelner Ort: mehr Rand, damit Namensschilder und SOS-Knopf nichts verdecken
+      const side = focus ? 70 : 30;
       map.flyToBounds(bounds, {
-        paddingTopLeft: [30, top + 16],
-        paddingBottomRight: [30, sheet.visibleHeight() + 24],
-        maxZoom: 15,
+        paddingTopLeft: [side, top + 16],
+        paddingBottomRight: [side, sheet.visibleHeight() + (focus ? 80 : 24)],
+        maxZoom: focus ? 16 : 15, // ein einzelner Ort darf näher ran
         duration: reducedMotion() ? 0 : 0.9,
       });
     });
   }
   cleanups.push(() => groupLayer?.remove());
-  const search = createSearch({ onPick: choose, onGroup: showGroup, getPos: () => ctx.me.pos });
+  /** Aus der Schnellsuche: Ort öffnen (Infos, Route), die Gruppe bleibt markiert */
+  const showFromSearch = (item) => show(item);
+  // Wo wurde der Chip gemietet? Dort ist am Abend die Kassa für die Rückgabe
+  const rental = session.rental || (config.fakeData ? 'Hahnenkammbahn' : null);
+  const search = createSearch({ onPick: choose, onShow: showFromSearch, onGroup: showGroup, getPos: () => ctx.me.pos, rental });
   page.querySelector('.topbar').after(search.el);
 
   // --- Eigener Chip ---------------------------------------------------------------

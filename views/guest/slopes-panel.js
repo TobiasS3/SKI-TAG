@@ -8,7 +8,7 @@ import { h, replace, reducedMotion } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { api } from '../../js/services/api.js';
-import { route, skimap } from '../../js/services/slopes.js';
+import { route, routeToAny, skimap } from '../../js/services/slopes.js';
 import { liftState, isRunning, pisteState } from '../../js/services/lift-status.js';
 import { openingState } from '../../js/utils/hours.js';
 import { drawRoute } from '../../js/map/layers.js';
@@ -110,7 +110,9 @@ export function mountRoutePanel(el, ctx) {
   function calculate() {
     layer?.remove();
     layer = null;
-    result = target && ctx.me.pos ? route(ctx.me.pos, target.node, mode) : null;
+    result = !target || !ctx.me.pos ? null
+      : target.nodes ? routeToAny(ctx.me.pos, target.nodes, target.pos, mode) // Parkplatz: schnellster Zugang
+        : route(ctx.me.pos, target.node, mode);
     if (result && !result.unreachable && result.coords.length > 1) {
       layer = drawRoute(ctx.map, result.coords, result.steps, { color: '#ff5b22', flow: '#fff' });
       if (animateNext) {
@@ -286,6 +288,7 @@ export function mountRoutePanel(el, ctx) {
     const sub = {
       piste: () => t(`diff.${place.diff}`),
       lift: () => place.sub,
+      parking: () => t('search.parking'),
       person: () => t('search.person'),
     }[place.type]?.() ?? t('search.hut');
     const m = mediaFor(place.name);
@@ -301,9 +304,17 @@ export function mountRoutePanel(el, ctx) {
     }
     const facts = [];
     if (ctx.me.pos) facts.push(fact('walk', t('place.away', { dist: distance(geoDistance(ctx.me.pos, place.pos)) })));
-    const ele = place.hut?.ele ?? (place.node != null ? skimap().ele[place.node] : null);
+    const ele = place.type === 'parking' ? null : place.hut?.ele ?? (place.node != null ? skimap().ele[place.node] : null);
     if (ele) facts.push(fact('mountain', `${ele} m`));
     if (place.hut?.hours) facts.push(fact('clock', place.hut.hours));
+    // Parkplatz: kostenlos?, wie weit zur Talstation, Parkhaus/Tiefgarage
+    const park = place.parking;
+    if (park) {
+      if (park.fee != null) facts.push(fact('parking', t(park.fee ? 'park.fee' : 'park.free')));
+      facts.push(fact('gondola', t('park.toStation', { dist: distance(park.walk), name: park.station })));
+      if (park.kind !== 'surface') facts.push(fact('parking', t(`park.kind.${park.kind}`)));
+      if (park.capacity) facts.push(fact('users', t('park.spaces', { n: park.capacity })));
+    }
     // Lift: wie viele passen rein, wie viele schafft er pro Stunde
     const seats = Number(place.lift?.occupancy);
     if (seats) facts.push(fact('users', t(seats === 1 ? 'place.seat' : 'place.seats', { n: seats })));
@@ -498,6 +509,7 @@ export function mountRoutePanel(el, ctx) {
   return {
     setTarget,
     showPlace,
+    closePreview,
     /** Die ganze Route ins Bild holen */
     showOnMap: () => { if (layer && result?.coords) ctx.fit(L.latLngBounds(result.coords).extend(ctx.me.pos)); },
     refresh: () => { if (!target) render(); },

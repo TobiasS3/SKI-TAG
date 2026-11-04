@@ -30,6 +30,7 @@ const LIFT_SPEED = {
 };
 const LIFT_WAIT = 120; // Sekunden anstehen + einsteigen
 const WALK_SPEED = 1.2;
+const PARK_WALK_M = 600; // so weit geht man vom Pistenende noch zum Parkplatz
 
 export const BLACK = new Set(['advanced', 'expert', 'freeride']);
 
@@ -44,7 +45,28 @@ export async function loadSkimap() {
   out = map.nodes.map(() => []);
   map.edges.forEach((e, i) => out[e.a].push(i));
   map.coreSet = new Set(map.core);
+  map.huts = map.huts.filter(onMountain);
+  map.parking = await api.getParking().catch(() => []); // ohne Parkplätze geht die Karte trotzdem
+  // Zum Parkplatz kommt man über jedes Pistenende in Gehweite – auch aus einem anderen Teilgebiet
+  // (P8 Hanslmühle liegt zwischen Hornbahn und Hahnenkammbahn)
+  map.parking.forEach((p) => {
+    p.nodes = map.core.map((n) => [n, distance(p.pos, map.nodes[n])]).filter(([, d]) => d <= PARK_WALK_M)
+      .sort((a, b) => a[1] - b[1]).slice(0, 8).map(([n]) => n);
+    if (!p.nodes.includes(p.node)) p.nodes.push(p.node);
+  });
   return map;
+}
+
+/**
+ * Nur Hütten im oder direkt am Skigebiet. Lokale, Bars und Imbisse unten in Kitzbühel oder
+ * Kirchberg fliegen raus: Im Ort (unter 870 m) bleibt nur, was eine Alm/Hütte direkt an der Piste ist.
+ */
+function onMountain(hut) {
+  let near = Infinity;
+  for (const n of map.core) near = Math.min(near, distance(hut.pos, map.nodes[n]));
+  if (near > 400) return false; // weit weg von jeder Piste
+  if ((hut.ele || 0) >= 870) return true;
+  return near <= 120 && (hut.kind === 'hut' || /alm|hütte|stadl|stub/i.test(hut.name));
 }
 
 /** Wie lange dauert eine Kante wirklich? (Sekunden) */
@@ -111,6 +133,23 @@ export function findPath(from, to, mode = 'fast') {
   const path = [];
   for (let v = to; v !== from; v = map.edges[prev[v]].a) path.unshift(prev[v]);
   return path;
+}
+
+/**
+ * Route zu einem Ort mit mehreren Zugängen (Parkplatz: jedes Pistenende in Gehweite).
+ * Nimmt den schnellsten erreichbaren, der Fußweg bis zum Ziel zählt mit.
+ */
+export function routeToAny(fromPos, nodes, goalPos, mode = 'fast') {
+  let best = null;
+  let fallback = null;
+  for (const n of nodes) {
+    const r = route(fromPos, n, mode);
+    if (!r) continue;
+    if (r.unreachable) { fallback ||= r; continue; }
+    const total = r.time + distance(map.nodes[r.target], goalPos) / WALK_SPEED;
+    if (!best || total < best.total) best = { r, total };
+  }
+  return best ? best.r : fallback;
 }
 
 /**
@@ -203,9 +242,10 @@ function mergeShortPistes(steps) {
   }
 }
 
-/** Alles, was man suchen kann: Hütten, Lifte, Pisten. */
+/** Alles, was man suchen kann: Hütten, Lifte, Pisten, Parkplätze. */
 export function searchIndex() {
   const items = [];
+  map.parking.forEach((p) => items.push({ type: 'parking', name: p.name, sub: `${p.station} · ${p.town}`, pos: p.pos, node: p.node, nodes: p.nodes, parking: p }));
   map.huts.forEach((hut) => items.push({ type: 'hut', name: hut.name, pos: hut.pos, node: hut.node, hut }));
   const seenLift = new Set();
   map.edges.forEach((e) => {

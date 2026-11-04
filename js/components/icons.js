@@ -15,6 +15,7 @@ const PATHS = {
   tbar: '<path d="M3 4l18 3.5"/><path d="M12 5.8V14"/><path d="M8.5 14h7"/><path d="M3 21 21 16.5"/>',
   carpet: '<path d="M3 18 21 12"/><path d="M3 21.5 21 15.5"/><path d="M3 18v3.5M21 12v3.5"/><path d="M10 8.5l3.5-1.2L12.3 4"/><path d="M13.5 7.3 7 9.5"/>',
   piste: '<path d="M4 20 11 6l3 5 2-3 4 12z"/><path d="m9 14 3 2 2-1"/>',
+  parking: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M10 17V8h3a2.5 2.5 0 0 1 0 5h-3"/>',
   hut: '<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   partly: '<path d="M8 4.5v1.2M3.5 9H4.7M4.8 5.8l.9.9M11.3 5.8l-.9.9"/><path d="M5.6 11.3A3.5 3.5 0 1 1 11.4 7"/><path d="M8 20h9.5a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.6 1A3 3 0 0 0 8 20z"/>',

@@ -1,0 +1,376 @@
+[
+ {
+  "name": "P4 Parkplatz Hausleiten",
+  "pos": [
+   47.3835,
+   12.41774
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 3737,
+  "walk": 36,
+  "station": "Hausleiten",
+  "code": "F2",
+  "node": 278,
+  "town": "Jochberg",
+  "osm": "way/372563747"
+ },
+ {
+  "name": "Wagstätt P1",
+  "pos": [
+   47.37756,
+   12.41872
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 5257,
+  "walk": 41,
+  "station": "Wagstättbahn",
+  "code": "F1",
+  "node": 187,
+  "town": "Jochberg",
+  "osm": "way/319694545"
+ },
+ {
+  "name": "Wagstätt P2",
+  "pos": [
+   47.37702,
+   12.41979
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 4321,
+  "walk": 138,
+  "station": "Wagstättbahn",
+  "code": "F1",
+  "node": 187,
+  "town": "Jochberg",
+  "osm": "way/509397759"
+ },
+ {
+  "name": "Parkplatz Wagstättbahn",
+  "pos": [
+   47.37933,
+   12.41914
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 2002,
+  "walk": 204,
+  "station": "Wagstättbahn",
+  "code": "F1",
+  "node": 187,
+  "town": "Jochberg",
+  "osm": "way/192118820"
+ },
+ {
+  "name": "Parkhaus Fleckalmbahn",
+  "pos": [
+   47.45003,
+   12.33696
+  ],
+  "kind": "multi-storey",
+  "fee": false,
+  "capacity": null,
+  "area": 5472,
+  "walk": 147,
+  "station": "Fleckalmbahn",
+  "code": "B1",
+  "node": 28,
+  "town": "Kirchberg",
+  "osm": "way/125149767"
+ },
+ {
+  "name": "Parkplatz Gaisberg",
+  "pos": [
+   47.44152,
+   12.31645
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 5068,
+  "walk": 27,
+  "station": "Gaisberg",
+  "code": "E1",
+  "node": 129,
+  "town": "Kirchberg",
+  "osm": "way/194368281"
+ },
+ {
+  "name": "Parkplatz Gaisberg 2",
+  "pos": [
+   47.44495,
+   12.31905
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 1332,
+  "walk": 454,
+  "station": "Gaisberg",
+  "code": "E1",
+  "node": 129,
+  "town": "Kirchberg",
+  "osm": "way/955574414"
+ },
+ {
+  "name": "Parkplatz Maierlbahn",
+  "pos": [
+   47.43893,
+   12.32354
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 7745,
+  "walk": 126,
+  "station": "Maierlbahn",
+  "code": "B2",
+  "node": 120,
+  "town": "Kirchberg",
+  "osm": "way/429912881"
+ },
+ {
+  "name": "Parkplatz Maierlbahn 2",
+  "pos": [
+   47.43734,
+   12.31962
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 2838,
+  "walk": 458,
+  "station": "Maierlbahn",
+  "code": "B2",
+  "node": 120,
+  "town": "Kirchberg",
+  "osm": "way/370262090"
+ },
+ {
+  "name": "Ausweichparkplatz Pengelstein",
+  "pos": [
+   47.41654,
+   12.31498
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 2656,
+  "walk": 67,
+  "station": "Pengelstein I",
+  "code": "D1",
+  "node": 16,
+  "town": "Kirchberg",
+  "osm": "way/475474345"
+ },
+ {
+  "name": "P3 Parkplatz Streifalm",
+  "pos": [
+   47.44597,
+   12.38392
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 5261,
+  "walk": 36,
+  "station": "Ganslern",
+  "code": "A5",
+  "node": 22,
+  "town": "Kitzbühel",
+  "osm": "way/318857880"
+ },
+ {
+  "name": "P4 Parkplatz Pfarrau",
+  "pos": [
+   47.44977,
+   12.38337
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": 100,
+  "area": 6553,
+  "walk": 460,
+  "station": "Ganslern",
+  "code": "A5",
+  "node": 22,
+  "town": "Kitzbühel",
+  "osm": "way/211154489"
+ },
+ {
+  "name": "P1 Parkplatz Hahnenkammbahn",
+  "pos": [
+   47.44297,
+   12.38981
+  ],
+  "kind": "surface",
+  "fee": true,
+  "capacity": null,
+  "area": 5721,
+  "walk": 45,
+  "station": "Hahnenkammbahn",
+  "code": "A1",
+  "node": 171,
+  "town": "Kitzbühel",
+  "osm": "way/318867129"
+ },
+ {
+  "name": "P2 Parkplatz Klosterfeld",
+  "pos": [
+   47.44341,
+   12.39073
+  ],
+  "kind": "surface",
+  "fee": true,
+  "capacity": null,
+  "area": 8115,
+  "walk": 105,
+  "station": "Hahnenkammbahn",
+  "code": "A1",
+  "node": 171,
+  "town": "Kitzbühel",
+  "osm": "way/318867144"
+ },
+ {
+  "name": "P5 Parkplatz Hornbahn",
+  "pos": [
+   47.45066,
+   12.3949
+  ],
+  "kind": "surface",
+  "fee": true,
+  "capacity": null,
+  "area": 6791,
+  "walk": 53,
+  "station": "Hornbahn I",
+  "code": "H1",
+  "node": 3,
+  "town": "Kitzbühel",
+  "osm": "way/142759511"
+ },
+ {
+  "name": "Parkplatz Hornbahn",
+  "pos": [
+   47.44768,
+   12.39326
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 2608,
+  "walk": 303,
+  "station": "Hornbahn I",
+  "code": "H1",
+  "node": 3,
+  "town": "Kitzbühel",
+  "osm": "way/273911329"
+ },
+ {
+  "name": "P8 Parkplatz Hanslmühle (Im Gries)",
+  "pos": [
+   47.44764,
+   12.39201
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 2544,
+  "walk": 354,
+  "station": "Hornbahn I",
+  "code": "H1",
+  "node": 3,
+  "town": "Kitzbühel",
+  "osm": "way/211160048"
+ },
+ {
+  "name": "Parkplatz Panoramabahn 3",
+  "pos": [
+   47.29974,
+   12.4095
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 2407,
+  "walk": 109,
+  "station": "Panoramabahn Kitzbüheler Alpen I",
+  "code": "G8",
+  "node": 281,
+  "town": "Pass Thurn",
+  "osm": "way/236658381"
+ },
+ {
+  "name": "Parkplatz Panoramabahn 2",
+  "pos": [
+   47.30053,
+   12.40929
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 2675,
+  "walk": 129,
+  "station": "Panoramabahn Kitzbüheler Alpen I",
+  "code": "G8",
+  "node": 281,
+  "town": "Pass Thurn",
+  "osm": "way/158756840"
+ },
+ {
+  "name": "Parkplatz Panoramabahn",
+  "pos": [
+   47.30039,
+   12.41134
+  ],
+  "kind": "surface",
+  "fee": false,
+  "capacity": null,
+  "area": 3964,
+  "walk": 258,
+  "station": "Panoramabahn Kitzbüheler Alpen I",
+  "code": "G8",
+  "node": 281,
+  "town": "Pass Thurn",
+  "osm": "way/158756839"
+ },
+ {
+  "name": "Parkplatz Resterhöhe",
+  "pos": [
+   47.31193,
+   12.40552
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 12461,
+  "walk": 113,
+  "station": "Resterhöhe",
+  "code": "G1",
+  "node": 33,
+  "town": "Pass Thurn",
+  "osm": "way/98531779"
+ },
+ {
+  "name": "Parkplatz Resterhöhe 2",
+  "pos": [
+   47.31021,
+   12.40758
+  ],
+  "kind": "surface",
+  "fee": null,
+  "capacity": null,
+  "area": 2657,
+  "walk": 202,
+  "station": "Resterhöhe",
+  "code": "G1",
+  "node": 33,
+  "town": "Pass Thurn",
+  "osm": "way/463298097"
+ }
+]

@@ -41,6 +41,9 @@ export function placeLogo(place, size = 'small') {
   if (place.type === 'piste') {
     return h('span', { class: `${cls} disc diff-${place.diff}` }, h('span', {}, place.ref || ''));
   }
+  if (place.type === 'parking') {
+    return h('span', { class: `${cls} is-parking` }, 'P');
+  }
   if (place.type === 'person') {
     return h('span', { class: `${cls} is-person`, style: { '--c': place.member.color } }, place.name[0]);
   }
@@ -97,6 +100,10 @@ function coverArt(place) {
   const diff = { easy: '#4d8dff', intermediate: '#ff4d57', advanced: '#0b1226', expert: '#0b1226', freeride: '#f59e3a' }[place.diff];
   const cable = '<path d="M-10 62 L330 30" stroke="#fff" stroke-width="2"/>';
   const thing = place.type === 'lift' ? cable + (LIFT_ART[place.lift?.type] || LIFT_ART.gondola)
+    : place.type === 'parking'
+      ? `<g transform="translate(${226 + r(5) * 40} 70)"><path d="M18 52v70" stroke="#c9d3e6" stroke-width="5"/>
+           <rect width="36" height="36" x="0" y="20" rx="7" fill="#1f55d6" stroke="#fff" stroke-width="3"/>
+           <text x="18" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="25" fill="#fff">P</text></g>`
     : place.type === 'piste'
       ? `<path d="M${230 + r(5) * 40} 70 C 260 110, 210 130, 250 190" stroke="#fff" stroke-width="22" fill="none" stroke-linecap="round"/>
          <path d="M${230 + r(5) * 40} 70 C 260 110, 210 130, 250 190" stroke="${diff}" stroke-width="5" fill="none" stroke-linecap="round"/>`

@@ -4,7 +4,7 @@
 // am Handy viel flüssiger). Ausblenden („nur Route zeigen“) geht deshalb über die Ebenen (Panes),
 // Marker (Hütten, Schilder) haben die CSS-Klasse „sk“ – siehe css/components/map.css.
 
-import { hutMarker, pisteDisc, goalMarker } from './markers.js?v=7';
+import { hutMarker, parkingMarker, pisteDisc, goalMarker } from './markers.js?v=8';
 import { lineLength, pointAlong, distance } from './geo.js';
 import { reducedMotion } from '../utils/dom.js';
 import { iconHTML, liftIcon } from '../components/icons.js';
@@ -165,6 +165,11 @@ export function drawSkimap(map, skimap, handlers = {}) {
   const huts = L.layerGroup().addTo(map);
   for (const hut of skimap.huts) {
     hutMarker(hut).on('click', () => handlers.onHut?.(hut)).addTo(huts);
+  }
+
+  // Parkplätze an den Talstationen
+  for (const p of skimap.parking || []) {
+    parkingMarker(p).on('click', () => handlers.onParking?.(p)).addTo(huts);
   }
 
   // Namen, die sich überdecken, ausblenden (erst ab Zoom 15 sind Namen sichtbar)
