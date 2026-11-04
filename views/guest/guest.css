@@ -8047,3 +8047,74 @@ small.wx-range-t {
 .guest .map .mk-rsign.is-kassa span {
   transform: translate(-50%, 24px);
 }
+
+/* --- Route: „Wohin möchten Sie?“ – einzelne Ziele zum Antippen ---------------------- */
+.dest-list {
+  gap: 8px;
+}
+
+.dest-item {
+  min-height: 64px;
+}
+
+.dest-item .quick-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dest-item:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* Zurück zum Start: das Wichtigste am Nachmittag, nachtblau wie die Kopfleiste */
+.guest .dest-item.is-primary {
+  min-height: 72px;
+  background: #0b1226;
+  color: #fff;
+  box-shadow: 0 10px 24px -12px rgba(11, 18, 38, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dest-item.is-primary .quick-text strong {
+  color: #fff;
+}
+
+.dest-item.is-primary .quick-text small {
+  color: #b9c6e4;
+}
+
+.dest-item.is-primary > svg {
+  color: #b9c6e4;
+}
+
+.sg-start {
+  background: #e5450d;
+  color: #fff;
+}
+
+.sg-car {
+  background: #1f55d6;
+  color: #fff;
+}
+
+.sg-flying {
+  background: #e6edf9;
+  color: #0b1226;
+}
+
+/* Pisten nach Farbe: Zeichen wie auf dem Pistenschild */
+.sg-pistes,
+.sg-diff-easy {
+  background: var(--piste-easy);
+  color: #fff;
+}
+
+.sg-diff-intermediate {
+  background: var(--piste-intermediate);
+  color: #fff;
+}
+
+.sg-diff-advanced {
+  background: var(--piste-advanced);
+  color: #fff;
+}

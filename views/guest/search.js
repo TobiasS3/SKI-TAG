@@ -1,11 +1,12 @@
 // Suche: Hütten, Lifte, Pisten (auch nach Nummer, z. B. „21“).
-// Leeres Feld antippen → ein paar Vorschläge (Talabfahrten, Streif, Hütten in der Nähe …).
-// Eine Gruppe wie „Talabfahrten“ zeigt alle passenden Pisten in der Liste und auf der Karte.
+// Leeres Feld antippen → Gruppen, von denen es mehrere gibt (Talabfahrten, Pisten, Parkplätze, Hütten).
+// Eine Gruppe zeigt alle passenden Orte in der Leiste und auf der Karte, mit Filtern.
+// Einzelne Ziele (Zurück zum Start, Schnellster Weg ins Tal, Streif, 3S Bahn) stehen im Route-Tab: destinations().
 
 import { h, reducedMotion } from '../../js/utils/dom.js';
 import { duration } from '../../js/utils/format.js';
 import { t } from '../../js/core/i18n.js';
-import { searchIndex, route } from '../../js/services/slopes.js';
+import { searchIndex, route, routeToAny } from '../../js/services/slopes.js';
 import { icon } from '../../js/components/icons.js';
 import { placeLogo } from './place-media.js';
 import { distance as geoDistance } from '../../js/map/geo.js';
@@ -30,13 +31,35 @@ function timeToValley(me, run) {
 }
 
 // Vorschläge kurz merken: die Fahrzeiten ins Tal sind 15 Routen, nicht bei jedem Buchstaben neu
-let cache = { at: 0, list: null };
+let cache = { at: 0, pos: null, list: null };
 
-/** Vorschläge fürs leere Suchfeld, höchstens fünf. */
-function suggestions(items, getPos, rental) {
-  if (cache.list && Date.now() - cache.at < 20000) return cache.list;
-  cache = { at: Date.now(), list: buildSuggestions(items, getPos, rental) };
+function cached(items, getPos, rental) {
+  // Neu rechnen nach 20 s, oder wenn man sich über 100 m bewegt hat (z. B. Position zum ersten Mal da)
+  const pos = getPos?.() || null;
+  const moved = !pos !== !cache.pos || (pos && geoDistance(pos, cache.pos) > 100);
+  if (cache.list && !moved && Date.now() - cache.at < 20000) return cache.list;
+  cache = { at: Date.now(), pos, list: buildSuggestions(items, getPos, rental) };
   return cache.list;
+}
+
+/** Gruppen fürs leere Suchfeld: alles, wovon es mehrere gibt und was auf die Karte kommt. */
+const suggestions = (items, getPos, rental) => cached(items, getPos, rental).groups;
+
+let indexed = null;
+/**
+ * Einzelne Ziele für „Wohin möchten Sie?“ im Route-Tab:
+ * [{ id, icon, item, sub }] – item ist das Routenziel.
+ */
+export function destinations({ getPos, rental }) {
+  indexed ||= searchIndex().map((item) => ({ ...item, key: plain(`${item.name} ${item.ref || ''}`) }));
+  return cached(indexed, getPos, rental).singles;
+}
+
+/** Fahrzeit von hier zu einem Ziel, sonst null */
+function timeTo(me, item) {
+  if (!me) return null;
+  const r = item.nodes ? routeToAny(me, item.nodes, item.pos, 'fast') : item.node != null ? route(me, item.node, 'fast') : null;
+  return r && !r.unreachable ? r.time : null;
 }
 
 function buildSuggestions(items, getPos, rental) {
@@ -59,24 +82,42 @@ function buildSuggestions(items, getPos, rental) {
     .sort((a, b) => (a.eta ?? 1e9) - (b.eta ?? 1e9) || (b.hi - b.lo) - (a.hi - a.lo));
   // Schon im Tal (unter 2 min bis unten)? Dann kein „ins Tal“
   const nearest = valley[0]?.eta != null && valley[0].eta >= 120 ? valley[0] : null;
-  // Streif: alle Teile der Rennstrecke zusammen, auch die nur fürs Rennen präparierten
   const streifBase = pistes.find((x) => /^streif-rennstrecke$/i.test(x.name));
-  const streif = streifBase && {
-    ...streifBase,
-    lines: items.filter((x) => x.type === 'piste' && (/^streif-rennstrecke/i.test(x.name) || (x.ref === '21' && !x.piste?.name)))
-      .flatMap((x) => x.lines),
-  };
   const huts = items.filter((x) => x.type === 'hut');
   const nearHuts = me ? [...huts].sort((a, b) => geoDistance(me, a.pos) - geoDistance(me, b.pos)).slice(0, 6) : [];
   const flying = items.find((x) => x.type === 'lift' && /^3S/i.test(x.name));
-  const gondola = items.find((x) => x.type === 'lift' && x.name === 'Hahnenkammbahn');
-  return [
+  // Pisten nach Farbe: jede Piste mit Nummer einmal, sortiert nach Nummer
+  const byRef = (a, b) => (parseInt(a.ref, 10) || 999) - (parseInt(b.ref, 10) || 999) || String(a.ref).localeCompare(String(b.ref));
+  const colored = pistes.filter((x) => x.ref && x.lines?.length && ['easy', 'intermediate', 'advanced', 'expert'].includes(x.diff)).sort(byRef);
+
+  // Ausgangspunkt: Talstation, an der der Tag begonnen hat (dort wurde der Chip gemietet), und der Parkplatz daneben
+  const startPark = kassa && parking.map((p) => [p, geoDistance(kassa.low, p.pos)]).filter(([, d]) => d < PARK_WALK_M).sort((a, b) => a[1] - b[1])[0]?.[0];
+  const startItem = kassa && { ...kassa, name: t('dest.start.to', { name: kassa.name }), pos: kassa.low, node: kassa.lowNode };
+  const startEta = startItem && timeTo(me, startItem);
+  const atStart = startItem && me && geoDistance(me, startItem.pos) < 150;
+  const parkEta = startPark && timeTo(me, startPark);
+  const eta = (time) => (time != null ? ` · ${duration(time)}` : '');
+
+  const singles = [
+    startItem && !atStart && {
+      id: 'start', icon: 'home', item: startItem, primary: true,
+      sub: `${t('dest.start.sub', { name: kassa.name })}${eta(startEta)}`,
+    },
+    startPark && !atStart && {
+      id: 'car', icon: 'parking', item: startPark,
+      sub: `${startPark.name}${eta(parkEta)}`,
+    },
     // Ins Tal: gleich die Route ans Ende der schnellsten Talabfahrt
     nearest && {
-      id: 'down', icon: 'arrowDown', route: true,
+      id: 'down', icon: 'arrowDown',
       item: { ...nearest, name: `${nearest.name} ${t('search.sg.down.to')}`, pos: nearest.loPos, node: nearest.loNode },
       sub: t('search.sg.down.sub', { name: nearest.via, time: duration(nearest.eta) }),
     },
+    streifBase && { id: 'streif', icon: 'flag', item: streifBase, sub: `${t('search.sg.streif.sub')}${eta(timeTo(me, streifBase))}` },
+    flying && { id: 'flying', icon: 'gondola', item: flying, sub: `${t('search.sg.flying.sub')}${eta(timeTo(me, flying))}` },
+  ].filter(Boolean);
+
+  const groups = [
     valley.length && {
       id: 'valley', icon: 'piste', items: valley,
       // Filter: alle · endet bei einem Parkplatz · endet an der Kassa (Chip zurückgeben)
@@ -85,6 +126,16 @@ function buildSuggestions(items, getPos, rental) {
         { id: 'park', test: (x) => !!x.park },
         kassa && { id: 'kassa', test: (x) => x.kassa, label: t('search.f.kassa', { name: kassa.name }) },
       ].filter(Boolean),
+    },
+    colored.length && {
+      id: 'pistes', icon: 'piste', items: colored,
+      // Filter nach Farbe wie auf den Schildern; „rot“ oder „schwarze“ tippen öffnet gleich den Filter
+      filters: [
+        { id: 'all', test: () => true },
+        { id: 'easy', test: (x) => x.diff === 'easy', words: ['blau', 'blaue', 'leicht', 'blue', 'easy'] },
+        { id: 'intermediate', test: (x) => x.diff === 'intermediate', words: ['rot', 'rote', 'mittel', 'red'] },
+        { id: 'advanced', test: (x) => BLACK.has(x.diff), words: ['schwarz', 'schwarze', 'schwer', 'black'] },
+      ],
     },
     parking.length && {
       id: 'parking', icon: 'parking',
@@ -97,10 +148,8 @@ function buildSuggestions(items, getPos, rental) {
       ],
     },
     nearHuts.length && { id: 'huts', icon: 'hut', items: nearHuts },
-    streif && { id: 'streif', icon: 'flag', items: [streif] },
-    flying && { id: 'flying', icon: 'gondola', items: [flying] },
-    gondola && !nearest && { id: 'gondola', icon: 'gondola', items: [gondola] },
-  ].filter(Boolean).slice(0, 6);
+  ].filter(Boolean);
+  return { groups, singles };
 }
 
 /** Wohin führt die Route, wenn man eine Karte aus der Gruppe nimmt? */
@@ -184,7 +233,7 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
         class: 'search-item search-suggest',
         role: 'option',
         onpointerdown: (e) => e.preventDefault(),
-        onclick: () => (sg.route ? pick(sg.item) : openGroup(sg)),
+        onclick: () => openGroup(sg),
       },
       h('span', { class: `search-sg-icon sg-${sg.id}` }, icon(sg.icon)),
       h('span', { class: 'search-text' },
@@ -280,7 +329,7 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
             disabled: n ? null : true,
             onpointerdown: (e) => e.preventDefault(),
             onclick: () => openGroup(sg, f.id),
-          }, f.label || t(`search.f.${f.id}`), h('small', {}, String(n)));
+          }, f.words ? h('i', { class: `dot diff-${f.id}` }) : null, f.label || t(`search.f.${f.id}`), h('small', {}, String(n)));
         }))) : null,
       shown.length
         ? h('li', { class: `search-strip-wrap${single ? ' is-single' : ''}`, role: 'presentation' },
@@ -312,11 +361,8 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
     group = null;
     el.classList.remove('has-group');
     results = find(q);
-    // „Talabfahrt“, „schwarze“ … getippt? Dann die passende Gruppe ganz oben anbieten
-    const pq = plain(q);
-    const groups = pq.length >= 3
-      ? suggestions(items, getPos, rental).filter((sg) => sg.items?.length > 1 && plain(t(`search.sg.${sg.id}`)).split(/\s+/).some((w) => w.startsWith(pq) || pq.startsWith(w.slice(0, 6))))
-      : [];
+    // „Talabfahrt“, „rote“, „Parkplatz“ … getippt? Dann die passende Gruppe ganz oben anbieten
+    const groups = groupHits(q);
     active = -1;
     list.hidden = !q;
     input.setAttribute('aria-expanded', String(!!q));
@@ -326,18 +372,37 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
       return;
     }
     list.replaceChildren(
-      ...groups.map((sg) => h('li', {
-        class: 'search-item search-suggest',
-        role: 'option',
-        onpointerdown: (e) => e.preventDefault(),
-        onclick: () => openGroup(sg),
-      },
-      h('span', { class: `search-sg-icon sg-${sg.id}` }, icon(sg.icon)),
-      h('span', { class: 'search-text' },
-        h('strong', {}, t(`search.sg.${sg.id}`)),
-        h('small', {}, t('search.sg.count', { n: sg.items.length }))),
-      icon('chevron'))),
+      ...groups.map(({ sg, filter }) => {
+        const f = sg.filters?.find((x) => x.id === filter);
+        const n = f ? sg.items.filter(f.test).length : sg.items.length;
+        return h('li', {
+          class: 'search-item search-suggest',
+          role: 'option',
+          onpointerdown: (e) => e.preventDefault(),
+          onclick: () => openGroup(sg, filter || undefined),
+        },
+        h('span', { class: `search-sg-icon sg-${sg.id}${f?.words ? ` sg-diff-${f.id}` : ''}` }, icon(sg.icon)),
+        h('span', { class: 'search-text' },
+          h('strong', {}, f?.words ? t(`search.sg.${sg.id}.${f.id}`) : t(`search.sg.${sg.id}`)),
+          h('small', {}, t('search.sg.count', { n }))),
+        icon('chevron'));
+      }),
       ...results.map(row));
+  }
+
+  /** Welche Gruppen passen zum Getippten? Titel („Talabfahrten“) oder Filter-Wort („rote“ → Pisten, Filter Rot) */
+  function groupHits(query) {
+    const pq = plain(query.trim());
+    if (pq.length < 3) return [];
+    const hits = [];
+    for (const sg of suggestions(items, getPos, rental)) {
+      if (!(sg.items?.length > 1)) continue;
+      const words = plain(t(`search.sg.${sg.id}`)).split(/\s+/);
+      const byWord = sg.filters?.find((f) => f.words?.some((w) => w === pq || (pq.length >= 4 && w.startsWith(pq))));
+      if (byWord) hits.push({ sg, filter: byWord.id });
+      else if (words.some((w) => w.startsWith(pq) || pq.startsWith(w.slice(0, 6)))) hits.push({ sg, filter: null });
+    }
+    return hits;
   }
 
   function close() {
@@ -368,9 +433,8 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
     if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
     if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
     if (e.key === 'Enter') {
-      const pq = plain(input.value.trim());
-      const sg = pq.length >= 3 && suggestions(items, getPos, rental).find((x) => x.items?.length > 1 && plain(t(`search.sg.${x.id}`)).split(/\s+/).some((w) => w.startsWith(pq) || pq.startsWith(w.slice(0, 6))));
-      if (sg && active < 0) openGroup(sg);
+      const hit = groupHits(input.value)[0];
+      if (hit && active < 0) openGroup(hit.sg, hit.filter || undefined);
       else if (results.length) pick(results[Math.max(active, 0)]);
     }
     if (e.key === 'Escape') { input.value = ''; close(); onGroup?.(null); input.blur(); }

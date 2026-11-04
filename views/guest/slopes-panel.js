@@ -19,6 +19,7 @@ import { icon, liftIcon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
 import { config } from '../../js/config.js';
 import { placeLogo, placeCover, mediaFor } from './place-media.js';
+import { destinations } from './search.js';
 
 const MODES = ['fast', 'avoidBlack', 'preferBlack', 'easyOnly'];
 
@@ -264,22 +265,18 @@ export function mountRoutePanel(el, ctx) {
   }
 
   function emptyState() {
-    // Hütten in der Nähe als schneller Einstieg
-    const near = ctx.me.pos
-      ? [...skimap().huts].sort((a, b) => geoDistance(ctx.me.pos, a.pos) - geoDistance(ctx.me.pos, b.pos)).slice(0, 5)
-      : [];
+    // Einzelne Ziele zum Antippen: zurück zum Start/Auto, ins Tal, Streif, 3S Bahn.
+    // Gruppen (alle Talabfahrten, Parkplätze, Hütten …) gibt es oben in der Suche.
+    const rental = ctx.session.rental || (config.fakeData ? 'Hahnenkammbahn' : null);
+    const list = destinations({ getPos: () => ctx.me.pos, rental });
     return h('div', { class: 'stack' },
       h('h2', { class: 'title' }, t('route.title')),
-      h('p', { class: 'muted' }, t('route.lead')),
-      near.length ? h('ul', { class: 'quick-list' }, near.map((hut) => {
-        const place = { type: 'hut', name: hut.name, pos: hut.pos, node: hut.node, hut };
-        return h('li', {},
-          h('button', { class: 'quick-item', onclick: () => setTarget(place) },
-            placeLogo(place),
-            h('span', { class: 'quick-text' }, h('strong', {}, hut.name),
-              h('small', {}, t('place.away', { dist: distance(geoDistance(ctx.me.pos, hut.pos)) }), hut.ele ? `, ${hut.ele} m` : '')),
-            icon('chevron')));
-      })) : null,
+      list.length ? h('ul', { class: 'quick-list dest-list' }, list.map((d) => h('li', {},
+        h('button', { class: `quick-item dest-item${d.primary ? ' is-primary' : ''}`, onclick: () => setTarget(d.item) },
+          h('span', { class: `search-sg-icon sg-${d.id}` }, icon(d.icon)),
+          h('span', { class: 'quick-text' }, h('strong', {}, t(`dest.${d.id}`)), h('small', {}, d.sub)),
+          icon('chevron'))))) : null,
+      h('p', { class: 'muted small' }, t('route.lead')),
     );
   }
 
