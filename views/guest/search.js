@@ -442,7 +442,7 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
   input.addEventListener('focus', () => {
     el.classList.add('is-focused');
     if (group) { list.hidden = false; return; }
-    if (!input.value.trim()) showSuggestions();
+    render(); // leer → Vorschläge, sonst die Treffer zum Getippten wieder zeigen
   });
   input.addEventListener('blur', () => {
     el.classList.remove('is-focused');
@@ -452,6 +452,16 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
       if (document.activeElement !== input && !input.value.trim() && !group) close();
     }, 350);
   });
+  // Irgendwo anders hingetippt (Karte, Bereich unten …)? Vorschläge und Treffer weg.
+  // Nötig fürs Handy: Karte antippen oder schieben nimmt dem Suchfeld dort den Fokus nicht weg.
+  // Eine offene Gruppe bleibt stehen, damit man auf der Karte schauen und schieben kann.
+  const outside = (e) => {
+    if (el.contains(e.target) || list.hidden) return;
+    if (document.activeElement === input) input.blur();
+    if (!group) close();
+  };
+  document.addEventListener('pointerdown', outside, true);
+
   clear.addEventListener('click', () => {
     input.value = '';
     if (group) { close(); onGroup?.(null); }
@@ -459,7 +469,11 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
     input.focus();
   });
 
-  return { el, closeGroup: () => group && closeGroup() };
+  return {
+    el,
+    closeGroup: () => group && closeGroup(),
+    destroy: () => document.removeEventListener('pointerdown', outside, true),
+  };
 }
 
 /** Kleines Bild vorne: Logo, Pistenschild oder Liftsymbol. */

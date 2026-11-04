@@ -397,6 +397,7 @@ export async function mountGuest(root, session) {
   const rental = session.rental || (config.fakeData ? 'Hahnenkammbahn' : null);
   const search = createSearch({ onPick: choose, onShow: showFromSearch, onGroup: showGroup, getPos: () => ctx.me.pos, rental });
   page.querySelector('.topbar').after(search.el);
+  cleanups.push(() => search.destroy());
 
   // --- Eigener Chip ---------------------------------------------------------------
   let marker = null;
