@@ -558,7 +558,7 @@ export function createTrack(map) {
       if (k !== key || !line) {
         const start = lastPos ? [lastPos, pos] : [pos];
         casing = k === 'run'
-          ? L.polyline(start, { pane: 'track', color: '#fff', weight: 7, opacity: 1, lineCap: 'round', interactive: false }).addTo(group)
+          ? L.polyline(start, { pane: 'track', color: '#fff', weight: 7, opacity: 1, lineCap: 'round', interactive: false, className: 'my-track' }).addTo(group)
           : null;
         line = L.polyline(start, {
           pane: 'track',
@@ -568,6 +568,7 @@ export function createTrack(map) {
           dashArray: k === 'lift' ? '1 7' : null,
           lineCap: 'round',
           interactive: false,
+          className: 'my-track', // Kartenfilter „Karte“ blendet die eigene Spur aus (Freunde bleiben)
         }).addTo(group);
         key = k;
       } else {

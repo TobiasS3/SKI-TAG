@@ -1,5 +1,6 @@
 // Tagesfilm: 9 Sekunden Hochformat-Video (für Storys) aus deinem Tag.
-//   Titel → deine Spur zeichnet sich in Tempo-Farben übers Pistennetz, Zahlen zählen mit → Endkarte.
+//   Titel → ein Punkt fährt deinen Tag ab und zieht die Spur hinter sich her, Zahlen zählen mit → Endkarte.
+//   Kein Pistennetz im Hintergrund: zu sehen ist nur, was wirklich gefahren wurde.
 //
 // Gezeichnet wird auf ein <canvas>. Zum Speichern nimmt MediaRecorder das Canvas als Video auf
 // (Safari: MP4, Chrome/Firefox: meist WebM). Ohne MediaRecorder gibt es ein Standbild (PNG).
@@ -16,7 +17,6 @@ import { TRACK_COLOR } from '../../js/map/layers.js';
 const W = 720;
 const H = 1280;
 const LENGTH = 9; // Sekunden
-const PISTE = { easy: '#1f66d1', intermediate: '#e0242f', advanced: '#0e0e10', expert: '#0e0e10', freeride: '#f08a24' };
 
 /**
  * Welche Datei dieses Gerät aufnehmen kann. MP4 zuerst – läuft auf iPhone, Samsung und jedem PC.
@@ -120,7 +120,6 @@ function createFilm(canvas, day, skimap) {
   const cy = (minLat + maxLat) / 2;
   const P = (la, ln) => [box.x + box.w / 2 + (ln - cx) * kx * scale, box.y + box.h / 2 - (la - cy) * scale];
   const track = pts.map((p) => ({ xy: P(p.lat, p.lng), p }));
-  const edges = skimap.edges.filter((e) => e.kind !== 'walk').map((e) => ({ e, xy: e.coords.map(([la, ln]) => P(la, ln)) }));
 
   // Zahlen über die Spur verteilt (für das Mitzählen)
   const totals = { km: day.km || 0, descent: day.descent || 0, lifts: day.lifts || 0, runs: day.runs?.length || 0 };
@@ -133,67 +132,64 @@ function createFilm(canvas, day, skimap) {
     const drawP = ease(fade(time, 0.8, 5.8));        // Spur
     const endCard = fade(time, 6.4, 7.0);            // Endkarte blendet ein
 
-    // Hintergrund: Schnee mit leichtem Himmel oben
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#dbe9ff');
-    g.addColorStop(0.35, '#f4f7fb');
-    g.addColorStop(1, '#eceff4');
+    // Hintergrund: Nachtblau wie der Start der App – keine Pisten vorgezeichnet,
+    // auf dem Bild steht nur, was der Punkt wirklich gefahren ist
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#0b1226');
+    g.addColorStop(1, '#1b2c5e');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
+    // weiches Licht hinter der Spur
+    const glow = ctx.createRadialGradient(W / 2, box.y + box.h / 2, 40, W / 2, box.y + box.h / 2, box.w * 0.75);
+    glow.addColorStop(0, 'rgba(120, 150, 230, 0.18)');
+    glow.addColorStop(1, 'rgba(120, 150, 230, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
 
-    // Pistennetz blass
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    for (const { e, xy } of edges) {
-      ctx.beginPath();
-      xy.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-      if (e.kind === 'lift') {
-        ctx.setLineDash([3, 7]);
-        ctx.strokeStyle = 'rgba(14,14,16,.35)';
-        ctx.lineWidth = 2;
-      } else {
-        ctx.setLineDash([]);
-        ctx.strokeStyle = PISTE[skimap.pistes[e.ref].diff];
-        ctx.globalAlpha = 0.22;
-        ctx.lineWidth = 4;
-      }
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-    ctx.setLineDash([]);
 
-    // Spur bis zum aktuellen Punkt: weißer Rand, dann Tempo-Farben
-    const n = Math.max(1, Math.floor(drawP * (track.length - 1)));
+    // Spur bis genau zum Punkt: Der Punkt zieht die Linie hinter sich her (weich zwischen zwei Messpunkten)
+    const pos = drawP * (track.length - 1);
+    const n = Math.floor(pos);
     if (track.length > 1) {
+      const a = track[n].xy;
+      const b = track[Math.min(n + 1, track.length - 1)].xy;
+      const f = pos - n;
+      const tip = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+      const path = [...track.slice(0, n + 1).map((x) => x.xy), tip];
+      // Weicher oranger Schein unter der Linie – auf Nachtblau hebt sich die Spur so am besten ab
       ctx.beginPath();
-      for (let i = 0; i <= n; i++) {
-        const [x, y] = track[i].xy;
-        if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
-      }
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 16;
+      path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.strokeStyle = 'rgba(255, 106, 43, 0.22)';
+      ctx.lineWidth = 20;
       ctx.stroke();
-      for (let i = 1; i <= n; i++) {
-        const a = track[i - 1];
-        const b = track[i];
+      for (let i = 1; i < path.length; i++) {
+        const lift = track[Math.min(i, track.length - 1)].p.kind === 'lift';
         ctx.beginPath();
-        ctx.moveTo(...a.xy);
-        ctx.lineTo(...b.xy);
-        const lift = b.p.kind === 'lift';
-        ctx.strokeStyle = lift ? '#0e0e10' : TRACK_COLOR;
+        ctx.moveTo(...path[i - 1]);
+        ctx.lineTo(...path[i]);
+        ctx.strokeStyle = lift ? 'rgba(255, 255, 255, 0.75)' : TRACK_COLOR;
         ctx.lineWidth = lift ? 4 : 9;
-        ctx.setLineDash(lift ? [4, 8] : []);
+        ctx.setLineDash(lift ? [4, 10] : []);
         ctx.stroke();
       }
       ctx.setLineDash([]);
-      // Punkt an der Spitze mit Tempo
-      const head = track[n];
+      // Start: grüner Punkt
       ctx.beginPath();
-      ctx.arc(...head.xy, 13, 0, Math.PI * 2);
-      ctx.fillStyle = '#2f6dff';
+      ctx.arc(...track[0].xy, 10, 0, Math.PI * 2);
+      ctx.fillStyle = '#16b46b';
       ctx.fill();
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 4;
       ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      // Der Punkt, der zeichnet
+      ctx.beginPath();
+      ctx.arc(...tip, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = TRACK_COLOR;
       ctx.stroke();
     }
 
@@ -201,11 +197,11 @@ function createFilm(canvas, day, skimap) {
     const head = fade(time, 0, 0.6);
     ctx.globalAlpha = head;
     if (logo.complete && logo.naturalWidth) ctx.drawImage(logo, 48, 70, 72, 72);
-    ctx.fillStyle = '#0e0e10';
+    ctx.fillStyle = '#fff';
     ctx.font = '800 58px -apple-system, Helvetica, Arial, sans-serif';
     ctx.fillText(t('film.headline'), 140, 120);
     ctx.font = '600 28px -apple-system, Helvetica, Arial, sans-serif';
-    ctx.fillStyle = '#55555d';
+    ctx.fillStyle = '#b9c6e4';
     ctx.fillText(`${config.resort.name} · ${date}`, 142, 162);
     ctx.globalAlpha = 1;
 
@@ -218,16 +214,19 @@ function createFilm(canvas, day, skimap) {
       [String(Math.round(totals.runs * f)), t('day.runs')],
     ];
     const y0 = H - 380;
-    ctx.fillStyle = '#0e0e10';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
     roundRect(40, y0, W - 80, 320, 36);
     ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
     tiles.forEach(([v, label], i) => {
       const x = 80 + (i % 2) * ((W - 160) / 2);
       const y = y0 + 110 + Math.floor(i / 2) * 140;
       ctx.fillStyle = '#fff';
       ctx.font = '800 72px "Avenir Next Condensed", "Arial Narrow", Helvetica, sans-serif';
       ctx.fillText(v, x, y);
-      ctx.fillStyle = '#9a9aa4';
+      ctx.fillStyle = '#b9c6e4';
       ctx.font = '700 26px -apple-system, Helvetica, Arial, sans-serif';
       ctx.fillText(label, x, y + 40);
     });
@@ -235,14 +234,17 @@ function createFilm(canvas, day, skimap) {
     // Endkarte: abgedunkelt, großer Wert, Ski Tag
     if (endCard > 0) {
       ctx.globalAlpha = endCard;
-      ctx.fillStyle = '#0e0e10';
+      const eg = ctx.createLinearGradient(0, 0, W, H);
+      eg.addColorStop(0, '#0b1226');
+      eg.addColorStop(1, '#1b2c5e');
+      ctx.fillStyle = eg;
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
       ctx.font = '800 200px "Avenir Next Condensed", "Arial Narrow", Helvetica, sans-serif';
       ctx.fillText(number(totals.km, 1), W / 2, H / 2 - 40);
       ctx.font = '700 40px -apple-system, Helvetica, Arial, sans-serif';
-      ctx.fillStyle = '#9a9aa4';
+      ctx.fillStyle = '#b9c6e4';
       ctx.fillText(t('day.km'), W / 2, H / 2 + 20);
       ctx.fillStyle = '#ff5b22';
       ctx.font = '800 34px -apple-system, Helvetica, Arial, sans-serif';

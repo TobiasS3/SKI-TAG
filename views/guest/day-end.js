@@ -46,14 +46,17 @@ export function showDayEnd(page, { day, skimap, animate, name, onLogout, onReset
             h('span', {}, h('small', {}, date), h('strong', {}, t('dayend.title'))),
             h('button', { class: 'pill', onclick: onLogout }, icon('logout'), h('span', {}, t('top.logout'))))),
         h('section', { class: 'day-end-body' },
-          renderSummary(day, { name, onFilm: () => openFilm(day, skimap) }),
-          onReset ? h('button', { class: 'btn btn-quiet btn-block day-end-test', onclick: onReset }, icon('today'), t('test.resetDay')) : null,
-          // Ganz unten und nicht zu übersehen: Chip zurückgeben
-          h('div', { class: 'day-end-return', role: 'note' },
-            icon('alert'),
-            h('div', {},
-              h('strong', {}, t('dayend.returnTitle')),
-              h('span', {}, t('dayend.chipNote')))))),
+          renderSummary(day, {
+            name,
+            onFilm: () => openFilm(day, skimap),
+            // Gleich unter den Zahlen und nicht zu übersehen: Chip zurückgeben (Orange, Rot bleibt dem Notruf)
+            afterHero: h('div', { class: 'day-end-return', role: 'note' },
+              h('span', { class: 'day-end-return-icon' }, icon('alert')),
+              h('div', {},
+                h('strong', {}, t('dayend.returnTitle')),
+                h('span', {}, t('dayend.chipNote')))),
+          }),
+          onReset ? h('button', { class: 'btn btn-quiet btn-block day-end-test', onclick: onReset }, icon('today'), t('test.resetDay')) : null)),
     );
     root.classList.add('is-ready');
     requestAnimationFrame(() => {
@@ -70,30 +73,26 @@ export function showDayEnd(page, { day, skimap, animate, name, onLogout, onReset
   };
 }
 
-/** Karte nur zum Anschauen: gemalte Karte, Pisten zurückhaltend, deine Spur orange, Start und Ziel. */
+/** Karte nur zum Anschauen: gemalte Karte, darauf nur Ihre Spur (keine fremden Pisten), Start und Ziel. */
 function drawMap(el, day, skimap) {
   const map = createMap(el, { painted: true });
-  map.createPane('pistes').style.zIndex = 410;
   map.createPane('track').style.zIndex = 435;
 
-  // Erst den Ausschnitt setzen – Linien brauchen eine Karte mit Ansicht
   const pts = day.points.map((p) => [p.lat, p.lng]);
-  // oben Platz für die Kopfzeile
-  map.fitBounds(pts.length ? L.latLngBounds(pts) : L.latLngBounds(skimap.nodes), { paddingTopLeft: [36, 110], paddingBottomRight: [36, 150], maxZoom: 15 });
-
-  const DIFF = { easy: '#1f66d1', intermediate: '#e0242f', advanced: '#0e0e10', expert: '#0e0e10', freeride: '#f08a24' };
-  for (const e of skimap.edges) {
-    if (e.kind !== 'piste') continue;
-    L.polyline(e.coords, { pane: 'pistes', color: DIFF[skimap.pistes[e.ref].diff], weight: 2.5, opacity: 0.45, interactive: false }).addTo(map);
-  }
+  // Spur in den freien Teil der Karte einpassen: oben die Kopfzeile, unten schiebt sich die Übersicht drüber
+  const fit = () => map.fitBounds(pts.length ? L.latLngBounds(pts) : L.latLngBounds(skimap.nodes), {
+    paddingTopLeft: [40, 104], paddingBottomRight: [40, 120], maxZoom: 16,
+  });
+  fit();
 
   const track = createTrack(map);
   day.points.forEach((p) => track.add(p));
   if (pts.length) {
-    L.circleMarker(pts[0], { pane: 'track', radius: 7, color: '#fff', weight: 3, fillColor: '#0a9a5e', fillOpacity: 1 }).addTo(map);
+    L.circleMarker(pts[0], { pane: 'track', radius: 7, color: '#fff', weight: 3, fillColor: '#16b46b', fillOpacity: 1 }).addTo(map);
     goalMarker(pts[pts.length - 1]).addTo(map);
   }
-  setTimeout(() => map.invalidateSize(), 60);
+  // Erst wenn die Karte ihre echte Größe kennt, sitzt der Ausschnitt
+  setTimeout(() => { map.invalidateSize(); fit(); }, 60);
   return map;
 }
 

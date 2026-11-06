@@ -91,7 +91,8 @@
 }
 
 /* --- Kartenfilter --------------------------------------------------------------------
-   focus-route: nur die Route  ·  focus-track: nur die eigene Spur von heute
+   Karte (ohne Klasse): alles außer der eigenen Spur  ·  focus-route: nur die Route
+   focus-track: nur die eigene Spur von heute
    Pisten und Lifte (Canvas-Ebenen) bleiben ganz blass zur Orientierung, Kabinen weg,
    Marker mit der Klasse „sk“ (Hütten, Schilder, Gipfel) verschwinden. */
 .map .sk,
@@ -116,6 +117,11 @@
 .focus-route .leaflet-track-pane,
 .focus-track .leaflet-route-pane {
   opacity: 0;
+}
+
+/* „Karte“: die eigene Spur nur im Filter „Gefahren“ (Freundes-Spuren bleiben sichtbar) */
+.guest > .map:not(.focus-track) .my-track {
+  display: none;
 }
 
 /* --- Gipfel und Bergstationen mit Höhe ------------------------------------------------- */

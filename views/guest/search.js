@@ -1,7 +1,7 @@
 // Suche: Hütten, Lifte, Pisten (auch nach Nummer, z. B. „21“).
 // Leeres Feld antippen → Gruppen, von denen es mehrere gibt (Talabfahrten, Pisten, Parkplätze, Hütten).
 // Eine Gruppe zeigt alle passenden Orte in der Leiste und auf der Karte, mit Filtern.
-// Einzelne Ziele (Zurück zum Start, Schnellster Weg ins Tal, Streif, 3S Bahn) stehen im Route-Tab: destinations().
+// Einzelne Ziele (Zurück zum Start, ins Tal, Streif, Starthaus, Bahnen) stehen im Route-Tab: destinations().
 
 import { h, reducedMotion } from '../../js/utils/dom.js';
 import { duration } from '../../js/utils/format.js';
@@ -86,26 +86,30 @@ function buildSuggestions(items, getPos, rental) {
   const huts = items.filter((x) => x.type === 'hut');
   const nearHuts = me ? [...huts].sort((a, b) => geoDistance(me, a.pos) - geoDistance(me, b.pos)).slice(0, 6) : [];
   const flying = items.find((x) => x.type === 'lift' && /^3S/i.test(x.name));
+  const liftNamed = (re) => items.find((x) => x.type === 'lift' && re.test(x.name));
+  // Starthaus der Streif: oben am Förderband, dort steht das Starthaus
+  const starthaus = liftNamed(/^starthaus$/i);
+  const startHouse = starthaus && { ...starthaus, name: t('dest.starthaus'), pos: starthaus.high, node: starthaus.highNode };
+  // Lifte als Ziel: zur Talstation, dort steigt man ein
+  const atValley = (l) => l && { ...l, pos: l.low, node: l.lowNode };
+  const panorama = atValley(liftNamed(/^panoramabahn.* i$/i));
+  const hornTop = atValley(liftNamed(/^horngipfelbahn$/i));
+  const allLifts = items.filter((x) => x.type === 'lift' && x.name)
+    .sort((a, b) => String(a.lift.code || 'ZZ').localeCompare(String(b.lift.code || 'ZZ'), 'de', { numeric: true }) || a.name.localeCompare(b.name));
   // Pisten nach Farbe: jede Piste mit Nummer einmal, sortiert nach Nummer
   const byRef = (a, b) => (parseInt(a.ref, 10) || 999) - (parseInt(b.ref, 10) || 999) || String(a.ref).localeCompare(String(b.ref));
   const colored = pistes.filter((x) => x.ref && x.lines?.length && ['easy', 'intermediate', 'advanced', 'expert'].includes(x.diff)).sort(byRef);
 
-  // Ausgangspunkt: Talstation, an der der Tag begonnen hat (dort wurde der Chip gemietet), und der Parkplatz daneben
-  const startPark = kassa && parking.map((p) => [p, geoDistance(kassa.low, p.pos)]).filter(([, d]) => d < PARK_WALK_M).sort((a, b) => a[1] - b[1])[0]?.[0];
+  // Ausgangspunkt: Talstation, an der der Tag begonnen hat (dort wurde der Chip gemietet) – das Auto steht meist gleich daneben
   const startItem = kassa && { ...kassa, name: t('dest.start.to', { name: kassa.name }), pos: kassa.low, node: kassa.lowNode };
   const startEta = startItem && timeTo(me, startItem);
   const atStart = startItem && me && geoDistance(me, startItem.pos) < 150;
-  const parkEta = startPark && timeTo(me, startPark);
   const eta = (time) => (time != null ? ` · ${duration(time)}` : '');
 
   const singles = [
     startItem && !atStart && {
       id: 'start', icon: 'home', item: startItem, primary: true,
       sub: `${t('dest.start.sub', { name: kassa.name })}${eta(startEta)}`,
-    },
-    startPark && !atStart && {
-      id: 'car', icon: 'parking', item: startPark,
-      sub: `${startPark.name}${eta(parkEta)}`,
     },
     // Ins Tal: gleich die Route ans Ende der schnellsten Talabfahrt
     nearest && {
@@ -114,7 +118,10 @@ function buildSuggestions(items, getPos, rental) {
       sub: t('search.sg.down.sub', { name: nearest.via, time: duration(nearest.eta) }),
     },
     streifBase && { id: 'streif', icon: 'flag', item: streifBase, sub: `${t('search.sg.streif.sub')}${eta(timeTo(me, streifBase))}` },
+    startHouse && { id: 'starthaus', icon: 'flag', item: startHouse, sub: `${t('dest.starthaus.sub')}${eta(timeTo(me, startHouse))}` },
     flying && { id: 'flying', icon: 'gondola', item: flying, sub: `${t('search.sg.flying.sub')}${eta(timeTo(me, flying))}` },
+    panorama && { id: 'panorama', icon: 'gondola', item: panorama, sub: `${t('dest.panorama.sub')}${eta(timeTo(me, panorama))}` },
+    hornTop && { id: 'horn', icon: 'gondola', item: hornTop, sub: `${t('dest.horn.sub')}${eta(timeTo(me, hornTop))}` },
   ].filter(Boolean);
 
   const groups = [
@@ -137,6 +144,16 @@ function buildSuggestions(items, getPos, rental) {
         { id: 'advanced', test: (x) => BLACK.has(x.diff), words: ['schwarz', 'schwarze', 'schwer', 'black'] },
       ],
     },
+    allLifts.length && {
+      id: 'lifts', icon: 'gondola', items: allLifts,
+      // Filter nach Art: Gondel und Seilbahn · Sessellift · Schlepplift und Förderband
+      filters: [
+        { id: 'all', test: () => true },
+        { id: 'gondola', test: (x) => ['gondola', 'cable_car', 'mixed_lift'].includes(x.lift.type) },
+        { id: 'chair', test: (x) => x.lift.type === 'chair_lift' },
+        { id: 'drag', test: (x) => ['t-bar', 'platter', 'drag_lift', 'j-bar', 'rope_tow', 'magic_carpet'].includes(x.lift.type) },
+      ],
+    },
     parking.length && {
       id: 'parking', icon: 'parking',
       items: me ? [...parking].sort((a, b) => geoDistance(me, a.pos) - geoDistance(me, b.pos)) : parking,
@@ -154,6 +171,7 @@ function buildSuggestions(items, getPos, rental) {
 
 /** Wohin führt die Route, wenn man eine Karte aus der Gruppe nimmt? */
 function routeTarget(item, filter) {
+  if (item.type === 'lift' && item.low) return { ...item, pos: item.low, node: item.lowNode }; // zur Talstation
   if (item.type !== 'piste' || !item.loPos) return item;
   // Talabfahrt mit Ziel Parkplatz: Route gleich bis zum Parkplatz
   if (filter === 'park' && item.park) return item.park;

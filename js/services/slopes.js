@@ -254,7 +254,11 @@ export function searchIndex() {
     const lift = map.lifts[e.ref];
     // Talstation = der tiefere Endpunkt
     const low = (map.ele[e.a] || 0) <= (map.ele[e.b] || 0) ? e.a : e.b;
-    items.push({ type: 'lift', name: lift.name, sub: lift.typeName, pos: map.nodes[e.a], node: e.a, lift, low: map.nodes[low], lowNode: low, lowEle: map.ele[low] });
+    const high = low === e.a ? e.b : e.a; // Bergstation
+    items.push({
+      type: 'lift', name: lift.name, sub: lift.typeName, pos: map.nodes[e.a], node: e.a, lift,
+      low: map.nodes[low], lowNode: low, lowEle: map.ele[low], high: map.nodes[high], highNode: high,
+    });
   });
   const seenPiste = new Map();
   map.edges.forEach((e) => {

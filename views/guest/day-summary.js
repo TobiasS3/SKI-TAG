@@ -8,15 +8,15 @@ import { icon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
 import { saveFile, isIOS } from '../../js/services/export.js';
 import { skimap } from '../../js/services/slopes.js';
-import { altitudeChart, difficultyBar, runList, badgeRow } from './day-stats.js';
+import { altitudeChart, difficultyBar, runList, badgeRow, BADGE_COUNT } from './day-stats.js';
 import { challengeCard, compareCard } from './day-challenges.js';
 import { recordFilm, filmFormat, filmName } from './day-film.js';
 
-export function renderSummary(day, { onNew, onFilm, name } = {}) {
+export function renderSummary(day, { onNew, onFilm, name, afterHero = null } = {}) {
+  const bar = difficultyBar(day);
   return h('div', { class: 'recap' },
     // Kopf: persönliche Zeile, drei große Zahlen, darunter der Rest
     h('section', { class: 'instrument recap-hero' },
-      h('p', { class: 'recap-kicker' }, h('i'), t('day.recap')),
       h('h2', { class: 'recap-title' }, headline(day, name)),
       h('div', { class: 'recap-trio' },
         big('day.descent', number(day.descent), 'm'),
@@ -27,17 +27,30 @@ export function renderSummary(day, { onNew, onFilm, name } = {}) {
         tile('day.maxAlt', number(day.maxAlt), 'm'),
         tile('pass.title', (day.huts || []).length),
         tile('day.time', duration(day.elapsed || 0)))),
-
+    afterHero,
     filmCard(day, onFilm),
+    // Wie bei „Mein Tag“: zuerst die Daten, dann Abzeichen und Challenges, ganz unten die Abfahrten
+    h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.profile')), altitudeChart(day.points)),
+    bar ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.byColor')), bar) : null,
+    badgeCard(day),
     challengeCard(day),
     compareCard(day),
-    h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day)),
-    h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.profile')), altitudeChart(day.points)),
-    difficultyBar(day) ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.byColor')), difficultyBar(day)) : null,
-    day.runs.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.runList')), runList(day)) : null,
     favouriteLifts(day),
+    // Abfahrten ganz unten
+    day.runs.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.runList')), runList(day)) : null,
     onNew ? h('button', { class: 'btn btn-quiet btn-block', onclick: onNew }, icon('play'), t('day.again')) : null,
   );
+}
+
+/** Abzeichen: die geschafften groß, die offenen nur als eine Zeile */
+function badgeCard(day) {
+  const left = BADGE_COUNT - day.badges.length;
+  return h('section', { class: 'card recap-badges' },
+    h('div', { class: 'card-head' },
+      h('h3', { class: 'card-title' }, t('day.badges')),
+      h('span', { class: 'recap-badges-count num' }, `${day.badges.length}/${BADGE_COUNT}`)),
+    badgeRow(day, { onlyEarned: true }),
+    left > 0 ? h('p', { class: 'small muted recap-badges-left' }, t(day.badges.length ? 'recap.badgesLeft' : 'recap.badgesNone', { n: left })) : null);
 }
 
 /** Ein Satz, der zum Tag passt – mit Vornamen, wenn wir ihn kennen */
@@ -70,7 +83,7 @@ function filmCard(day, onFilm) {
     downloadBlock(day));
 }
 
-/** Ihre Spur als SVG (flach projiziert), zeichnet sich von selbst; ein Punkt fährt sie ab. */
+/** Ihre Spur als SVG (flach projiziert): ein Punkt fährt sie ab und zieht die Linie hinter sich her. */
 export function traceSVG(points, { loop = false } = {}) {
   const W = 300;
   const H = 220;
@@ -94,13 +107,17 @@ export function traceSVG(points, { loop = false } = {}) {
     // Noch keine Spur: eine Abfahrt als Platzhalter
     d = 'M40 30 C 200 50, 80 110, 220 130 S 120 200, 260 200';
   }
-  const motion = loop
-    ? '<animateMotion dur="4s" repeatCount="indefinite" path="' + d + '"/>'
-    : `<animateMotion dur="2s" fill="freeze" path="${d}" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 .05 .4 1"/>`;
+  // Linie und Punkt laufen mit derselben Uhr (SMIL): Die Linie entsteht genau hinter dem Punkt,
+  // vor ihm ist noch nichts gezeichnet. Schleife: 85 % fahren, kurz stehen, von vorn.
+  const timing = loop
+    ? 'dur="4s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.85;1"'
+    : 'dur="2s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".45 .05 .4 1"';
+  const draw = `<animate attributeName="stroke-dashoffset" ${timing} values="${loop ? '1;0;0' : '1;0'}"/>`;
+  const motion = `<animateMotion ${timing} keyPoints="${loop ? '0;1;1' : '0;1'}" path="${d}"/>`;
   return `<svg viewBox="0 0 ${W} ${H}">
-    <path d="${d}" class="trace-shadow" pathLength="1"/>
-    <path d="${d}" class="trace-line${loop ? ' is-loop' : ''}" pathLength="1" stroke="#ff6a2b"/>
-    <circle r="${loop ? 9 : 6}" class="trace-dot">${motion}</circle>
+    <path d="${d}" class="trace-shadow" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1">${draw}</path>
+    <path d="${d}" class="trace-line" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" stroke="#ff6a2b">${draw}</path>
+    <circle r="${loop ? 9 : 6}" class="trace-dot" cx="0" cy="0">${motion}</circle>
   </svg>`;
 }
 

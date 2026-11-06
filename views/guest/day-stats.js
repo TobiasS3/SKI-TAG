@@ -197,6 +197,9 @@ export function runList(day, { limit = Infinity } = {}) {
 }
 
 /** Abzeichen – erreichte farbig, offene grau */
+/** Wie viele Abzeichen es insgesamt gibt */
+export const BADGE_COUNT = BADGES.length;
+
 export function badgeRow(day, { onlyEarned = false } = {}) {
   const list = onlyEarned ? BADGES.filter((b) => day.badges.includes(b.id)) : BADGES;
   if (!list.length) return null;

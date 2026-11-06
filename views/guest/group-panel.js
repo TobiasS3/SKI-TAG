@@ -257,7 +257,8 @@ export function mountGroup(el, ctx, group) {
       const status = h('span', { class: 'member-status' });
       const meta = h('span', { class: 'member-meta' });
       const battery = h('span', { class: 'chip-battery' });
-      // Zeile antippen: Karte fliegt hin. Hinfahren und Vibrieren gehen direkt, ohne Umweg.
+      // Zeile antippen oder „Zeigen“: Karte fliegt hin, unten die Karte mit Hinfahren und Vibrieren.
+      // „Hin“ startet gleich die Route.
       const li = h('li', {
         class: `member${m.me ? ' is-me' : ''}`,
         style: { '--c': m.color },
@@ -280,7 +281,7 @@ export function mountGroup(el, ctx, group) {
           meta),
         m.me ? null : h('div', { class: 'member-quick' },
           h('button', { 'aria-label': `${t('group.routeTo')}: ${m.name}`, onclick: () => routeTo(m) }, icon('route'), h('span', {}, t('group.routeShort'))),
-          h('button', { 'aria-label': `${t('group.signal')}: ${m.name}`, onclick: () => signal([m]) }, icon('vibrate'), h('span', {}, t('group.signalShort')))));
+          h('button', { 'aria-label': `${t('group.show')}: ${m.name}`, onclick: () => select(m.chip, true) }, icon('locate'), h('span', {}, t('group.show')))));
       rows.set(m.chip, { li, status, meta, battery });
       return li;
     }));

@@ -56,7 +56,9 @@ export function mountTracking(el, ctx) {
         h('ol', { class: 'day-steps' },
           step('play', t('day.step1'), t('day.step1Text')),
           step('piste', t('day.step2'), t('day.step2Text')),
-          step('stop', t('day.step3'), t('day.step3Text'))),
+          h('li', { class: 'day-step-end' },
+            h('span', { class: 'day-step-icon' }, icon('stop')),
+            h('span', {}, h('strong', {}, t('day.step3')), h('small', {}, t('day.step3Text'))))),
       ));
       updateLiftsLeft();
       return;
@@ -72,7 +74,7 @@ export function mountTracking(el, ctx) {
     const full = ctx.page.classList.contains('day-full');
     replace(el,
       h('div', { class: 'day-bar' },
-        h('h2', { class: 'title' }, t('tab.day')),
+        h('h2', { class: 'title day-title' }, t('tab.day')),
         h('button', { class: 'btn btn-quiet btn-small', onclick: () => ctx.dayFullscreen?.(!full) },
           icon(full ? 'close' : 'expand'), t(full ? 'day.fullClose' : 'day.full'))),
       h('div', { class: 'day-live' },
@@ -82,7 +84,7 @@ export function mountTracking(el, ctx) {
           h('dl', { class: 'day-smalls' }, stats.km.el, stats.lifts.el, stats.time.el),
           now),
         extras,
-        h('button', { class: 'btn btn-quiet btn-block', onclick: stop }, icon('stop'), t('day.stop')),
+        h('button', { class: 'btn btn-big btn-block day-stop', onclick: stop }, icon('stop'), t('day.stop')),
         liftsLeft,
       ));
     updateLive();
@@ -106,18 +108,20 @@ export function mountTracking(el, ctx) {
   /** Höhenprofil, Farben, Abfahrten, Abzeichen – nicht bei jedem Signal neu zeichnen */
   function renderExtras() {
     const bar = difficultyBar(day);
+    // Zuerst Höhenprofil, Farben und Abzeichen, danach die Challenges, ganz unten die Abfahrten
     replace(extras,
+      h('section', { class: 'card' },
+        h('h3', { class: 'card-title' }, t('day.profile')),
+        altitudeChart(day.points)),
+      bar ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.byColor')), bar) : null,
+      day.badges.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day, { onlyEarned: true })) : null,
       challengeCard(day),
       compareCard(day),
       familyCard(day, ctx),
       explorerCard(day),
       hutPassCard(day, ctx),
-      h('section', { class: 'card' },
-        h('h3', { class: 'card-title' }, t('day.profile')),
-        altitudeChart(day.points)),
-      bar ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.byColor')), bar) : null,
+      // Abfahrten ganz unten
       day.runs.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.runList')), runList(day, { limit: 5 })) : null,
-      day.badges.length ? h('section', { class: 'card' }, h('h3', { class: 'card-title' }, t('day.badges')), badgeRow(day, { onlyEarned: true })) : null,
     );
   }
 

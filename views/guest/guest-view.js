@@ -312,8 +312,13 @@ export async function mountGuest(root, session) {
           L.polyline(x.lift.coords, { pane: 'route', color: '#fff', weight: 11, interactive: false }),
           L.polyline(x.lift.coords, { pane: 'route', color: '#0e1530', weight: 7, interactive: false }),
           L.polyline(x.lift.coords, { pane: 'route', color: '#fff', weight: 2.5, dashArray: '1 8', lineCap: 'round', interactive: false }),
-          sign(x.lift.coords[Math.floor(x.lift.coords.length / 2)], 'is-lift is-always',
-            `${x.lift.code ? `<i>${esc(x.lift.code)}</i>` : iconHTML(liftIcon(x.lift.type))}<b>${esc(x.name)}</b>`, 500),
+          // Viele Lifte (z. B. „Alle Lifte“): nur das Code-Schild, sonst ist die Karte voller Namen.
+          // Ein einzelner Lift (angetippt) zeigt seinen Namen.
+          items.length === 1
+            ? sign(x.lift.coords[Math.floor(x.lift.coords.length / 2)], 'is-lift is-always',
+              `${x.lift.code ? `<i>${esc(x.lift.code)}</i>` : iconHTML(liftIcon(x.lift.type))}<b>${esc(x.name)}</b>`, 500)
+            : sign(x.lift.coords[Math.floor(x.lift.coords.length / 2)], 'is-lift is-code',
+              x.lift.code ? `<i>${esc(x.lift.code)}</i>` : iconHTML(liftIcon(x.lift.type)), 500),
         );
         continue;
       }

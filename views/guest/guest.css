@@ -3243,14 +3243,12 @@
   overflow: visible;
 }
 
+/* Gezeichnet wird per SMIL im SVG (day-summary.js), synchron mit dem Punkt */
 .trace-line,
 .trace-shadow {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: trace-draw 2s cubic-bezier(0.45, 0.05, 0.4, 1) forwards;
 }
 
 .trace-line {
@@ -3260,12 +3258,6 @@
 .trace-shadow {
   stroke: rgba(255, 255, 255, 0.12);
   stroke-width: 12;
-}
-
-@keyframes trace-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
 }
 
 .trace-dot {
@@ -5922,7 +5914,9 @@
 .member-quick button.is-buzz {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   width: 52px;
   height: 52px;
   border-radius: 16px;
@@ -7332,22 +7326,12 @@ small.wx-range-t {
   aspect-ratio: 300 / 220;
   border-radius: 14px;
   overflow: hidden;
-  background: url("../../assets/images/piste-lines.svg") center / 220px no-repeat, linear-gradient(135deg, #0b1226, #1b2c5e);
+  background: linear-gradient(135deg, #0b1226, #1b2c5e);
 }
 
 .recap-film-preview svg {
   width: 100%;
   height: 100%;
-}
-
-.recap-film-preview .trace-line.is-loop,
-.recap-film-preview .trace-shadow {
-  animation: trace-loop 4s linear infinite;
-}
-
-@keyframes trace-loop {
-  from { stroke-dashoffset: 1; }
-  85%, to { stroke-dashoffset: 0; }
 }
 
 .recap-film-play {
@@ -8092,12 +8076,15 @@ small.wx-range-t {
   color: #fff;
 }
 
-.sg-car {
-  background: #1f55d6;
+.sg-starthaus {
+  background: #0e1530;
   color: #fff;
 }
 
-.sg-flying {
+.sg-flying,
+.sg-panorama,
+.sg-horn,
+.sg-lifts {
   background: #e6edf9;
   color: #0b1226;
 }
@@ -8117,4 +8104,147 @@ small.wx-range-t {
 .sg-diff-advanced {
   background: var(--piste-advanced);
   color: #fff;
+}
+
+/* --- Mein Tag: Titel und „Tag beenden“ kräftiger ------------------------------------------ */
+.guest .day-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.guest .btn.day-stop {
+  min-height: 64px;
+  margin-top: var(--sp-2);
+  gap: 12px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.005em;
+}
+
+/* Stopp-Zeichen in einem eigenen hellen Feld, damit der Knopf auch im Augenwinkel erkennbar ist */
+.guest .btn.day-stop > svg {
+  box-sizing: content-box;
+  width: 16px;
+  height: 16px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #fff;
+  color: #0b1226;
+}
+
+/* --- Tagesende überarbeitet ------------------------------------------------------------------
+   Chip zurückgeben: gleich unter den Zahlen, warmes Orange statt Notruf-Rot (Rot = nur SOS).
+   Weißer Grund, kräftiger oranger Rand und Zeichen – hoher Kontrast auch in der Sonne. */
+.guest .day-end-return {
+  align-items: center;
+  gap: 14px;
+  margin-top: var(--sp-3);
+  padding: 14px 16px;
+  border: 2px solid #e5450d;
+  border-radius: var(--r-l, 24px);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 4px rgba(229, 69, 13, 0.12), 0 12px 26px rgba(229, 69, 13, 0.16);
+}
+
+.day-end-return-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #f4581f, #e5450d);
+  color: #fff;
+}
+
+.guest .day-end-return svg {
+  width: 24px;
+  height: 24px;
+}
+
+.guest .day-end-return strong {
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.guest .day-end-return span:not(.day-end-return-icon) {
+  font-weight: 550;
+  line-height: 1.35;
+  color: #435070;
+  opacity: 1;
+}
+
+/* Übersicht: Titel ohne Kicker sitzt oben im Kasten */
+.guest .recap-hero .recap-title {
+  margin-top: 0;
+}
+
+/* Abzeichen: geschaffte groß, Zähler rechts, offene nur als Zeile */
+.recap-badges .card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.recap-badges-count {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.recap-badges-left {
+  margin: var(--sp-3) 0 0;
+}
+
+.recap-badges .badges + .recap-badges-left {
+  margin-top: var(--sp-3);
+}
+
+/* Tagesfilm: „Speichern“ hell auf dem Nachtblau, sonst verschwindet er im Hintergrund */
+.film-actions .btn:not(.btn-sun) {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 4px rgba(11, 18, 38, 0.2), 0 10px 22px rgba(11, 18, 38, 0.3);
+}
+
+/* „Alle Lifte“: nur das Code-Schild, kein Name */
+.mk-rsign.is-code span {
+  gap: 0;
+  padding: 3px;
+}
+
+/* Vor dem Start: „Tag beenden nicht vergessen“ groß und kräftig – das darf niemand übersehen */
+.day-steps li.day-step-end {
+  margin: 6px -8px 8px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(11, 18, 38, 0.18), 0 14px 28px rgba(11, 18, 38, 0.24);
+}
+
+.day-steps li.day-step-end .day-step-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #f4581f, #e5450d);
+  color: #fff;
+}
+
+.day-steps li.day-step-end strong {
+  font-family: var(--font-head);
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.day-steps li.day-step-end small {
+  margin-top: 2px;
+  font-size: var(--fs-s);
+  font-weight: 550;
+  color: #c5d0ea;
 }
