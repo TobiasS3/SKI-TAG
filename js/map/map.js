@@ -51,15 +51,22 @@ export function createMap(el, { painted = false } = {}) {
   // Beim Zoomen zieht Leaflet das alte Bild nur größer/kleiner – Linien werden kurz dick und unscharf.
   // Darum blenden Pisten, Lifte, Route und Spur während des Zoomens weich aus und kommen danach
   // scharf in der richtigen Dicke wieder.
+  // Sicher wieder einblenden: ein unterbrochener Flug (z. B. Karte folgt beim Fahren) meldet manchmal
+  // kein „zoomend“ – darum auch bei „moveend“ und spätestens nach 1,5 s
   let zoomTimer = 0;
+  let safety = 0;
+  const zoomDone = () => {
+    clearTimeout(zoomTimer);
+    clearTimeout(safety);
+    zoomTimer = setTimeout(() => el.classList.remove('is-zooming'), 40);
+  };
   map.on('zoomstart', () => {
     clearTimeout(zoomTimer);
+    clearTimeout(safety);
     el.classList.add('is-zooming');
+    safety = setTimeout(() => el.classList.remove('is-zooming'), 1500);
   });
-  map.on('zoomend', () => {
-    clearTimeout(zoomTimer);
-    zoomTimer = setTimeout(() => el.classList.remove('is-zooming'), 60);
-  });
+  map.on('zoomend moveend', zoomDone);
   setZoomClass();
 
   // Nur ein Kartenstil: Winter (eisblaues Gelände, Pisten leuchten)

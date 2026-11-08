@@ -41,7 +41,7 @@ export function mountRoutePanel(el, ctx) {
 
   /** Direkt zur Route (Suche, „Hinfahren“) */
   function setTarget(place) {
-    if (running) stop();
+    if (running) stop({ instant: true }); // neues Ziel sofort – sonst räumt das Ausblenden das neue Ziel mit weg
     closePreview();
     target = place;
     picking = false;
@@ -275,7 +275,7 @@ export function mountRoutePanel(el, ctx) {
     cancelPeek();
     target = null;
     result = null;
-    layer?.remove();
+    fadeOut(layer);
     layer = null;
     ctx.routeShown?.(false);
     render();
@@ -303,15 +303,34 @@ export function mountRoutePanel(el, ctx) {
     render();
   }
 
-  function stop({ arrived = false } = {}) {
+  function stop({ arrived = false, instant = false } = {}) {
     if (!running) return;
     running = null;
     api.guide(ctx.session.chip, null);
-    ctx.page.classList.remove('route-running');
-    ctx.sheet.setTop(null);
-    toast(arrived ? t('route.arrived', { name: target.name }) : t('route.stopped'), { icon: arrived ? 'flag' : 'route' });
-    clearRoute();
-    if (focusBefore === 'track') ctx.setFocus?.('track', { quiet: true });
+    const name = target.name;
+    const finish = () => {
+      ctx.page.classList.remove('route-running');
+      ctx.sheet.setTop(null);
+      toast(arrived ? t('route.arrived', { name }) : t('route.stopped'), { icon: arrived ? 'flag' : 'route' });
+      clearRoute();
+      if (focusBefore === 'track') ctx.setFocus?.('track', { quiet: true });
+    };
+    // Erst gleitet die Leiste weich nach unten weg, dann geht alles andere zurück
+    if (instant || reducedMotion() || !bar.animate || !bar.isConnected) return finish();
+    bar.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(18px) scale(0.98)' }],
+      { duration: 240, easing: 'cubic-bezier(.4,0,.7,1)', fill: 'forwards' }).finished.then(() => {
+      finish();
+      bar.getAnimations().forEach((a) => a.cancel());
+    });
+  }
+
+  /** Route-Linie weich ausblenden, dann von der Karte nehmen */
+  function fadeOut(group) {
+    if (!group) return;
+    const paths = group.getLayers().map((x) => x._path || x.getElement?.()).filter(Boolean);
+    if (reducedMotion() || !paths.length) return group.remove();
+    paths.forEach((el2) => { el2.style.transition = 'opacity 260ms ease'; el2.style.opacity = '0'; });
+    setTimeout(() => group.remove(), 280);
   }
 
   // Auf der Streif: einmal pro Abfahrt melden (erst der nächste Lift setzt das zurück)
@@ -753,7 +772,7 @@ export function mountRoutePanel(el, ctx) {
     /** Die ganze Route ins Bild holen */
     showOnMap: () => { if (layer && result?.coords) ctx.fit(L.latLngBounds(result.coords).extend(ctx.me.pos), FIT_ZOOM); },
     refresh: () => { if (!target) render(); },
-    stop: () => stop(),
+    stop: () => stop({ instant: true }),
     destroy() {
       cancelPeek();
       ctx.map.off('click', onMapClick);
