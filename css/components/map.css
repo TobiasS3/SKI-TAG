@@ -284,22 +284,3 @@
   opacity: 0;
 }
 
-/* Zoomen: Route, eigene Spur und „Gefahren“ sind Vektoren – ihre Strichstärke bleibt beim Zoomen
-   gleich (wächst nicht mit), sie bleiben also sichtbar. Pisten und Lifte sind ein Bild (Canvas, schneller
-   am Handy): die blenden kurz aus und kommen danach scharf wieder, statt kurz dick und unscharf zu werden. */
-.map .leaflet-route-pane path,
-.map .leaflet-track-pane path,
-.map .leaflet-ridden-pane path {
-  vector-effect: non-scaling-stroke;
-}
-
-.map .leaflet-pistes-pane,
-.map .leaflet-lifts-pane {
-  transition: opacity 0.22s ease;
-}
-
-.map.is-zooming .leaflet-pistes-pane,
-.map.is-zooming .leaflet-lifts-pane {
-  opacity: 0;
-  transition-duration: 0.12s;
-}

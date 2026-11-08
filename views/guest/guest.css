@@ -130,8 +130,15 @@
   border-radius: var(--r-l);
   background: var(--paper);
   box-shadow: var(--shadow-3);
-  animation: modal-in var(--t-med) var(--ease-spring) both;
+  animation: menu-in 150ms ease-out both; /* ruhig am Knopf einblenden, kein Hochfliegen */
   transform-origin: top right;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 }
 
 .menu-who {
@@ -9224,7 +9231,6 @@ small.wx-range-t {
 .search-results {
   transform-origin: top center;
   animation: search-open 320ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
-  transition: max-height 240ms ease;
 }
 
 @keyframes search-open {
@@ -9243,4 +9249,9 @@ small.wx-range-t {
     animation: none;
     transition: none;
   }
+}
+
+/* Handy beim Tippen: feste Höhe über der Tastatur, kein Nachmessen */
+.search-results.is-tight {
+  max-height: 44vh;
 }

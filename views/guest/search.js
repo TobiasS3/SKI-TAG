@@ -280,26 +280,12 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
     },
   });
 
-  // Tastatur offen: Liste nur so hoch wie der freie Platz darüber, sonst liegen die unteren
-  // Vorschläge (z. B. „Hütten im Umkreis“) hinter der Tastatur und lassen sich nicht antippen
-  const vv = window.visualViewport;
-  // Handy: beim Antippen des Suchfelds kommt gleich die Tastatur – sofort kompakt, sonst klappt die
-  // Liste erst groß auf und springt dann klein
-  const touch = matchMedia('(pointer: coarse)').matches;
-  const fitToKeyboard = () => {
-    if (!vv || list.hidden) return;
-    const top = list.getBoundingClientRect().top;
-    const free = vv.offsetTop + vv.height - top - 12;
-    const typing = touch && document.activeElement === input;
-    const keyboard = typing || free < innerHeight * 0.6;
-    // Tastatur offen: Vorschläge kompakt (ohne Untertitel), damit alle auf einen Blick passen
-    list.classList.toggle('is-tight', keyboard);
-    list.style.maxHeight = keyboard ? `${Math.max(140, Math.round(free))}px` : '';
-  };
-  // Gleich beim Öffnen messen (vor dem ersten Bild), nicht erst einen Moment später
-  new MutationObserver(fitToKeyboard).observe(list, { attributes: true, attributeFilter: ['hidden'] });
-  vv?.addEventListener('resize', fitToKeyboard);
-  vv?.addEventListener('scroll', fitToKeyboard);
+  // Handy, Tastatur offen: Vorschläge kompakt (ohne Untertitel), damit alle über die Tastatur passen.
+  // Nur beim Antippen und Verlassen des Feldes umschalten – nichts misst laufend nach.
+  if (matchMedia('(pointer: coarse)').matches) {
+    input.addEventListener('focus', () => list.classList.add('is-tight'));
+    input.addEventListener('blur', () => list.classList.remove('is-tight'));
+  }
   const el = h('div', { class: 'search' },
     h('div', { class: 'search-box' }, icon('search'), input, clear),
     list,
@@ -605,8 +591,6 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
     closeGroup: () => group && closeGroup(),
     destroy: () => {
       document.removeEventListener('pointerdown', outside, true);
-      vv?.removeEventListener('resize', fitToKeyboard);
-      vv?.removeEventListener('scroll', fitToKeyboard);
     },
   };
 }
