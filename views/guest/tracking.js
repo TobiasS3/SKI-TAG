@@ -280,16 +280,27 @@ export function createRidden(map) {
     pane: 'riddenSigns', interactive: false, keyboard: false, zIndexOffset: z,
     icon: L.divIcon({ className: `mk-rsign ${cls}`, html: `<span>${html}</span>`, iconSize: [0, 0] }),
   });
+  // Überlappende Schilder ausblenden – nur, wenn die Ebene wirklich zu sehen ist: unsichtbare Schilder
+  // haben keine Größe, dann lägen scheinbar alle übereinander und fast alle würden versteckt
   const declutter = () => {
     const placed = [];
+    const hits = (r) => placed.some((q) => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2);
     map.getContainer().querySelectorAll('.leaflet-riddenSigns-pane .mk-rsign span').forEach((el) => {
       el.style.visibility = '';
-      const r = el.getBoundingClientRect();
-      if (placed.some((q) => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2)) el.style.visibility = 'hidden';
+      el.classList.remove('is-compact');
+      let r = el.getBoundingClientRect();
+      if (!r.width) return;
+      // Zu eng: erst nur die Nummer (ohne Namen) versuchen, erst dann ganz ausblenden
+      if (hits(r)) {
+        el.classList.add('is-compact');
+        r = el.getBoundingClientRect();
+      }
+      if (hits(r)) el.style.visibility = 'hidden';
       else placed.push(r);
     });
   };
-  map.on('zoomend', declutter);
+  map.on('zoomend moveend', declutter);
+  const offFocus = on('focus', () => requestAnimationFrame(declutter));
   let pisteLines = null; // Piste → alle ihre Stücke (aus den Kanten des Pistennetzes)
   const linesOf = (net, i) => {
     if (!pisteLines) {
@@ -302,7 +313,9 @@ export function createRidden(map) {
     }
     return pisteLines.get(i);
   };
-  const shownNames = new Set(); // dieselbe Piste besteht aus vielen Stücken – Schild nur einmal
+  // Dieselbe Piste besteht aus vielen Stücken, mal mit, mal ohne Nummer – Schild nur einmal
+  const shownRefs = new Set();
+  const shownNames = new Map(); // Name → { ref, marker }
   return {
     set(r) {
       const net = skimap();
@@ -321,20 +334,26 @@ export function createRidden(map) {
         const lead = l.code ? `<i>${esc(l.code)}</i>` : '';
         group.addLayer(sign(mid, 'is-lift is-ridden', `${lead}<b>${esc(l.name)}</b>`, 500));
       });
-      r.pistes.forEach((i) => {
+      // Stücke mit Nummer zuerst – dann steht „19 Kapellenabfahrt“ da, nicht nur „Kapellenabfahrt“
+      [...r.pistes].sort((a, b) => !!net.pistes[b]?.ref - !!net.pistes[a]?.ref).forEach((i) => {
         const p = net.pistes[i];
         // Schild immer auf der eigenen orangen Spur: der Spurpunkt, der der Piste am nächsten ist
         // Kein Spurpunkt in der Nähe: lieber kein Schild als eines irgendwo auf der Piste
         const at = onTrack(r.points, linesOf(net, i)) || r.at?.[i]?.pos;
         if (shown.pistes.has(i) || !p || !at || (!p.ref && !p.name)) return;
         shown.pistes.add(i);
-        // Eine Nummer = ein Schild (21 Streif, 21 Walde … sind auf dem Plan dieselbe Piste 21)
-        const key = p.ref || p.name;
-        if (shownNames.has(key)) return;
-        shownNames.add(key);
-        added = true;
+        // Eine Nummer = ein Schild (21 Streif, 21 Walde … sind auf dem Plan dieselbe Piste 21),
+        // und „Kapellenabfahrt“ ohne Nummer nicht noch einmal neben „19 Kapellenabfahrt“
         const name = (p.name || '').replace(/\s*\(.*\)\s*$/, ''); // ohne „(nur während Rennen präpariert)“
-        group.addLayer(sign(at, 'is-piste is-ridden', `<i class="diff-${p.diff}">${esc(p.ref || '')}</i>${name ? `<b>${esc(name)}</b>` : ''}`, 400));
+        if (p.ref && shownRefs.has(p.ref)) return;
+        const before = name && shownNames.get(name);
+        if (before && (before.ref || !p.ref)) return;
+        if (before) group.removeLayer(before.marker); // vorher ohne Nummer – jetzt mit Nummer zeigen
+        const marker = sign(at, 'is-piste is-ridden', `<i class="diff-${p.diff}">${esc(p.ref || '')}</i>${name ? `<b>${esc(name)}</b>` : ''}`, 400);
+        if (p.ref) shownRefs.add(p.ref);
+        if (name) shownNames.set(name, { ref: p.ref, marker });
+        added = true;
+        group.addLayer(marker);
       });
       if (added) requestAnimationFrame(declutter);
     },
@@ -343,9 +362,11 @@ export function createRidden(map) {
       shown.lifts.clear();
       shown.pistes.clear();
       shownNames.clear();
+      shownRefs.clear();
     },
     remove() {
-      map.off('zoomend', declutter);
+      map.off('zoomend moveend', declutter);
+      offFocus();
       group.remove();
     },
   };

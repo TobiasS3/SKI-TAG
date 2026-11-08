@@ -200,9 +200,14 @@ export async function mountGuest(root, session) {
     renderFocus();
     emit('focus', focus);
     // „Gefahren“ angetippt: Karte zeigt die ganze heutige Spur – so nah, dass Lift- und Pistenschilder lesbar sind
+    // Erst den Bereich runterklappen: sonst ist von der Karte nur ein Streifen frei, die Spur passt nur
+    // weit rausgezoomt hinein und die Schilder liegen übereinander
     if (mode === 'track' && !quiet) {
       const b = tracking?.bounds();
-      if (b?.isValid()) ctx.fit(b, 15);
+      if (b?.isValid()) {
+        sheet.collapse();
+        setTimeout(() => ctx.fit(b, 15), 380);
+      }
     }
   }
   function renderFocus() {

@@ -202,16 +202,24 @@
   opacity: 0.92;
 }
 
-.sos-cancel {
+/* Abbrechen im Countdown: dunkler Knopf mit weißer Schrift und weißem Rand – auf Rot gut zu sehen */
+.btn.sos-cancel,
+.guest .btn.sos-cancel {
   width: 100%;
-  background: #fff;
-  color: var(--night); /* fest dunkel: weißer Knopf, egal welches Farbschema */
+  background: #0b1226;
+  color: #fff;
   font-size: 1.3rem;
   min-height: 68px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 10px 24px rgba(11, 18, 38, 0.35);
 }
 
-.sos-cancel:hover {
-  background: #ececee;
+.btn.sos-cancel svg {
+  color: #fff;
+}
+
+.btn.sos-cancel:hover,
+.btn.sos-cancel:active {
+  background: #1b2747;
 }
 
 .sos-now {

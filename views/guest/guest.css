@@ -9141,3 +9141,13 @@ small.wx-range-t {
     animation: none;
   }
 }
+
+/* Gefahren: bei Platzmangel nur die Nummer zeigen, nicht den Namen */
+.mk-rsign span.is-compact {
+  gap: 0;
+  padding: 3px;
+}
+
+.mk-rsign span.is-compact b {
+  display: none;
+}

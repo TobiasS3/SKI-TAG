@@ -428,7 +428,9 @@ export function mountRoutePanel(el, ctx) {
     showPlace(back.place);
   }
 
+  let emptyAt = 0; // wann „Wohin möchten Sie?“ zuletzt gezeichnet wurde
   function emptyState() {
+    emptyAt = Date.now();
     // Oben das Praktische (zurück zum Start/Auto, ins Tal) groß mit Fahrzeit,
     // darunter die Erlebnisse als Bild-Kacheln. Gruppen (Talabfahrten, Parkplätze, Hütten) stehen in der Suche.
     const rental = ctx.session.rental || (config.fakeData ? 'Hahnenkammbahn' : null);
@@ -712,6 +714,11 @@ export function mountRoutePanel(el, ctx) {
     on('lang', () => { render(); renderOver(); }),
     on('me', track),
     on('me', streifNote),
+    // „Wohin möchten Sie?“ mitziehen: Fahrzeiten und „ins Tal“ passen sonst nach ein paar Minuten nicht mehr
+    on('me', () => {
+      if (target || running || Date.now() - emptyAt < EMPTY_REFRESH_MS) return;
+      if (ctx.sheet.current() === 'route') render();
+    }),
     // Route nur angeschaut, nicht gestartet: anderer Tab → Route verschwindet von der Karte
     on('sheet:tab', (id) => { if (id !== 'route' && target && !running) clearRoute(); }),
     on('focus', () => target && render()),
@@ -811,6 +818,7 @@ const shortArea = (a) => String(a || '').split(' · ')[0];
 const escapeXml = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 const FIT_ZOOM = 16;     // Route ins Bild: höchstens so nah – kurze Wege nicht unnötig klein
+const EMPTY_REFRESH_MS = 20000; // „Wohin möchten Sie?“ höchstens so oft neu rechnen
 const PEEK_S = 3;        // so lange zeigt die Karte eine geänderte Route
 const PEEK_NEW_S = 4;    // neue Route: Karte fliegt erst hin, die Linie zeichnet sich – etwas länger
 const ARRIVE_M = 45;     // so nah am Ziel = angekommen

@@ -48,6 +48,9 @@ export function mountWeather(el, weather) {
             hr.precip != null ? h('em', { class: hr.precip >= 40 ? 'is-wet' : '' }, `${hr.precip}%`) : null))) : null,
         weather.hourly?.length ? h('p', { class: 'wx-hint' }, t('weather.precipHint')) : null),
 
+      // Lawinenstufe gleich nach den Graden – das Zweitwichtigste am Berg
+      avalancheCard(weather.avalanche),
+
       // --- Nächste Tage ------------------------------------------------------------
       weather.days?.length ? h('section', { class: 'card' },
         h('h3', { class: 'card-title' }, t('weather.days')),
@@ -63,14 +66,10 @@ export function mountWeather(el, weather) {
       // --- Fakten ----------------------------------------------------------------------
       h('dl', { class: 'wx-facts' },
         fact('wind', t('weather.wind'), `${weather.wind.speed} km/h`, `${t('weather.gusts', { speed: weather.wind.gusts })} · ${t('weather.windFrom', { dir: weather.wind.dir })}`, windArrow(weather.wind.dir)),
-        fact('snowflake', t('weather.snow'), `${weather.snow.mountain} cm`, t('weather.valley', { cm: weather.snow.valley })),
         fact('snow', t('weather.fresh'), `${weather.snow.fresh} cm`, t('weather.last24h')),
         fact('thermo', t('weather.freezing'), `${weather.freezingLevel} m`, t('weather.freezingHint')),
         weather.visibility != null ? fact('eye', t('weather.visibility'), weather.visibility >= 10000 ? '> 10 km' : distance(weather.visibility), '') : null,
         fact('sun', t('weather.sun'), t('weather.sunTimes', { rise: weather.sunrise, set: weather.sunset }), weather.uv != null ? t('weather.uv', { n: Math.round(weather.uv) }) : '')),
-
-      h('p', { class: 'wx-section' }, icon('mountain'), t('aval.section')),
-      avalancheCard(weather.avalanche),
 
       h('p', { class: 'wx-source' },
         weather.fallback ? t('weather.fallback') : t('weather.source', {
