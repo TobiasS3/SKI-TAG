@@ -9,8 +9,6 @@ export function createMap(el, { painted = false } = {}) {
     minZoom: 11,
     maxZoom: config.tiles.maxZoom,
     zoomSnap: 0.25,
-    // Kein Vergrößern per CSS (das macht Linien unscharf) – Pinch und Kartenflüge zeichnen Bild für Bild
-    zoomAnimation: false,
     wheelPxPerZoomLevel: 90,
   }).setView(config.resort.center, config.resort.zoom);
 
@@ -50,19 +48,25 @@ export function createMap(el, { painted = false } = {}) {
   };
   map.on('zoomend', setZoomClass);
 
-  // Beim Zoomen zieht Leaflet sonst nur das alte Bild der Linien größer/kleiner – sie werden kurz dick
-  // und unscharf. Darum zeichnen wir Pisten, Lifte, Route und Spur bei jedem Zoom-Bild neu
-  // (höchstens einmal pro Bildschirmbild): Sie bleiben die ganze Zeit scharf und gleich dick.
-  let redraw = 0;
-  map.on('zoom', () => {
-    if (redraw) return;
-    redraw = requestAnimationFrame(() => {
-      redraw = 0;
-      const renderers = new Set();
-      map.eachLayer((l) => { if (l._renderer) renderers.add(l._renderer); });
-      renderers.forEach((r) => r._map && r._reset());
-    });
+  // Beim Zoomen zieht Leaflet das alte Bild nur größer/kleiner – Linien werden kurz dick und unscharf.
+  // Darum blenden Pisten, Lifte, Route und Spur während des Zoomens weich aus und kommen danach
+  // scharf in der richtigen Dicke wieder.
+  // Sicher wieder einblenden: ein unterbrochener Flug (z. B. Karte folgt beim Fahren) meldet manchmal
+  // kein „zoomend“ – darum auch bei „moveend“ und spätestens nach 1,5 s
+  let zoomTimer = 0;
+  let safety = 0;
+  const zoomDone = () => {
+    clearTimeout(zoomTimer);
+    clearTimeout(safety);
+    zoomTimer = setTimeout(() => el.classList.remove('is-zooming'), 40);
+  };
+  map.on('zoomstart', () => {
+    clearTimeout(zoomTimer);
+    clearTimeout(safety);
+    el.classList.add('is-zooming');
+    safety = setTimeout(() => el.classList.remove('is-zooming'), 1500);
   });
+  map.on('zoomend moveend', zoomDone);
   setZoomClass();
 
   // Nur ein Kartenstil: Winter (eisblaues Gelände, Pisten leuchten)

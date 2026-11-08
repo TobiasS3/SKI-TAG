@@ -3,7 +3,7 @@
 // Person antippen (Karte, Radar, „Zeigen“) → Karte zoomt nah ran, unten eine Karte mit
 // „Hinfahren“ und „Vibrieren“.
 
-import { h, replace, isWide, slideIn } from '../../js/utils/dom.js';
+import { h, replace, isWide } from '../../js/utils/dom.js';
 import { t, getLang } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { api } from '../../js/services/api.js';
@@ -93,7 +93,7 @@ export function mountGroup(el, ctx, group) {
   function renderFriend() {
     if (!friendOpen) {
       // Gesichter der Gruppe + ein freier Platz: hier kommt der neue Freund dazu
-      replace(friendCard, h('button', { class: 'friend-invite', onclick: () => { friendOpen = true; renderFriend(); slideIn(friendCard, 0, 300); } },
+      replace(friendCard, h('button', { class: 'friend-invite', onclick: () => { friendOpen = true; renderFriend(); } },
         h('span', { class: 'friend-faces', 'aria-hidden': 'true' },
           members.slice(0, 4).map((m) => h('i', { style: { '--c': m.color } }, (m.name || '?')[0])),
           h('i', { class: 'friend-slot' }, icon('plus'))),
@@ -138,7 +138,7 @@ export function mountGroup(el, ctx, group) {
       h('label', { class: 'small', for: 'friend-code' }, t('friend.code')),
       h('div', { class: 'friend-row' }, Object.assign(input, { id: 'friend-code' }), send),
       error),
-      h('button', { class: 'btn btn-quiet btn-small', onclick: () => { friendOpen = false; renderFriend(); slideIn(friendCard, 0, 260); } }, t('cancel')));
+      h('button', { class: 'btn btn-quiet btn-small', onclick: () => { friendOpen = false; renderFriend(); } }, t('cancel')));
     input.focus();
   }
 

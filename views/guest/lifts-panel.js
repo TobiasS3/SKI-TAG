@@ -3,7 +3,7 @@
 // Sortiert wie auf kitzski.at: Lifte nach Liftnummer (A1, A2 … H11) in ihrem Sektor,
 // Pisten nach Pistennummer. Antippen → auf der Karte zeigen + Route dorthin.
 
-import { h, replace, slideIn } from '../../js/utils/dom.js';
+import { h, replace } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { clock, todayAt, now as clockNow } from '../../js/utils/time.js';
@@ -60,7 +60,7 @@ export function mountLifts(el, ctx, status, pistes) {
         FILTERS.map((f) => h('button', {
           class: 'choice',
           'aria-pressed': String(f === filter),
-          onclick: () => { if (filter === f) return; filter = f; render(); slideIn(el, 0, 260); },
+          onclick: () => { filter = f; render(); },
         }, t(`lifts.filter.${f}`)))),
       [...Object.keys(SECTORS), null].map((letter) => {
         const list = visible.filter((r) => sectorOf(r.lift) === letter).sort(byCode);
@@ -80,7 +80,7 @@ export function mountLifts(el, ctx, status, pistes) {
         class: 'seg-btn',
         role: 'tab',
         'aria-selected': String(m === mode),
-        onclick: () => { if (mode === m) return; const dir = m === 'pistes' ? 1 : -1; mode = m; filter = 'all'; render(); slideIn(el, dir); },
+        onclick: () => { mode = m; filter = 'all'; render(); },
       }, icon(m === 'lifts' ? 'gondola' : 'piste'), t(`status.${m}`))));
   }
 
@@ -106,7 +106,7 @@ export function mountLifts(el, ctx, status, pistes) {
         FILTERS.map((f) => h('button', {
           class: 'choice',
           'aria-pressed': String(f === filter),
-          onclick: () => { if (filter === f) return; filter = f; render(); slideIn(el, 0, 260); },
+          onclick: () => { filter = f; render(); },
         }, t(`lifts.filter.${f}`)))),
       ctx.skimap.areas.map((area, a) => {
         const list = visible.filter((r) => r.area === a).sort(byRef);
