@@ -2,7 +2,7 @@
 // der Tagesfilm als Video (MP4), das auf iPhone, Samsung und PC einfach aufgeht.
 
 import { h } from '../../js/utils/dom.js';
-import { t, getLang } from '../../js/core/i18n.js';
+import { t } from '../../js/core/i18n.js';
 import { duration, number } from '../../js/utils/format.js';
 import { icon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';

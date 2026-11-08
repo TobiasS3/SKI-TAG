@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-11-08 – Gast-Ansicht fertig (verkaufsbereit)
+
+**Route**
+- „Wohin möchten Sie?“: Zurück zum Start und Schnellster Weg ins Tal groß mit Fahrzeit (im Tal: „Sie sind gerade im Tal“),
+  Erlebnis-Kacheln mit Fotos, Hinweis vor dem Tagesstart
+- Neue Route und andere Einstellung („Schwarze meiden“ …): Karte zeigt die Route kurz mit Countdown, dann die Übersicht
+- **Streif:** Route zum Start und die ganze Rennstrecke hinunter, Passagen (Mausefalle, Steilhang, Hausbergkante …),
+  oranges Banner auf der Strecke, eigener Look auf der Karte
+- Eigenes Skigebiet (Horn): Hinweis mit Skibus-Szene
+
+**Karte**
+- **Gefahren:** gefahrene Lifte (orange gestrichelt) und Pisten mit Nummern-Schildern auf der eigenen Spur
+- Alle Lifte: Nummer in der Box, Namen beim Reinzoomen, Filter Förderbänder
+- Umland: verschwommene Berge statt weißem Rand (`tools/bake-surround.py`)
+
+**Sonst**
+- Liftstatus nach KitzSki-Liftnummern und Sektoren, Pisten nach Nummer
+- Tagesende mit Lift-/Pistenschildern, Tagesfilm mit Winterkarte
+- Wetter: Schneehöhe mit Station und Höhe, Lawinengefahr unten
+- Freund dazuholen neu, „Ihre Gruppe“ statt Familienname
+- Einheitliche X-Knöpfe, Notruf-Abbrechen dunkel mit weißer Schrift
+- 5 neue freie Fotos (Wikimedia Commons), Nachweis in `docs/bildnachweis.md`
+- Weniger Last im Stillstand (≈ 6× weniger Rechenzeit), 252 Zeilen altes CSS und unbenutzte Funktionen entfernt
+
 ## 2026-10-25 – Bergbahn-Leitstand und Skischule
 
 **Bergbahn** (Code `BERG27`)

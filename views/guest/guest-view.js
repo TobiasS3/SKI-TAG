@@ -14,7 +14,7 @@ import { createMap, limitToArea } from '../../js/map/map.js';
 import { bearing, distance as geoDistance } from '../../js/map/geo.js';
 import { drawSkimap } from '../../js/map/layers.js';
 import { meMarker, meetMarker } from '../../js/map/markers.js';
-import { todayAt, isoDay, now as clockNow } from '../../js/utils/time.js';
+import { todayAt, now as clockNow } from '../../js/utils/time.js';
 import { temp } from '../../js/utils/format.js';
 import { config } from '../../js/config.js';
 import { icon, iconHTML, liftIcon } from '../../js/components/icons.js';

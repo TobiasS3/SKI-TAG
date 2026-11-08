@@ -59,6 +59,9 @@ Kartendaten aktuell: Skigebiet KitzSki (`data/skimap/kitzski.json`).
 ## Aktueller Stand
 - Alle drei Ansichten laufen mit Fake-Daten: **Gast** (`views/guest/`), **Bergbahn-Leitstand** (`views/staff/`),
   **Skischule** (`views/school/`)
+- **Gast-Ansicht ist fertig** (Stand 8.11.2026, vom Nutzer abgenommen) – nur noch Fehler beheben, nichts Großes umbauen
+- Lehre aus der Gast-Ansicht: keine Effekte, die dauernd laufen oder bei jedem Bild neu zeichnen (Akku/Lag am iPhone);
+  Änderungen immer mit iPhone-Simulation + Touch testen, nicht nur mit Mausklicks
 - Fake-Server für Einsätze/Chips/Skikurs: `js/services/fake-ops.js` (Einsätze im localStorage → Tabs teilen sie)
 
 ## Arbeitsweise
