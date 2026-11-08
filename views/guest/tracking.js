@@ -287,21 +287,15 @@ export function createRidden(map) {
     const overlap = (r, q) => r.left < q.right + 3 && r.right > q.left - 3 && r.top < q.bottom + 2 && r.bottom > q.top - 2;
     const placed = [];
     for (const el of els) {
-      // Nie verstecken: jedes gefahrene Stück bekommt sein Schild. Zu eng → nur Nummer,
-      // immer noch zu eng → ein Stück nach unten rücken, bis es frei ist
+      // Jedes Schild bleibt genau an seiner Stelle auf der Spur (nie verschieben, nie verstecken).
+      // Zu eng → nur die Nummer, der Name kommt beim Reinzoomen dazu
       el.style.visibility = '';
-      el.style.marginTop = '0px';
+      el.style.marginTop = '';
       el.classList.remove('is-compact');
       let r = el.getBoundingClientRect();
       if (!r.width) continue;
       if (placed.some((q) => overlap(r, q))) {
         el.classList.add('is-compact');
-        r = el.getBoundingClientRect();
-      }
-      let shift = 0;
-      while (placed.some((q) => overlap(r, q)) && shift < 8 * (r.height + 3)) {
-        shift += r.height + 3;
-        el.style.marginTop = `${shift}px`;
         r = el.getBoundingClientRect();
       }
       placed.push(r);

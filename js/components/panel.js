@@ -10,7 +10,7 @@
 // Die aktuelle Höhe steht als CSS-Variable --sheet-h am Eltern-Element – SOS- und Kartenknöpfe
 // gleiten damit mit, höchstens bis --sheet-cap (= offen).
 
-import { h, isWide } from '../utils/dom.js';
+import { h, isWide, slideIn } from '../utils/dom.js';
 import { icon } from './icons.js';
 import { emit } from '../core/events.js';
 
@@ -87,7 +87,10 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
 
   function select(id) {
     if (current === id) return;
+    const from = tabs.findIndex((x) => x.id === current);
+    const to = tabs.findIndex((x) => x.id === id);
     current = id;
+    if (from >= 0) slideIn(bodies[id], to > from ? 1 : -1); // Tab rechts → kommt von rechts
     tabs.forEach((tab, i) => {
       const active = tab.id === id;
       buttons[tab.id].setAttribute('aria-selected', String(active));

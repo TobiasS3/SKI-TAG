@@ -52,3 +52,14 @@ export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)'
  */
 export const WIDE_MEDIA = '(min-width: 900px), (orientation: landscape) and (max-height: 520px) and (min-width: 640px)';
 export const isWide = () => matchMedia(WIDE_MEDIA).matches;
+
+
+/**
+ * Weicher Übergang für neuen Inhalt: kommt leicht von der Seite (dir: 1 = von rechts, -1 = von links,
+ * 0 = von unten) und blendet ein. Bei „weniger Bewegung“ sofort.
+ */
+export function slideIn(el, dir = 0, ms = 320) {
+  if (!el?.animate || reducedMotion()) return;
+  const from = dir ? `translateX(${dir * 28}px)` : 'translateY(14px)';
+  el.animate([{ opacity: 0, transform: from }, { opacity: 1, transform: 'none' }], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' });
+}

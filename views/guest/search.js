@@ -257,6 +257,29 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
   const clear = h('button', { class: 'search-clear', type: 'button', hidden: true, 'aria-label': 'Löschen' }, icon('close'));
   const list = h('ul', { class: 'search-results', id: 'search-results', role: 'listbox', hidden: true });
 
+  // Weich zuklappen: wer auch immer list.hidden = true setzt, die Liste gleitet erst nach oben weg
+  const nativeHidden = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'hidden');
+  let closing = null;
+  Object.defineProperty(list, 'hidden', {
+    get: () => nativeHidden.get.call(list),
+    set: (v) => {
+      if (!v) {
+        closing?.cancel();
+        closing = null;
+        return nativeHidden.set.call(list, false);
+      }
+      if (nativeHidden.get.call(list) || closing || reducedMotion() || !list.animate) {
+        if (!closing) nativeHidden.set.call(list, true);
+        return;
+      }
+      closing = list.animate([
+        { opacity: 1, transform: 'none', clipPath: 'inset(0 0 0 0 round 24px)' },
+        { opacity: 0, transform: 'translateY(-6px) scaleY(0.94)', clipPath: 'inset(0 0 100% 0 round 24px)' },
+      ], { duration: 220, easing: 'cubic-bezier(.4,0,.7,1)' });
+      closing.onfinish = () => { closing = null; nativeHidden.set.call(list, true); };
+    },
+  });
+
   // Tastatur offen: Liste nur so hoch wie der freie Platz darüber, sonst liegen die unteren
   // Vorschläge (z. B. „Hütten im Umkreis“) hinter der Tastatur und lassen sich nicht antippen
   const vv = window.visualViewport;

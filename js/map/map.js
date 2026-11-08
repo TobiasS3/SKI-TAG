@@ -47,6 +47,19 @@ export function createMap(el, { painted = false } = {}) {
     el.classList.toggle('z-names', map.getZoom() >= 14.4); // ab hier stehen die Liftnamen da
   };
   map.on('zoomend', setZoomClass);
+
+  // Beim Zoomen zieht Leaflet das alte Bild nur größer/kleiner – Linien werden kurz dick und unscharf.
+  // Darum blenden Pisten, Lifte, Route und Spur während des Zoomens weich aus und kommen danach
+  // scharf in der richtigen Dicke wieder.
+  let zoomTimer = 0;
+  map.on('zoomstart', () => {
+    clearTimeout(zoomTimer);
+    el.classList.add('is-zooming');
+  });
+  map.on('zoomend', () => {
+    clearTimeout(zoomTimer);
+    zoomTimer = setTimeout(() => el.classList.remove('is-zooming'), 60);
+  });
   setZoomClass();
 
   // Nur ein Kartenstil: Winter (eisblaues Gelände, Pisten leuchten)

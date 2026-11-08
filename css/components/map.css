@@ -283,3 +283,21 @@
 .mk-peak span.is-hidden {
   opacity: 0;
 }
+
+/* Zoomen: Linien weich aus, danach scharf wieder da (sonst kurz dick und unscharf) */
+.map .leaflet-pistes-pane,
+.map .leaflet-lifts-pane,
+.map .leaflet-route-pane,
+.map .leaflet-track-pane,
+.map .leaflet-ridden-pane {
+  transition: opacity 0.22s ease;
+}
+
+.map.is-zooming .leaflet-pistes-pane,
+.map.is-zooming .leaflet-lifts-pane,
+.map.is-zooming .leaflet-route-pane,
+.map.is-zooming .leaflet-track-pane,
+.map.is-zooming .leaflet-ridden-pane {
+  opacity: 0;
+  transition-duration: 0.12s;
+}

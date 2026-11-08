@@ -4,7 +4,7 @@
 // „Route starten“: Karte folgt dir, unten statt der Tabs eine Leiste mit dem aktuellen Schild
 // und „Route beenden“. Hochziehen zeigt alle Schilder, das aktuelle ist markiert.
 
-import { h, replace, reducedMotion } from '../../js/utils/dom.js';
+import { h, replace, reducedMotion, slideIn } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { api } from '../../js/services/api.js';
@@ -69,8 +69,16 @@ export function mountRoutePanel(el, ctx) {
   }
 
   function renderOver() {
+    const opening = over.hidden && preview;
+    if (!preview && !over.hidden && !reducedMotion() && over.animate) {
+      // Zu: Karte gleitet weich nach unten weg, dann erst weg
+      over.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(24px)' }], { duration: 220, easing: 'ease-in' })
+        .finished.then(() => { if (!preview) { over.hidden = true; replace(over); } });
+      return;
+    }
     over.hidden = !preview;
     if (!preview) return replace(over);
+    if (opening) slideIn(over, 0, 360);
     replace(over,
       h('button', { class: 'place-over-close', 'aria-label': t('close'), onclick: closePreview }, icon('close')),
       placeCard(preview),
@@ -383,7 +391,11 @@ export function mountRoutePanel(el, ctx) {
       h('button', { class: 'btn btn-quiet btn-block', onclick: () => stop() }, icon('close'), t('route.stop')));
   }
 
+  let shownView = null; // 'empty' | Name des Ziels | 'running' – bei Wechsel gleitet der Inhalt herein
   function render() {
+    const view = running ? 'running' : target ? `t:${target.name}` : 'empty';
+    if (shownView && view !== shownView) slideIn(el, view === 'empty' ? -1 : 1);
+    shownView = view;
     if (running) {
       renderBar();
       return replace(el, runningView());
