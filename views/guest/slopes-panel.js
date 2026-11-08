@@ -315,13 +315,8 @@ export function mountRoutePanel(el, ctx) {
       clearRoute();
       if (focusBefore === 'track') ctx.setFocus?.('track', { quiet: true });
     };
-    // Erst gleitet die Leiste weich nach unten weg, dann geht alles andere zurück
-    if (instant || reducedMotion() || !bar.animate || !bar.isConnected) return finish();
-    bar.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(18px) scale(0.98)' }],
-      { duration: 240, easing: 'cubic-bezier(.4,0,.7,1)', fill: 'forwards' }).finished.then(() => {
-      finish();
-      bar.getAnimations().forEach((a) => a.cancel());
-    });
+    // Die Leiste gleitet weich weg (sheet.setTop), die Route-Linie blendet aus
+    finish();
   }
 
   /** Route-Linie weich ausblenden, dann von der Karte nehmen */

@@ -2,7 +2,7 @@
 // dazu SOS-Knopf und Kartenfilter (alles / nur Route / nur gefahrene Strecke).
 // Lifte und Wetter öffnen sich als Fenster über die Knöpfe in der Kopfleiste.
 
-import { h, reducedMotion, isWide } from '../../js/utils/dom.js';
+import { h, reducedMotion, isWide, smoothHidden, slideIn } from '../../js/utils/dom.js';
 import { t, toggleLang, translate, getLang } from '../../js/core/i18n.js';
 import { on, emit } from '../../js/core/events.js';
 import { endSession } from '../../js/core/session.js';
@@ -46,7 +46,7 @@ export async function mountGuest(root, session) {
   const weatherBtn = h('button', { class: 'pill pill-weather', onclick: () => openInfo('weather', weatherBtn) });
   // Chip-Knopf: Akku sofort sichtbar, antippen öffnet Chip, Zugang und Sprache
   const menuBtn = h('button', { class: 'pill pill-chip', 'aria-expanded': 'false', 'aria-haspopup': 'menu' });
-  const menu = h('div', { class: 'menu', hidden: true, role: 'menu' });
+  const menu = smoothHidden(h('div', { class: 'menu', hidden: true, role: 'menu' }), 'top right');
 
   const sheet = createSheet({
     // Offen: so hoch, dass darüber Suche + eine Reihe Kartenknöpfe frei bleiben
@@ -64,7 +64,7 @@ export async function mountGuest(root, session) {
   const locateBtn = h('button', { class: 'icon-btn locate-btn', 'data-i18n-label': 'map.locate', onclick: () => follow(true) }, icon('locate'));
   const focusBtn = h('button', { class: 'icon-btn style-btn focus-btn', 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
     icon('eye'), h('span', { class: 'style-name' }));
-  const focusMenu = h('div', { class: 'focus-menu', role: 'menu', hidden: true });
+  const focusMenu = smoothHidden(h('div', { class: 'focus-menu', role: 'menu', hidden: true }), 'bottom right');
 
   // Gibt es eine Route, steht dieser Knopf auf der Karte (wie der Kartenfilter: Auge + was gerade zu sehen ist).
   // Route anzeigen → automatisch „Nur Route“; antippen zeigt wieder alles.

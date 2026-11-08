@@ -3,7 +3,7 @@
 // Eine Gruppe zeigt alle passenden Orte in der Leiste und auf der Karte, mit Filtern.
 // Einzelne Ziele (Zurück zum Start, ins Tal, Streif, Starthaus, Bahnen) stehen im Route-Tab: destinations().
 
-import { h, reducedMotion } from '../../js/utils/dom.js';
+import { h, reducedMotion, slideIn } from '../../js/utils/dom.js';
 import { duration } from '../../js/utils/format.js';
 import { t } from '../../js/core/i18n.js';
 import { searchIndex, route, routeToAny, findPath, skimap } from '../../js/services/slopes.js';
@@ -417,6 +417,7 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
 
   /** Gruppe öffnen (z. B. Talabfahrten). filter: gewählter Filter, pick: eine Karte daraus allein zeigen */
   function openGroup(sg, filter = sg.filters ? 'all' : null, pick = null) {
+    const fresh = group !== sg; // neue Gruppe: Inhalt gleitet von rechts herein
     group = sg;
     groupFilter = filter;
     selected = pick;
@@ -434,6 +435,7 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
       el.classList.remove('has-group');
       onGroup?.(null);
       showSuggestions();
+      slideIn(list, -1, 280); // zurück: von links
       input.focus();
     };
     // replaceChildren schreibt null als Text „null“ hin – leere Teile vorher raus
@@ -467,6 +469,7 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
           h('ul', { class: 'search-strip' }, shown.map((x, k) => card(x, k, sg))))
         : h('li', { class: 'search-empty', role: 'presentation' }, t('search.f.none')),
     ].filter(Boolean));
+    if (fresh) slideIn(list, 1, 280);
     // Gewählte Karte ins Bild schieben
     if (selected) requestAnimationFrame(() => list.querySelector('.search-card.is-selected')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' }));
     // Tastatur zu, sonst verdeckt sie am Handy genau die Karte, auf der die Gruppe aufleuchtet

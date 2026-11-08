@@ -63,3 +63,37 @@ export function slideIn(el, dir = 0, ms = 320) {
   const from = dir ? `translateX(${dir * 28}px)` : 'translateY(14px)';
   el.animate([{ opacity: 0, transform: from }, { opacity: 1, transform: 'none' }], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' });
 }
+
+/**
+ * Macht el.hidden weich: Auf = wächst leicht aus der Ecke (origin) und blendet ein,
+ * Zu = schrumpft leicht und blendet aus, erst danach wirklich versteckt.
+ * Wer auch immer el.hidden setzt, bekommt den Übergang automatisch.
+ */
+export function smoothHidden(el, origin = 'top right') {
+  const native = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'hidden');
+  let out = null;
+  el.style.transformOrigin = origin;
+  Object.defineProperty(el, 'hidden', {
+    configurable: true,
+    get: () => native.get.call(el),
+    set: (v) => {
+      const was = native.get.call(el);
+      if (!v) {
+        out?.cancel();
+        out = null;
+        native.set.call(el, false);
+        if (was && el.animate && !reducedMotion()) {
+          el.animate([{ opacity: 0, transform: 'scale(.94) translateY(-6px)' }, { opacity: 1, transform: 'none' }],
+            { duration: 240, easing: 'cubic-bezier(.2,.9,.25,1)' });
+        }
+        return;
+      }
+      if (was || out) return;
+      if (!el.animate || reducedMotion()) return native.set.call(el, true);
+      out = el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.96) translateY(-4px)' }],
+        { duration: 170, easing: 'cubic-bezier(.4,0,.7,1)' });
+      out.onfinish = () => { out = null; native.set.call(el, true); };
+    },
+  });
+  return el;
+}

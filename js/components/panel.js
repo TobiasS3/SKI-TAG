@@ -10,7 +10,7 @@
 // Die aktuelle Höhe steht als CSS-Variable --sheet-h am Eltern-Element – SOS- und Kartenknöpfe
 // gleiten damit mit, höchstens bis --sheet-cap (= offen).
 
-import { h, isWide, slideIn } from '../utils/dom.js';
+import { h, isWide, slideIn, reducedMotion } from '../utils/dom.js';
 import { icon } from './icons.js';
 import { emit } from '../core/events.js';
 
@@ -248,10 +248,25 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
     visibleHeight: () => (isDesktop() ? 0 : heights[stage]),
     collapse: () => setStage('peek'),
     setTop(node) {
-      top.replaceChildren(...(node ? [node] : []));
-      top.hidden = !node;
-      measure();
-      show(heights[stage]);
+      const old = top.firstElementChild;
+      const apply = () => {
+        top.replaceChildren(...(node ? [node] : []));
+        top.hidden = !node;
+        measure();
+        show(heights[stage]);
+      };
+      // Weg: erst weich ausblenden, dann zieht sich der Bereich zusammen
+      if (!node && old && old.animate && !reducedMotion()) {
+        const anim = old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(14px) scale(.98)' }],
+          { duration: 220, easing: 'cubic-bezier(.4,0,.7,1)', fill: 'forwards' });
+        anim.finished.then(() => {
+          if (top.firstElementChild === old) apply();
+          anim.cancel(); // dasselbe Element (Route-Leiste) kann später wieder kommen – dann voll sichtbar
+        });
+        return;
+      }
+      apply();
+      if (node && node !== old) slideIn(node, 0, 300);
     },
     destroy,
     /** Kleiner Punkt am Tab (z. B. „Aufzeichnung läuft“) */
