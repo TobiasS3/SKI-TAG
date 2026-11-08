@@ -410,7 +410,7 @@ export function mountRoutePanel(el, ctx) {
             h('div', {},
               h('strong', {}, t('route.otherAreaTitle')),
               h('span', {}, t('route.otherArea', { area: result.area })))),
-          h('figure', { class: 'bus-scene', 'aria-hidden': 'true', html: busScene(shortArea(result.area)) }))
+          h('figure', { class: 'bus-scene', 'aria-hidden': 'true', html: busScene(shortArea(result.area), nearestLiftType(ctx.me.pos), target.lift?.type || 'gondola') }))
         : ok ? summary(result) : h('p', { class: 'note note-warn' }, t('route.none')),
       ok ? h('h3', { class: 'steps-title' }, t('route.follow')) : null,
       ok && ctx.liftStatus ? h('p', { class: 'small muted steps-note' }, icon('check'), t('route.statusIncluded')) : null,
@@ -752,21 +752,29 @@ function minSize(bounds) {
  * Skibus zum eigenen Skigebiet: links der Berg, an dem man ist, rechts der andere (mit Namen) – beide mit Gondel.
  * Der Bus fährt einmal langsam von der linken Talstation zur rechten und bleibt dort stehen.
  */
-function busScene(toName) {
-  const gondola = (x, y) => `<g transform="translate(${x} ${y})"><path d="M0 0v6" stroke="#fff" stroke-width="2"/><rect x="-9" y="6" width="18" height="16" rx="4" fill="#fff"/><rect x="-6" y="9" width="12" height="6" rx="1.5" fill="#2a4380"/><rect x="-9" y="18" width="18" height="2.5" fill="#e5450d"/></g>`;
+function busScene(toName, leftType, rightType) {
+  // Was am Seil hängt – Aufhängung beginnt genau auf dem Seil (x, y)
+  const carrier = (type, x, y) => {
+    const t = {
+      cable_car: `<path d="M-4 0v7M4 0v7" stroke="#fff" stroke-width="2"/><rect x="-14" y="7" width="28" height="19" rx="4" fill="#fff"/><rect x="-11" y="10" width="22" height="7" rx="1.5" fill="#2a4380"/><rect x="-14" y="22" width="28" height="2.5" fill="#e5450d"/>`,
+      chair_lift: `<g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M0 0v9M-8 9h16M-8 9v10M8 9v10M-9 15h18"/></g><rect x="-9" y="18" width="18" height="4" rx="2" fill="#e5450d" stroke="#fff" stroke-width="1.5"/>`,
+      't-bar': `<path d="M0 0v20" stroke="#fff" stroke-width="2"/><path d="M-7 20h14" stroke="#e5450d" stroke-width="3.5" stroke-linecap="round"/>`,
+      platter: `<path d="M0 0v18" stroke="#fff" stroke-width="2"/><circle cy="21" r="4" fill="#e5450d" stroke="#fff" stroke-width="1.5"/>`,
+    }[type] || `<path d="M0 0v6" stroke="#fff" stroke-width="2"/><rect x="-9" y="6" width="18" height="16" rx="4" fill="#fff"/><rect x="-6" y="9" width="12" height="6" rx="1.5" fill="#2a4380"/><rect x="-9" y="18" width="18" height="2.5" fill="#e5450d"/>`;
+    return `<g transform="translate(${x} ${y})">${t}</g>`;
+  };
   const station = (x) => `<g transform="translate(${x} 150)"><rect x="-13" y="-12" width="26" height="14" rx="2" fill="#c9d3e6"/><path d="M-16 -12 L0 -22 L16 -12Z" fill="#8fa3c9"/></g>`;
   return `<svg viewBox="0 0 360 200" role="img">
-  <defs><linearGradient id="bus-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1226"/><stop offset="1" stop-color="#2a4380"/></linearGradient></defs>
+  <defs><linearGradient id="bus-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1668e3"/><stop offset=".6" stop-color="#4e9dfa"/><stop offset="1" stop-color="#b8dcff"/></linearGradient></defs>
   <rect width="360" height="200" fill="url(#bus-sky)"/>
   <g fill="#fff">
-    <circle cx="128" cy="22" r="1.2" opacity=".7"/><circle cx="168" cy="44" r=".9" opacity=".5"/><circle cx="205" cy="18" r="1.4" opacity=".8"/>
-    <circle cx="236" cy="38" r=".8" opacity=".45"/><circle cx="110" cy="50" r=".8" opacity=".4"/><circle cx="330" cy="24" r="1" opacity=".6"/>
-    <circle cx="186" cy="70" r=".7" opacity=".35"/><circle cx="24" cy="54" r=".9" opacity=".45"/>
+    <path d="M118 40 a9 9 0 0 1 17 -4 a8 8 0 0 1 14 5 a6 6 0 0 1 -1 12 h-28 a7 7 0 0 1 -2 -13z" opacity=".92"/>
+    <path d="M212 26 a7 7 0 0 1 13 -3 a6 6 0 0 1 11 4 a5 5 0 0 1 -1 9 h-21 a5 5 0 0 1 -2 -10z" opacity=".8"/>
   </g>
-  <path d="M-10 160 L78 50 L150 150Z" fill="#4a6299"/><path d="M62 70 L78 50 L96 72 L82 76Z" fill="#fff"/>
-  <path d="M210 150 L284 46 L370 160Z" fill="#4a6299"/><path d="M268 68 L284 46 L302 70 L286 74Z" fill="#fff"/>
+  <path d="M-10 160 L78 50 L150 150Z" fill="#5b78b8"/><path d="M62 70 L78 50 L96 72 L82 76Z" fill="#fff"/>
+  <path d="M210 150 L284 46 L370 160Z" fill="#5b78b8"/><path d="M268 68 L284 46 L302 70 L286 74Z" fill="#fff"/>
   <path d="M40 150 L84 62" stroke="#fff" stroke-width="1.6"/><path d="M320 150 L278 60" stroke="#fff" stroke-width="1.6"/>
-  ${gondola(58, 98)}${gondola(296, 96)}
+  ${carrier(leftType, 60, 110)}${carrier(rightType, 301, 109)}
   <path d="M0 150 C 90 138, 270 138, 360 150 V200 H0Z" fill="#fff"/>
   ${station(40)}${station(320)}
   <path d="M0 176 H360" stroke="#c3cfe4" stroke-width="10"/>
@@ -785,6 +793,20 @@ function busScene(toName) {
   <text x="348" y="196" fill="#435070" font-family="system-ui, sans-serif" font-weight="700" font-size="11" text-anchor="end">${escapeXml(toName)}</text>
 </svg>`;
 }
+/** Art des Lifts, der einem gerade am nächsten ist (für die linke Seite der Skibus-Szene) */
+function nearestLiftType(pos) {
+  const net = skimap();
+  if (!pos || !net) return 'chair_lift';
+  let best = null;
+  let bestD = Infinity;
+  for (const l of net.lifts) {
+    if (l.type === 'magic_carpet') continue;
+    const d = geoDistance(pos, l.coords[0]);
+    if (d < bestD) { bestD = d; best = l; }
+  }
+  return best?.type || 'chair_lift';
+}
+
 /** „Hahnenkamm · Pengelstein · Resterhöhe“ → „Hahnenkamm“ (passt unter den Berg) */
 const shortArea = (a) => String(a || '').split(' · ')[0];
 const escapeXml = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);

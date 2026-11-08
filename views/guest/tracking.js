@@ -249,6 +249,8 @@ export function mountTracking(el, ctx) {
 
   return {
     hasPoints: () => day.points.length > 1,
+    /** Bereich der heutigen Spur (für den Filter „Gefahren“) */
+    bounds: () => (day.points.length ? L.latLngBounds(day.points.map((p) => [p.lat, p.lng])) : null),
     status: () => day.status,
     destroy() {
       offs.forEach((off) => off());
@@ -321,15 +323,18 @@ export function createRidden(map) {
       });
       r.pistes.forEach((i) => {
         const p = net.pistes[i];
-        // Stelle auf der eigenen Spur – sonst die Mitte der Piste
-        const at = r.at?.[i]?.pos || middleOf(linesOf(net, i));
+        // Schild immer auf der eigenen orangen Spur: der Spurpunkt, der der Piste am nächsten ist
+        // Kein Spurpunkt in der Nähe: lieber kein Schild als eines irgendwo auf der Piste
+        const at = onTrack(r.points, linesOf(net, i)) || r.at?.[i]?.pos;
         if (shown.pistes.has(i) || !p || !at || (!p.ref && !p.name)) return;
         shown.pistes.add(i);
-        const key = `${p.ref || ''}|${p.name || ''}`;
+        // Eine Nummer = ein Schild (21 Streif, 21 Walde … sind auf dem Plan dieselbe Piste 21)
+        const key = p.ref || p.name;
         if (shownNames.has(key)) return;
         shownNames.add(key);
         added = true;
-        group.addLayer(sign(at, 'is-piste is-ridden', `<i class="diff-${p.diff}">${esc(p.ref || '')}</i>${p.name ? `<b>${esc(p.name)}</b>` : ''}`, 400));
+        const name = (p.name || '').replace(/\s*\(.*\)\s*$/, ''); // ohne „(nur während Rennen präpariert)“
+        group.addLayer(sign(at, 'is-piste is-ridden', `<i class="diff-${p.diff}">${esc(p.ref || '')}</i>${name ? `<b>${esc(name)}</b>` : ''}`, 400));
       });
       if (added) requestAnimationFrame(declutter);
     },
@@ -346,11 +351,23 @@ export function createRidden(map) {
   };
 }
 
-/** Mittelpunkt des längsten Stücks einer Piste */
-function middleOf(lines) {
-  if (!lines?.length) return null;
-  const longest = lines.reduce((a, b) => (b.length > a.length ? b : a));
-  return longest[Math.floor(longest.length / 2)];
+/** Punkt der eigenen Spur, der am nächsten an der Piste liegt (null, wenn keine Spur da ist) */
+function onTrack(points, lines) {
+  if (!points?.length || !lines?.length) return null;
+  const coords = lines.flat();
+  const step = Math.max(1, Math.floor(points.length / 600)); // lange Tage: nicht jeden Punkt prüfen
+  let best = null;
+  let bestD = Infinity;
+  for (let k = 0; k < points.length; k += step) {
+    const p = points[k];
+    if (p.kind === 'lift') continue;
+    for (const c of coords) {
+      const d = (p.lat - c[0]) ** 2 + ((p.lng - c[1]) * 0.68) ** 2;
+      if (d < bestD) { bestD = d; best = [p.lat, p.lng]; }
+    }
+  }
+  // weiter als ~150 m weg: das ist nicht die Stelle, wo man gefahren ist
+  return bestD < (150 / 111000) ** 2 ? best : null;
 }
 
 /**
@@ -359,8 +376,8 @@ function middleOf(lines) {
  */
 export function riddenOf(day) {
   const net = skimap();
-  if (!net) return day.ridden;
-  const r = { lifts: [...(day.ridden?.lifts || [])], pistes: [...(day.ridden?.pistes || [])], at: day.ridden?.at || {} };
+  if (!net) return { ...day.ridden, points: day.points };
+  const r = { lifts: [...(day.ridden?.lifts || [])], pistes: [...(day.ridden?.pistes || [])], at: day.ridden?.at || {}, points: day.points };
   Object.keys(day.liftsUsed || {}).forEach((name) => {
     const i = net.lifts.findIndex((l) => l.name === name);
     if (i >= 0 && !r.lifts.includes(i)) r.lifts.push(i);

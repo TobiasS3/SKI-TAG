@@ -1177,7 +1177,8 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 8px;
-  margin: 10px 2px 2px;
+  margin: 12px 0 2px;
+  padding: 0 16px; /* gleicher Rand wie Name und Infos darunter */
   font-size: var(--fs-m);
 }
 

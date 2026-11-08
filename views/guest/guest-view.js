@@ -199,6 +199,11 @@ export async function mountGuest(root, session) {
     if (focus !== 'route') save('mapFocus', focus);
     renderFocus();
     emit('focus', focus);
+    // „Gefahren“ angetippt: Karte zeigt die ganze heutige Spur – so nah, dass Lift- und Pistenschilder lesbar sind
+    if (mode === 'track' && !quiet) {
+      const b = tracking?.bounds();
+      if (b?.isValid()) ctx.fit(b, 15);
+    }
   }
   function renderFocus() {
     routeChip.hidden = !hasRoute;
