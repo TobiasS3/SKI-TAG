@@ -255,6 +255,19 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
   });
   const clear = h('button', { class: 'search-clear', type: 'button', hidden: true, 'aria-label': 'Löschen' }, icon('close'));
   const list = h('ul', { class: 'search-results', id: 'search-results', role: 'listbox', hidden: true });
+
+  // Tastatur offen: Liste nur so hoch wie der freie Platz darüber, sonst liegen die unteren
+  // Vorschläge (z. B. „Hütten im Umkreis“) hinter der Tastatur und lassen sich nicht antippen
+  const vv = window.visualViewport;
+  const fitToKeyboard = () => {
+    if (!vv || list.hidden) return;
+    const top = list.getBoundingClientRect().top;
+    const free = vv.offsetTop + vv.height - top - 12;
+    list.style.maxHeight = free < innerHeight * 0.6 ? `${Math.max(140, Math.round(free))}px` : '';
+  };
+  new MutationObserver(() => requestAnimationFrame(fitToKeyboard)).observe(list, { attributes: true, attributeFilter: ['hidden'] });
+  vv?.addEventListener('resize', fitToKeyboard);
+  vv?.addEventListener('scroll', fitToKeyboard);
   const el = h('div', { class: 'search' },
     h('div', { class: 'search-box' }, icon('search'), input, clear),
     list,
@@ -558,7 +571,11 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
   return {
     el,
     closeGroup: () => group && closeGroup(),
-    destroy: () => document.removeEventListener('pointerdown', outside, true),
+    destroy: () => {
+      document.removeEventListener('pointerdown', outside, true);
+      vv?.removeEventListener('resize', fitToKeyboard);
+      vv?.removeEventListener('scroll', fitToKeyboard);
+    },
   };
 }
 
