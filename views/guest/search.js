@@ -260,16 +260,21 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
   // Tastatur offen: Liste nur so hoch wie der freie Platz darüber, sonst liegen die unteren
   // Vorschläge (z. B. „Hütten im Umkreis“) hinter der Tastatur und lassen sich nicht antippen
   const vv = window.visualViewport;
+  // Handy: beim Antippen des Suchfelds kommt gleich die Tastatur – sofort kompakt, sonst klappt die
+  // Liste erst groß auf und springt dann klein
+  const touch = matchMedia('(pointer: coarse)').matches;
   const fitToKeyboard = () => {
     if (!vv || list.hidden) return;
     const top = list.getBoundingClientRect().top;
     const free = vv.offsetTop + vv.height - top - 12;
-    const keyboard = free < innerHeight * 0.6;
+    const typing = touch && document.activeElement === input;
+    const keyboard = typing || free < innerHeight * 0.6;
     // Tastatur offen: Vorschläge kompakt (ohne Untertitel), damit alle auf einen Blick passen
     list.classList.toggle('is-tight', keyboard);
     list.style.maxHeight = keyboard ? `${Math.max(140, Math.round(free))}px` : '';
   };
-  new MutationObserver(() => requestAnimationFrame(fitToKeyboard)).observe(list, { attributes: true, attributeFilter: ['hidden'] });
+  // Gleich beim Öffnen messen (vor dem ersten Bild), nicht erst einen Moment später
+  new MutationObserver(fitToKeyboard).observe(list, { attributes: true, attributeFilter: ['hidden'] });
   vv?.addEventListener('resize', fitToKeyboard);
   vv?.addEventListener('scroll', fitToKeyboard);
   const el = h('div', { class: 'search' },

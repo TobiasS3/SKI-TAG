@@ -4923,22 +4923,41 @@
 
 .modal-backdrop.is-closing {
   opacity: 0;
+  transition: opacity 340ms ease 60ms;
 }
 
 .modal-info {
-  animation: modal-grow 340ms var(--ease-out) both;
+  animation: modal-grow 440ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
 }
 
+/* Schließen wie bei Safari: das Fenster schrumpft weich zurück in den Knopf, aus dem es kam */
 .modal-backdrop.is-closing .modal-info {
-  transform: scale(0.6);
-  opacity: 0;
-  transition: transform 190ms var(--ease), opacity 190ms;
+  animation: modal-shrink 380ms cubic-bezier(0.4, 0, 0.6, 1) both;
 }
 
 @keyframes modal-grow {
   from {
     opacity: 0;
-    transform: scale(0.3);
+    transform: scale(0.12);
+    border-radius: 40px;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-shrink {
+  to {
+    opacity: 0;
+    transform: scale(0.12);
+    border-radius: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-info,
+  .modal-backdrop.is-closing .modal-info {
+    animation-duration: 1ms;
   }
 }
 
@@ -9199,4 +9218,29 @@ small.wx-range-t {
 .search-results.is-tight .search-sg-icon {
   width: 32px;
   height: 32px;
+}
+
+/* Vorschläge: klappen weich von oben auf (wie ein Menü), Höhe gleitet statt zu springen */
+.search-results {
+  transform-origin: top center;
+  animation: search-open 320ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  transition: max-height 240ms ease;
+}
+
+@keyframes search-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.92);
+    clip-path: inset(0 0 100% 0 round 24px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-results {
+    animation: none;
+    transition: none;
+  }
 }

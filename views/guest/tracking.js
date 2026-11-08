@@ -284,23 +284,27 @@ export function createRidden(map) {
   // haben keine Größe, dann lägen scheinbar alle übereinander und fast alle würden versteckt
   const declutter = () => {
     const els = [...map.getContainer().querySelectorAll('.leaflet-riddenSigns-pane .mk-rsign span')];
-    const overlap = (r, q) => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2;
-    // 1. Jedes Schild erst nur mit Nummer – so bekommt jede gefahrene Piste/jeder Lift einen Platz
-    const placed = new Map();
+    const overlap = (r, q) => r.left < q.right + 3 && r.right > q.left - 3 && r.top < q.bottom + 2 && r.bottom > q.top - 2;
+    const placed = [];
     for (const el of els) {
+      // Nie verstecken: jedes gefahrene Stück bekommt sein Schild. Zu eng → nur Nummer,
+      // immer noch zu eng → ein Stück nach unten rücken, bis es frei ist
       el.style.visibility = '';
-      el.classList.add('is-compact');
-      const r = el.getBoundingClientRect();
-      if (!r.width) continue;
-      if ([...placed.values()].some((q) => overlap(r, q))) el.style.visibility = 'hidden';
-      else placed.set(el, r);
-    }
-    // 2. Wo Platz ist, kommt der Name dazu
-    for (const el of placed.keys()) {
+      el.style.marginTop = '0px';
       el.classList.remove('is-compact');
-      const r = el.getBoundingClientRect();
-      if ([...placed].some(([o, q]) => o !== el && overlap(r, q))) el.classList.add('is-compact');
-      else placed.set(el, r);
+      let r = el.getBoundingClientRect();
+      if (!r.width) continue;
+      if (placed.some((q) => overlap(r, q))) {
+        el.classList.add('is-compact');
+        r = el.getBoundingClientRect();
+      }
+      let shift = 0;
+      while (placed.some((q) => overlap(r, q)) && shift < 8 * (r.height + 3)) {
+        shift += r.height + 3;
+        el.style.marginTop = `${shift}px`;
+        r = el.getBoundingClientRect();
+      }
+      placed.push(r);
     }
   };
   map.on('zoomend moveend', declutter);

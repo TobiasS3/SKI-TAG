@@ -40,7 +40,7 @@ export function infoModal({ body, label, closeLabel, onClose, from }) {
     closed = true;
     removeEventListener('keydown', onKey);
     backdrop.classList.add('is-closing');
-    setTimeout(() => backdrop.remove(), 190);
+    setTimeout(() => backdrop.remove(), 400); // so lange schrumpft das Fenster zurück in den Knopf
     onClose?.();
   };
   const onKey = (e) => e.key === 'Escape' && close();
