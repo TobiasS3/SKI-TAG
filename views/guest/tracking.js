@@ -283,21 +283,25 @@ export function createRidden(map) {
   // Überlappende Schilder ausblenden – nur, wenn die Ebene wirklich zu sehen ist: unsichtbare Schilder
   // haben keine Größe, dann lägen scheinbar alle übereinander und fast alle würden versteckt
   const declutter = () => {
-    const placed = [];
-    const hits = (r) => placed.some((q) => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2);
-    map.getContainer().querySelectorAll('.leaflet-riddenSigns-pane .mk-rsign span').forEach((el) => {
+    const els = [...map.getContainer().querySelectorAll('.leaflet-riddenSigns-pane .mk-rsign span')];
+    const overlap = (r, q) => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2;
+    // 1. Jedes Schild erst nur mit Nummer – so bekommt jede gefahrene Piste/jeder Lift einen Platz
+    const placed = new Map();
+    for (const el of els) {
       el.style.visibility = '';
+      el.classList.add('is-compact');
+      const r = el.getBoundingClientRect();
+      if (!r.width) continue;
+      if ([...placed.values()].some((q) => overlap(r, q))) el.style.visibility = 'hidden';
+      else placed.set(el, r);
+    }
+    // 2. Wo Platz ist, kommt der Name dazu
+    for (const el of placed.keys()) {
       el.classList.remove('is-compact');
-      let r = el.getBoundingClientRect();
-      if (!r.width) return;
-      // Zu eng: erst nur die Nummer (ohne Namen) versuchen, erst dann ganz ausblenden
-      if (hits(r)) {
-        el.classList.add('is-compact');
-        r = el.getBoundingClientRect();
-      }
-      if (hits(r)) el.style.visibility = 'hidden';
-      else placed.push(r);
-    });
+      const r = el.getBoundingClientRect();
+      if ([...placed].some(([o, q]) => o !== el && overlap(r, q))) el.classList.add('is-compact');
+      else placed.set(el, r);
+    }
   };
   map.on('zoomend moveend', declutter);
   const offFocus = on('focus', () => requestAnimationFrame(declutter));
