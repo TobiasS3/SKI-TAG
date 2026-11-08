@@ -769,7 +769,6 @@ function busScene(toName) {
   <path d="M0 176 H360" stroke="#fff" stroke-width="1.5" stroke-dasharray="10 10"/>
   <g class="bus"><g transform="scale(.55)">
     <rect x="18" y="-6" width="120" height="6" rx="3" fill="#c9d3e6"/>
-    <path d="M30 -6 l8 -10 M54 -6 l8 -10 M78 -6 l8 -10 M102 -6 l8 -10" stroke="#e5450d" stroke-width="5" stroke-linecap="round"/>
     <rect x="0" y="0" width="168" height="50" rx="12" fill="#0b1226" stroke="#fff" stroke-width="3"/>
     <rect x="0" y="30" width="168" height="7" fill="#e5450d"/>
     <rect x="12" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/><rect x="44" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
