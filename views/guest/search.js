@@ -283,8 +283,9 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
   // Handy, Tastatur offen: Vorschläge kompakt (ohne Untertitel), damit alle über die Tastatur passen.
   // Nur beim Antippen und Verlassen des Feldes umschalten – nichts misst laufend nach.
   if (matchMedia('(pointer: coarse)').matches) {
+    // Erst beim Schließen der Liste wieder normal – NICHT beim Verlassen des Feldes: am iPhone verliert
+    // das Feld den Fokus genau beim Antippen eines Vorschlags, die Liste würde unter dem Finger verrutschen
     input.addEventListener('focus', () => list.classList.add('is-tight'));
-    input.addEventListener('blur', () => list.classList.remove('is-tight'));
   }
   const el = h('div', { class: 'search' },
     h('div', { class: 'search-box' }, icon('search'), input, clear),
@@ -527,6 +528,7 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
     selected = null;
     el.classList.remove('has-group');
     list.hidden = true;
+    list.classList.remove('is-tight');
     input.setAttribute('aria-expanded', 'false');
   }
 
