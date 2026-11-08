@@ -758,7 +758,11 @@ function busScene(toName) {
   return `<svg viewBox="0 0 360 200" role="img">
   <defs><linearGradient id="bus-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1226"/><stop offset="1" stop-color="#2a4380"/></linearGradient></defs>
   <rect width="360" height="200" fill="url(#bus-sky)"/>
-  <circle cx="180" cy="34" r="11" fill="#fff" opacity=".85"/>
+  <g fill="#fff">
+    <circle cx="128" cy="22" r="1.2" opacity=".7"/><circle cx="168" cy="44" r=".9" opacity=".5"/><circle cx="205" cy="18" r="1.4" opacity=".8"/>
+    <circle cx="236" cy="38" r=".8" opacity=".45"/><circle cx="110" cy="50" r=".8" opacity=".4"/><circle cx="330" cy="24" r="1" opacity=".6"/>
+    <circle cx="186" cy="70" r=".7" opacity=".35"/><circle cx="24" cy="54" r=".9" opacity=".45"/>
+  </g>
   <path d="M-10 160 L78 50 L150 150Z" fill="#4a6299"/><path d="M62 70 L78 50 L96 72 L82 76Z" fill="#fff"/>
   <path d="M210 150 L284 46 L370 160Z" fill="#4a6299"/><path d="M268 68 L284 46 L302 70 L286 74Z" fill="#fff"/>
   <path d="M40 150 L84 62" stroke="#fff" stroke-width="1.6"/><path d="M320 150 L278 60" stroke="#fff" stroke-width="1.6"/>
