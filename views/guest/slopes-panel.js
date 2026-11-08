@@ -48,6 +48,7 @@ export function mountRoutePanel(el, ctx) {
     fromPlace = null;
     animateNext = true;
     calculate();
+    toTop(); // neues Ziel: oben anfangen („Zurück“ und Name), egal wie weit die Liste vorher gescrollt war
   }
 
   /** Nur zeigen: Karte fliegt hin, der Ort legt sich über den aktuellen Tab */
