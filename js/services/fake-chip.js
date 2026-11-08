@@ -24,7 +24,7 @@ export function simulateChip({ seed = 1, start, mode = 'fast' }, cb) {
   let along = 0;           // Meter auf der aktuellen Kante
   let edgeSpeed = 0;
   let wait = 0;            // Sekunden Pause (Anstehen, Hütte)
-  let guide = null;        // { node, mode } wenn navigiert wird
+  let guide = null;        // { node, mode, via } wenn navigiert wird – via: danach diese Kanten fahren (Streif)
   let simTime = now().getTime();
   const t0 = simTime;
   const battery0 = 70 + Math.round(rand() * 30); // Akku beim Start in %
@@ -34,7 +34,15 @@ export function simulateChip({ seed = 1, start, mode = 'fast' }, cb) {
 
   function nextPath() {
     if (guide) {
-      if (node === guide.node) return []; // angekommen: stehen bleiben
+      if (node === guide.node) {
+        // Am Start der Streif: jetzt die Rennstrecke selbst runter
+        if (guide.via?.length) {
+          const via = guide.via;
+          guide = { ...guide, via: null, node: map.edges[via[via.length - 1]].b };
+          return via;
+        }
+        return []; // angekommen: stehen bleiben
+      }
       return findPath(node, guide.node, guide.mode) || [];
     }
     // Mal ein Lift oben, mal irgendwo – wie ein echter Tag
@@ -113,8 +121,8 @@ export function simulateChip({ seed = 1, start, mode = 'fast' }, cb) {
 
   return {
     stop: () => clearInterval(timer),
-    goTo(target, guideMode = 'fast') {
-      guide = target == null ? null : { node: target, mode: guideMode };
+    goTo(target, guideMode = 'fast', via = null) {
+      guide = target == null ? null : { node: target, mode: guideMode, via };
       queue = []; // aktuelle Kante zu Ende fahren, dann neuer Weg
       if (wait > 0 && edge?.kind !== 'lift') wait = 0;
     },

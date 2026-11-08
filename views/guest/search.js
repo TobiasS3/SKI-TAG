@@ -6,10 +6,10 @@
 import { h, reducedMotion } from '../../js/utils/dom.js';
 import { duration } from '../../js/utils/format.js';
 import { t } from '../../js/core/i18n.js';
-import { searchIndex, route, routeToAny } from '../../js/services/slopes.js';
+import { searchIndex, route, routeToAny, findPath, skimap } from '../../js/services/slopes.js';
 import { icon } from '../../js/components/icons.js';
 import { placeLogo } from './place-media.js';
-import { distance as geoDistance } from '../../js/map/geo.js';
+import { distance as geoDistance, lineLength, pointAlong } from '../../js/map/geo.js';
 
 const MAX = 8;
 const plain = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss');
@@ -55,10 +55,15 @@ export function destinations({ getPos, rental }) {
   return cached(indexed, getPos, rental).singles;
 }
 
+/** Route von hier zu einem Ziel (oder null) */
+function routeTo(me, item) {
+  if (!me) return null;
+  return item.nodes ? routeToAny(me, item.nodes, item.pos, 'fast') : item.node != null ? route(me, item.node, 'fast') : null;
+}
+
 /** Fahrzeit von hier zu einem Ziel, sonst null */
 function timeTo(me, item) {
-  if (!me) return null;
-  const r = item.nodes ? routeToAny(me, item.nodes, item.pos, 'fast') : item.node != null ? route(me, item.node, 'fast') : null;
+  const r = routeTo(me, item);
   return r && !r.unreachable ? r.time : null;
 }
 
@@ -82,7 +87,10 @@ function buildSuggestions(items, getPos, rental) {
     .sort((a, b) => (a.eta ?? 1e9) - (b.eta ?? 1e9) || (b.hi - b.lo) - (a.hi - a.lo));
   // Schon im Tal (unter 2 min bis unten)? Dann kein „ins Tal“
   const nearest = valley[0]?.eta != null && valley[0].eta >= 120 ? valley[0] : null;
-  const streifBase = pistes.find((x) => /^streif-rennstrecke$/i.test(x.name));
+  // Streif: Route zum Start, auf der Karte die ganze Rennstrecke bis ins Ziel
+  // (dazu die Teile „nur während Rennen präpariert“ – die gehören auch zur Strecke)
+  const streifRaw = pistes.find((x) => /^streif-rennstrecke$/i.test(x.name));
+  const streifBase = streifRaw && { ...streifRaw, ...streifCourse() };
   const huts = items.filter((x) => x.type === 'hut');
   const nearHuts = me ? [...huts].sort((a, b) => geoDistance(me, a.pos) - geoDistance(me, b.pos)).slice(0, 6) : [];
   const flying = items.find((x) => x.type === 'lift' && /^3S/i.test(x.name));
@@ -105,23 +113,30 @@ function buildSuggestions(items, getPos, rental) {
   const startEta = startItem && timeTo(me, startItem);
   const atStart = startItem && me && geoDistance(me, startItem.pos) < 150;
   const eta = (time) => (time != null ? ` · ${duration(time)}` : '');
+  // Ziel mit Fahrzeit: lead = was es ist, eta = wie lange, sub = beides in einer Zeile
+  // otherArea: nur mit dem Skibus erreichbar (Horn) – nicht einfach „keine Fahrzeit“
+  const goal = (lead, item) => {
+    const r = routeTo(me, item);
+    const time = r && !r.unreachable ? r.time : null;
+    return { lead, eta: time, otherArea: r?.unreachable === 'area', sub: `${lead}${eta(time)}` };
+  };
 
   const singles = [
     startItem && !atStart && {
-      id: 'start', icon: 'home', item: startItem, primary: true,
+      id: 'start', icon: 'home', item: startItem, primary: true, eta: startEta, lead: t('dest.start.sub', { name: kassa.name }),
       sub: `${t('dest.start.sub', { name: kassa.name })}${eta(startEta)}`,
     },
     // Ins Tal: gleich die Route ans Ende der schnellsten Talabfahrt
     nearest && {
-      id: 'down', icon: 'arrowDown',
+      id: 'down', icon: 'arrowDown', primary: true, eta: nearest.eta, lead: t('search.sg.down.via', { name: nearest.via }),
       item: { ...nearest, name: `${nearest.name} ${t('search.sg.down.to')}`, pos: nearest.loPos, node: nearest.loNode },
       sub: t('search.sg.down.sub', { name: nearest.via, time: duration(nearest.eta) }),
     },
-    streifBase && { id: 'streif', icon: 'flag', item: streifBase, sub: `${t('search.sg.streif.sub')}${eta(timeTo(me, streifBase))}` },
-    startHouse && { id: 'starthaus', icon: 'flag', item: startHouse, sub: `${t('dest.starthaus.sub')}${eta(timeTo(me, startHouse))}` },
-    flying && { id: 'flying', icon: 'gondola', item: flying, sub: `${t('search.sg.flying.sub')}${eta(timeTo(me, flying))}` },
-    panorama && { id: 'panorama', icon: 'gondola', item: panorama, sub: `${t('dest.panorama.sub')}${eta(timeTo(me, panorama))}` },
-    hornTop && { id: 'horn', icon: 'gondola', item: hornTop, sub: `${t('dest.horn.sub')}${eta(timeTo(me, hornTop))}` },
+    streifBase && { id: 'streif', icon: 'flag', item: streifBase, ...goal(t('search.sg.streif.sub'), streifBase) },
+    startHouse && { id: 'starthaus', icon: 'flag', item: startHouse, ...goal(t('dest.starthaus.sub'), startHouse) },
+    flying && { id: 'flying', icon: 'gondola', item: flying, ...goal(t('search.sg.flying.sub'), flying) },
+    panorama && { id: 'panorama', icon: 'gondola', item: panorama, ...goal(t('dest.panorama.sub'), panorama) },
+    hornTop && { id: 'horn', icon: 'gondola', item: hornTop, ...goal(t('dest.horn.sub'), hornTop) },
   ].filter(Boolean);
 
   const groups = [
@@ -146,12 +161,13 @@ function buildSuggestions(items, getPos, rental) {
     },
     allLifts.length && {
       id: 'lifts', icon: 'gondola', items: allLifts,
-      // Filter nach Art: Gondel und Seilbahn · Sessellift · Schlepplift und Förderband
+      // Filter nach Art: Gondel und Seilbahn · Sessellift · Schlepplift · Förderband
       filters: [
         { id: 'all', test: () => true },
         { id: 'gondola', test: (x) => ['gondola', 'cable_car', 'mixed_lift'].includes(x.lift.type) },
         { id: 'chair', test: (x) => x.lift.type === 'chair_lift' },
-        { id: 'drag', test: (x) => ['t-bar', 'platter', 'drag_lift', 'j-bar', 'rope_tow', 'magic_carpet'].includes(x.lift.type) },
+        { id: 'drag', test: (x) => ['t-bar', 'platter', 'drag_lift', 'j-bar', 'rope_tow'].includes(x.lift.type) },
+        { id: 'carpet', test: (x) => x.lift.type === 'magic_carpet' },
       ],
     },
     parking.length && {
@@ -167,6 +183,51 @@ function buildSuggestions(items, getPos, rental) {
     nearHuts.length && { id: 'huts', icon: 'hut', items: nearHuts },
   ].filter(Boolean);
   return { groups, singles };
+}
+
+// Bekannte Passagen der Streif, ungefähr nach Anteil der Strecke vom Start (Rennstrecke 3,3 km)
+const STREIF_SECTIONS = [
+  ['Mausefalle', 0.07], ['Karussell', 0.14], ['Steilhang', 0.22], ['Brückenschuss', 0.33],
+  ['Gschöss', 0.43], ['Alte Schneise', 0.5], ['Seidlalmsprung', 0.58], ['Lärchenschuss', 0.66],
+  ['Oberhausberg', 0.74], ['Hausbergkante', 0.84], ['Querfahrt', 0.9], ['Zielschuss', 0.96],
+];
+
+/**
+ * Die Streif als eine durchgehende Linie vom Start bis ins Ziel. In den Kartendaten fehlen Stücke,
+ * wo sie über anders benannte Pisten läuft – die füllt der kürzeste Weg im Pistennetz.
+ * Dazu die Passagen (Mausefalle, Steilhang, Hausbergkante …) als Punkte auf der Linie.
+ */
+function streifCourse() {
+  const net = skimap();
+  const segs = net.edges.filter((e) => e.kind === 'piste' && /^streif-rennstrecke/i.test(net.pistes[e.ref].name || ''))
+    .sort((a, b) => net.ele[b.a] - net.ele[a.a]);
+  const line = [];
+  const via = []; // Kanten in Fahrtrichtung – damit die Route die Streif wirklich abfährt
+  const seen = new Set();
+  let last = null;
+  for (const e of segs) {
+    if (seen.has(e.b)) continue; // zweite Startvariante – führt auf denselben Punkt
+    if (last != null && last !== e.a) {
+      const gap = findPath(last, e.a);
+      if (!gap || !gap.every((i) => net.edges[i].kind === 'piste')) continue; // keine Verbindung: Stück auslassen
+      gap.forEach((i) => { line.push(...net.edges[i].coords); via.push(i); });
+    }
+    line.push(...e.coords);
+    via.push(net.edges.indexOf(e));
+    seen.add(e.a);
+    seen.add(e.b);
+    last = e.b;
+  }
+  if (line.length < 2) return {};
+  const len = lineLength(line);
+  return {
+    node: segs[0].a, // Route führt zum Start …
+    pos: net.nodes[segs[0].a],
+    via, // … und dann die ganze Streif hinunter
+    finishPos: line[line.length - 1],
+    course: [line],
+    sections: STREIF_SECTIONS.map(([name, f]) => ({ name, at: len * f, pos: pointAlong(line, len * f) })),
+  };
 }
 
 /** Wohin führt die Route, wenn man eine Karte aus der Gruppe nimmt? */
@@ -294,7 +355,10 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
       },
     },
     thumb(item),
-    h('span', { class: 'search-text' }, h('strong', {}, item.name), h('small', { class: i === 0 && item.eta != null ? 'is-fast' : '' }, cardSub(item, i))),
+    h('span', { class: 'search-text' },
+      // Lift: Nummer wie auf der Karte vorn dran – lesen statt reinzoomen oder antippen
+      h('strong', {}, item.type === 'lift' && item.lift?.code ? h('i', { class: 'search-code num' }, item.lift.code) : null, item.name),
+      h('small', { class: i === 0 && item.eta != null ? 'is-fast' : '' }, cardSub(item, i))),
     isSel
       ? h('button', {
         type: 'button',
@@ -327,7 +391,8 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
       showSuggestions();
       input.focus();
     };
-    list.replaceChildren(
+    // replaceChildren schreibt null als Text „null“ hin – leere Teile vorher raus
+    list.replaceChildren(...[
       h('li', { class: 'search-head search-head-back', role: 'presentation' },
         h('button', {
           type: 'button',
@@ -349,11 +414,14 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
             onclick: () => openGroup(sg, f.id),
           }, f.words ? h('i', { class: `dot diff-${f.id}` }) : null, f.label || t(`search.f.${f.id}`), h('small', {}, String(n)));
         }))) : null,
+      sg.id === 'lifts' && !selected
+        ? h('li', { class: 'search-hint', role: 'presentation' }, icon('plus'), t('search.sg.lifts.zoom'))
+        : null,
       shown.length
         ? h('li', { class: `search-strip-wrap${single ? ' is-single' : ''}`, role: 'presentation' },
           h('ul', { class: 'search-strip' }, shown.map((x, k) => card(x, k, sg))))
         : h('li', { class: 'search-empty', role: 'presentation' }, t('search.f.none')),
-    );
+    ].filter(Boolean));
     // Gewählte Karte ins Bild schieben
     if (selected) requestAnimationFrame(() => list.querySelector('.search-card.is-selected')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' }));
     // Tastatur zu, sonst verdeckt sie am Handy genau die Karte, auf der die Gruppe aufleuchtet

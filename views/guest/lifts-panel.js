@@ -1,6 +1,7 @@
 // Status-Tab (Pisten/Liftstatus): oben umschalten zwischen Liften (Standard) und Pisten.
 // Lifte: offen / zu / Wind-Stopp + Öffnungszeiten. Pisten: offen, präpariert, Buckelpiste, gesperrt.
-// Nach Teilgebiet sortiert. Antippen → auf der Karte zeigen + Route dorthin.
+// Sortiert wie auf kitzski.at: Lifte nach Liftnummer (A1, A2 … H11) in ihrem Sektor,
+// Pisten nach Pistennummer. Antippen → auf der Karte zeigen + Route dorthin.
 
 import { h, replace } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
@@ -12,8 +13,17 @@ import { liftState, isRunning, liftList, pisteState, pisteList } from '../../js/
 import { icon, liftIcon } from '../../js/components/icons.js';
 
 const FILTERS = ['all', 'open', 'closed'];
-// Reihenfolge in der Liste: große Bahnen zuerst
-const TYPE_ORDER = ['cable_car', 'gondola', 'mixed_lift', 'chair_lift', 't-bar', 'j-bar', 'platter', 'rope_tow', 'magic_carpet'];
+// Sektoren wie auf dem KitzSki-Pistenplan: der Buchstabe der Liftnummer
+const SECTORS = {
+  A: 'Hahnenkamm',
+  B: 'Fleckalm · Ehrenbachhöhe',
+  C: 'Steinbergkogel',
+  D: 'Pengelstein · Aschau',
+  E: 'Gaisberg · Reith',
+  F: 'Jochberg · Wagstätt',
+  G: 'Resterhöhe · Pass Thurn',
+  H: 'Kitzbüheler Horn',
+};
 
 // Zustand von Liften und Pisten – wird auch von der Bergbahn-Ansicht gebraucht
 export { liftState, isRunning, liftList, pisteState, pisteList };
@@ -21,7 +31,8 @@ export { liftState, isRunning, liftList, pisteState, pisteList };
 export function mountLifts(el, ctx, status, pistes) {
   let filter = 'all';
   let mode = 'lifts'; // 'lifts' | 'pistes'
-  const all = liftList(ctx.skimap);
+  // Jeder Lift einmal (manche liegen in OpenStreetMap doppelt vor)
+  const all = [...new Map(liftList(ctx.skimap).map((x) => [x.lift.code || x.lift.name + x.area, x])).values()];
   const allPistes = pisteList(ctx.skimap);
 
   function render() {
@@ -51,11 +62,11 @@ export function mountLifts(el, ctx, status, pistes) {
           'aria-pressed': String(f === filter),
           onclick: () => { filter = f; render(); },
         }, t(`lifts.filter.${f}`)))),
-      ctx.skimap.areas.map((area, a) => {
-        const list = visible.filter((r) => r.area === a).sort(byType);
+      [...Object.keys(SECTORS), null].map((letter) => {
+        const list = visible.filter((r) => sectorOf(r.lift) === letter).sort(byCode);
         if (!list.length) return null;
         return h('section', { class: 'card lifts-area' },
-          h('h3', { class: 'card-title' }, area),
+          h('h3', { class: 'card-title' }, letter ? SECTORS[letter] : t('lifts.other')),
           h('ul', { class: 'lift-rows' }, list.map(row)));
       }),
       h('p', { class: 'wx-source' }, t('lifts.source')),
@@ -98,7 +109,7 @@ export function mountLifts(el, ctx, status, pistes) {
           onclick: () => { filter = f; render(); },
         }, t(`lifts.filter.${f}`)))),
       ctx.skimap.areas.map((area, a) => {
-        const list = visible.filter((r) => r.area === a).sort(byDiff);
+        const list = visible.filter((r) => r.area === a).sort(byRef);
         if (!list.length) return null;
         return h('section', { class: 'card lifts-area' },
           h('h3', { class: 'card-title' }, area),
@@ -133,7 +144,9 @@ export function mountLifts(el, ctx, status, pistes) {
         class: `lift-row is-${s.state}`,
         onclick: () => ctx.show({ type: 'lift', name: lift.name, sub: lift.typeName, pos: r.pos, node: r.node, lift }),
       },
-      h('span', { class: 'lift-icon' }, icon(liftIcon(lift.type))),
+      lift.code
+        ? h('span', { class: 'lift-icon lift-code num', title: lift.typeName }, lift.code)
+        : h('span', { class: 'lift-icon' }, icon(liftIcon(lift.type))),
       h('span', { class: 'lift-text' },
         h('strong', {}, lift.name),
         h('small', {}, lift.typeName, ' · ', h('span', { class: 'num' }, `${s.open}–${s.close}`))),
@@ -163,12 +176,20 @@ export function mountLifts(el, ctx, status, pistes) {
   };
 }
 
-const DIFF_ORDER = ['easy', 'intermediate', 'advanced', 'expert', 'freeride'];
-function byDiff(a, b) {
-  return DIFF_ORDER.indexOf(a.piste.diff) - DIFF_ORDER.indexOf(b.piste.diff)
-    || String(a.piste.ref || a.piste.name).localeCompare(String(b.piste.ref || b.piste.name), 'de', { numeric: true });
+/** Sektor = Buchstabe der Liftnummer („D9“ → D). Ohne Nummer: null → „Weitere Lifte“ */
+function sectorOf(lift) {
+  const letter = String(lift.code || '').charAt(0).toUpperCase();
+  return SECTORS[letter] ? letter : null;
 }
 
-function byType(a, b) {
-  return TYPE_ORDER.indexOf(a.lift.type) - TYPE_ORDER.indexOf(b.lift.type) || a.lift.name.localeCompare(b.lift.name, 'de');
+/** Nach Liftnummer: A1, A2 … A10 (Zahl, nicht Text) */
+function byCode(a, b) {
+  return String(a.lift.code || 'ZZ').localeCompare(String(b.lift.code || 'ZZ'), 'de', { numeric: true })
+    || a.lift.name.localeCompare(b.lift.name, 'de');
+}
+
+/** Nach Pistennummer, Pisten ohne Nummer (Skirouten …) am Ende */
+function byRef(a, b) {
+  return (parseInt(a.piste.ref, 10) || 999) - (parseInt(b.piste.ref, 10) || 999)
+    || String(a.piste.ref || a.piste.name).localeCompare(String(b.piste.ref || b.piste.name), 'de', { numeric: true });
 }

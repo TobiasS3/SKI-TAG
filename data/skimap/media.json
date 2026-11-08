@@ -9,8 +9,13 @@
  },
  "Alpenhaus": {
   "website": "https://www.alpenhaus.at/",
-  "photo": "assets/places/web/alpenhaus.jpg",
-  "logo": "assets/places/web/alpenhaus-logo.png"
+  "photo": "assets/places/commons/alpenhaus.jpg",
+  "logo": "assets/places/web/alpenhaus-logo.png",
+  "credit": {
+   "artist": "Dguendel",
+   "license": "CC BY 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Kitzb%C3%BCheler_Horn,_das_Alpenhaus.jpg"
+  }
  },
  "Berggasthaus Resterhöhe": {
   "website": "https://www.resterhoehe.at/",
@@ -256,6 +261,38 @@
    "artist": "Clemens Stockner",
    "license": "CC BY-SA 4.0",
    "source": "https://commons.wikimedia.org/wiki/File:Seidlalm_01.jpg"
+  }
+ },
+ "P3 Lounge": {
+  "photo": "assets/places/commons/p3-lounge.jpg",
+  "credit": {
+   "artist": "Jan Sobotka",
+   "license": "CC BY 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:P3_Lounge_202512.jpg"
+  }
+ },
+ "Starthaus": {
+  "photo": "assets/places/commons/starthaus.jpg",
+  "credit": {
+   "artist": "Jan Sobotka",
+   "license": "CC BY 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Hahnenkamm_202512_03.jpg"
+  }
+ },
+ "Hornköpfl": {
+  "photo": "assets/places/commons/hornkoepfl.jpg",
+  "credit": {
+   "artist": "Linie29",
+   "license": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Sessellift_Hornk%C3%B6pfl_Bergstation_a.jpg"
+  }
+ },
+ "Jufen": {
+  "photo": "assets/places/commons/jufen.jpg",
+  "credit": {
+   "artist": "Jan Sobotka",
+   "license": "CC BY 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:KitzSki_Jufenalm_Bergstation_202512_01.jpg"
   }
  }
 }

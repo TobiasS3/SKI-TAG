@@ -119,6 +119,12 @@
   opacity: 0;
 }
 
+/* „Gefahren“: die heute gefahrenen Pisten und Lifte kräftig – in den anderen Filtern weg */
+.map:not(.focus-track) .leaflet-ridden-pane,
+.map:not(.focus-track) .leaflet-riddenSigns-pane {
+  display: none;
+}
+
 /* „Karte“: die eigene Spur nur im Filter „Gefahren“ (Freundes-Spuren bleiben sichtbar) */
 .guest > .map:not(.focus-track) .my-track {
   display: none;

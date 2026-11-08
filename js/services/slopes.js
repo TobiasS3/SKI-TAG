@@ -153,20 +153,89 @@ export function routeToAny(fromPos, nodes, goalPos, mode = 'fast') {
 }
 
 /**
+ * Startknoten für eine Route. Im Tal liegen zwei Gebiete nah beieinander (Kitzbühel: Hahnenkamm und Horn):
+ * Ist der nächste Knoten im anderen Gebiet als das Ziel, aber das Zielgebiet auch zu Fuß nah,
+ * dann von dort starten – sonst wäre fälschlich alles „eigenes Skigebiet“.
+ */
+const SAME_AREA_M = 600;
+function startFor(fromPos, area) {
+  const start = nearestNode(fromPos);
+  if (area == null || map.nodeArea[start] === area) return start;
+  const other = nearestNode(fromPos, area);
+  return distance(fromPos, map.nodes[other]) < SAME_AREA_M ? other : start;
+}
+
+/**
+ * Weg vom Start zum Ziel. Ist der nächste Knoten eine Sackgasse (z. B. Ende eines Förderbands),
+ * die nächsten Knoten in Gehweite probieren.
+ */
+const TRY_M = 400;
+function pathFrom(fromPos, start, toNode, mode) {
+  if (start === toNode) return { start, path: [] };
+  const direct = findPath(start, toNode, mode);
+  if (direct) return { start, path: direct };
+  const near = map.core
+    .filter((n) => n !== start && map.nodeArea[n] === map.nodeArea[start])
+    .map((n) => [n, distance(fromPos, map.nodes[n])])
+    .filter(([, d]) => d < TRY_M)
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, 6);
+  for (const [n] of near) {
+    const p = n === toNode ? [] : findPath(n, toNode, mode);
+    if (p) return { start: n, path: p };
+  }
+  return null;
+}
+
+/**
  * Route mit Zusammenfassung für die Anzeige.
  * Schritte fassen gleiche Pisten/Lifte zusammen: „Lift X hoch“, „Piste 21 runter“.
  */
 export function route(fromPos, toNode, mode = 'fast') {
-  const start = nearestNode(fromPos);
   // Ziel außerhalb des Kerns (z. B. Station knapp neben der Piste) → nächster erreichbarer Knoten
   if (!map.coreSet.has(toNode)) toNode = nearestNode(map.nodes[toNode], map.nodeArea[toNode]);
+  const start = startFor(fromPos, map.nodeArea[toNode]);
   // Anderes Teilgebiet (z. B. Horn): nur mit dem Skibus erreichbar
   if (map.nodeArea[start] !== map.nodeArea[toNode]) {
     return { unreachable: 'area', area: map.areas[map.nodeArea[toNode]] };
   }
-  const path = findPath(start, toNode, mode);
-  if (!path) return null;
+  const found = pathFrom(fromPos, start, toNode, mode);
+  if (!found) return null;
+  return summarize(found.path, toNode);
+}
 
+/**
+ * Route zu einem Startpunkt und danach eine feste Strecke (z. B. die Streif vom Start bis ins Ziel).
+ * via = Kanten-Indizes der Strecke, in Fahrtrichtung.
+ */
+export function routeVia(fromPos, toNode, via, mode = 'fast') {
+  const start = startFor(fromPos, map.nodeArea[toNode]);
+  if (map.nodeArea[start] !== map.nodeArea[toNode]) {
+    return { unreachable: 'area', area: map.areas[map.nodeArea[toNode]] };
+  }
+  const found = pathFrom(fromPos, start, toNode, mode);
+  if (!found) return null;
+  const { path } = found;
+  const r = summarize([...path, ...via], map.edges[via[via.length - 1]].b);
+  // Die Strecke selbst ist EIN Schritt („21 Streif-Rennstrecke“), auch wenn sie in den Daten
+  // aus vielen Stücken mit verschiedenen Namen besteht
+  const lead = path.length ? summarize(path, toNode).steps.length : 0;
+  const rest = r.steps.splice(lead);
+  if (rest.length) {
+    r.steps.push({
+      key: 'via', kind: 'piste', item: map.pistes[map.edges[via[0]].ref],
+      len: rest.reduce((a, x) => a + x.len, 0),
+      time: rest.reduce((a, x) => a + x.time, 0),
+      coords: rest.flatMap((x) => x.coords),
+    });
+  }
+  r.pistes = r.steps.filter((x) => x.kind === 'piste').length;
+  r.blacks = r.steps.filter((x) => x.kind === 'piste' && BLACK.has(x.item.diff)).length;
+  return r;
+}
+
+/** Kanten → Schritte mit Zeiten und Zahlen für die Anzeige */
+function summarize(path, toNode) {
   const steps = [];
   let time = 0;
   let dist = 0;

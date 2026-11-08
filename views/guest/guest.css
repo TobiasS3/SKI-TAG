@@ -509,29 +509,43 @@
 }
 
 /* Anderes Teilgebiet (z. B. Horn): etwas auffälliger als ein normaler Hinweis */
+.guest .note.note-area,
 .note-area {
-  align-items: flex-start;
-  background: var(--sun-soft);
-  color: #7a3300;
-  box-shadow: inset 4px 0 0 var(--sun);
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+  color: #c9d4ee;
+  box-shadow: 0 4px 10px rgba(11, 18, 38, 0.16), 0 16px 32px -12px rgba(11, 18, 38, 0.5);
 }
 
-.note-area svg {
-  width: 22px;
-  height: 22px;
-  color: var(--sun-deep);
+/* Eigenes Skigebiet (Kitzbüheler Horn …): groß und auffällig, orange Berg-Kachel */
+.note-area > svg {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  padding: 13px;
+  border-radius: 16px;
+  background: var(--sun);
+  color: #fff;
+  box-shadow: 0 6px 16px -6px rgba(229, 69, 13, 0.7);
 }
 
 .note-area div {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  font-size: 0.9rem;
+  line-height: 1.35;
 }
 
 .note-area strong {
-  font-size: var(--fs-m);
-  font-weight: 800;
-  color: var(--ink);
+  font-family: var(--font-head);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
 }
 
 .note-alert {
@@ -2974,6 +2988,15 @@
   height: 20px;
 }
 
+/* Liftnummer wie auf dem Schild an der Talstation und auf der Karte (A1, D9 …) */
+.lift-icon.lift-code {
+  background: var(--action);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
 .lift-text {
   display: flex;
   flex: 1;
@@ -5402,6 +5425,13 @@
   border-radius: 50%;
   background: var(--ice);
   color: var(--ink);
+}
+
+/* Liftnummer: dunkles Schild wie auf der Karte und an der Talstation */
+.modal-info .lift-icon.lift-code {
+  border-radius: 10px;
+  background: var(--action);
+  color: #fff;
 }
 
 /* Wetter: echte Himmelsfarben */
@@ -8032,43 +8062,243 @@ small.wx-range-t {
   transform: translate(-50%, 24px);
 }
 
-/* --- Route: „Wohin möchten Sie?“ – einzelne Ziele zum Antippen ---------------------- */
-.dest-list {
+/* --- Route: „Wohin möchten Sie?“ ------------------------------------------------------
+   Oben das Praktische nachtblau mit großer Fahrzeit, darunter Erlebnisse als Bild-Kacheln */
+.dest {
+  gap: 14px;
+}
+
+.dest-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
 }
 
-.dest-item {
-  min-height: 64px;
+.dest-go {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 76px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(11, 18, 38, 0.16), 0 14px 28px -10px rgba(11, 18, 38, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s var(--ease-spring);
 }
 
-.dest-item .quick-text small {
+.dest-go:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.dest-go-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dest-go-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.dest-go-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dest-go-text strong {
+  font-family: var(--font-head);
+  font-size: 1.08rem;
+  line-height: 1.15;
+}
+
+.dest-go-text small {
   overflow: hidden;
+  color: #b9c6e4;
+  font-size: 0.8rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dest-item:active {
-  transform: translateY(1px) scale(0.99);
+.dest-go-eta b {
+  font-family: var(--font-head);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
-/* Zurück zum Start: das Wichtigste am Nachmittag, nachtblau wie die Kopfleiste */
-.guest .dest-item.is-primary {
-  min-height: 72px;
-  background: #0b1226;
-  color: #fff;
-  box-shadow: 0 10px 24px -12px rgba(11, 18, 38, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.dest-item.is-primary .quick-text strong {
-  color: #fff;
-}
-
-.dest-item.is-primary .quick-text small {
+.dest-go > svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
   color: #b9c6e4;
 }
 
-.dest-item.is-primary > svg {
-  color: #b9c6e4;
+.dest-head {
+  margin: 10px 0 -4px;
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Kacheln: erste groß über die ganze Breite, der Rest zu zweit */
+.dest-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dest-tiles > li:first-child,
+.dest-tiles.n-2 > li,
+.dest-tiles > li:last-child:nth-child(even) {
+  grid-column: 1 / -1;
+}
+
+.dest-tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #dfe8f5;
+  text-align: left;
+  box-shadow: 0 2px 4px rgba(22, 44, 96, 0.08), 0 10px 24px rgba(22, 44, 96, 0.14);
+  transition: transform 0.15s var(--ease-spring);
+}
+
+.dest-tile:active {
+  transform: scale(0.98);
+}
+
+.dest-tile .place-cover {
+  aspect-ratio: 4 / 3;
+}
+
+.dest-tiles > li:first-child .place-cover,
+.dest-tiles > li:last-child:nth-child(even) .place-cover {
+  aspect-ratio: 16 / 8;
+}
+
+/* Lesbar auf Foto und auf der gezeichneten Szene: dunkler Verlauf unten */
+.dest-tile .place-cover::after {
+  content: "";
+  position: absolute;
+  inset: 40% 0 0;
+  background: linear-gradient(180deg, rgba(11, 18, 38, 0) 0%, rgba(11, 18, 38, 0.78) 100%);
+}
+
+.dest-tile .place-cover-text {
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  z-index: 2;
+  color: #fff;
+}
+
+.dest-tile-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dest-tile-name strong {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  line-height: 1.1;
+  text-shadow: 0 1px 6px rgba(11, 18, 38, 0.45);
+}
+
+.dest-tiles > li:first-child .dest-tile-name strong {
+  font-size: 1.35rem;
+}
+
+.dest-tile-name small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dest-tile .place-credit {
+  display: none;
+}
+
+.dest-tile-eta {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px 5px 7px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(11, 18, 38, 0.22);
+}
+
+.dest-tile-eta svg {
+  width: 14px;
+  height: 14px;
+  color: var(--sun);
+}
+
+/* Suche statt Hinweistext */
+.dest-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  margin-top: 4px;
+  padding: 10px 14px;
+  border: 1.5px dashed #c3cfe4;
+  border-radius: 16px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.dest-search > svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.dest-search span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.dest-search strong {
+  font-size: 0.95rem;
+}
+
+.dest-search small {
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+
+.dest-search > svg:last-child {
+  color: var(--ink-3);
+}
+
+.dest-search:active {
+  background: var(--ice);
 }
 
 .sg-start {
@@ -8210,8 +8440,12 @@ small.wx-range-t {
   box-shadow: 0 2px 4px rgba(11, 18, 38, 0.2), 0 10px 22px rgba(11, 18, 38, 0.3);
 }
 
-/* „Alle Lifte“: nur das Code-Schild, kein Name */
-.mk-rsign.is-code span {
+/* „Alle Lifte“: weit draußen nur das Code-Schild, ab mittlerem Zoom kommt der Name dazu */
+.guest .map:not(.z-mid) .mk-rsign.is-code b {
+  display: none;
+}
+
+.guest .map:not(.z-mid) .mk-rsign.is-code span {
   gap: 0;
   padding: 3px;
 }
@@ -8247,4 +8481,660 @@ small.wx-range-t {
   font-size: var(--fs-s);
   font-weight: 550;
   color: #c5d0ea;
+}
+
+/* „Alle Lifte“: Liftnummer vor dem Namen, gleiches Schild wie auf der Karte */
+.search-card .search-code {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--action);
+  color: #fff;
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 800;
+  vertical-align: 1px;
+}
+
+/* Hinweis in der Gruppe: reinzoomen zeigt die Namen */
+.search-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 12px 6px;
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.search-hint svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--ink);
+}
+
+/* ================================================================================
+   Schließen-Knöpfe (X): überall gleich, kräftig und gut zu treffen (Handschuhe)
+   Dunkler Kreis, weißes X. Auf dunklem Grund umgekehrt.
+   ================================================================================ */
+.place-over-close,
+.modal-close,
+.person-card-close,
+.top-note-close,
+.lastlift-close,
+.search-clear,
+.x-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--action);
+  color: #fff;
+  box-shadow: 0 0 0 2px #fff, 0 3px 10px rgba(11, 18, 38, 0.28);
+  transition: transform 0.15s var(--ease-spring), background 0.15s;
+}
+
+.place-over-close:active,
+.modal-close:active,
+.person-card-close:active,
+.top-note-close:active,
+.lastlift-close:active,
+.search-clear:active,
+.x-btn:active {
+  transform: scale(0.92);
+  background: var(--action-hover);
+}
+
+.place-over-close svg,
+.modal-close svg,
+.person-card-close svg,
+.top-note-close svg,
+.lastlift-close svg,
+.search-clear svg,
+.x-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.8;
+}
+
+/* Im Suchfeld etwas kleiner, damit es ins Feld passt */
+.search-clear {
+  width: 34px;
+  height: 34px;
+  box-shadow: none;
+}
+
+.search-clear svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Chip-Menü: Kopf mit Titel und X (Menü ist dunkel → helles X) */
+.guest .menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 2px 4px 6px;
+}
+
+.guest .menu-head strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--night-muted, #9aa6c4);
+}
+
+.guest .menu-close {
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.guest .menu-close:active {
+  background: #e8eef8;
+}
+
+/* ================================================================================
+   Route-Vorschau nach „Schwarze meiden“ & Co.: Pille über dem Bereich, Ring zählt 3 s runter
+   ================================================================================ */
+.route-peek {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--sheet-h, 120px) + 14px);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 18px 8px 8px;
+  border-radius: 999px;
+  background: var(--action);
+  color: #fff;
+  box-shadow: 0 0 0 2px #fff, var(--shadow-3);
+  text-align: left;
+  transform: translateX(-50%);
+  animation: route-peek-in 0.35s var(--ease-spring) both;
+}
+
+.route-peek-ring {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: conic-gradient(var(--sun) var(--peek-p, 100%), rgba(255, 255, 255, 0.16) 0);
+  animation: route-peek-ring var(--peek-s, 3s) linear both;
+}
+
+.route-peek-ring::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--action);
+}
+
+.route-peek-count {
+  position: relative;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.route-peek-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.route-peek-text strong {
+  font-size: 0.95rem;
+}
+
+.route-peek-text small {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.74rem;
+}
+
+@property --peek-p {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+@keyframes route-peek-ring {
+  from { --peek-p: 100%; }
+  to { --peek-p: 0%; }
+}
+
+@keyframes route-peek-in {
+  from { opacity: 0; transform: translate(-50%, 12px) scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-peek,
+  .route-peek-ring {
+    animation: none;
+  }
+}
+
+/* Kachel eines eigenen Skigebiets: orange statt Fahrzeit, fällt auf */
+.dest-tile-eta.is-area {
+  background: var(--sun);
+  color: #fff;
+}
+
+.dest-tile-eta.is-area svg {
+  color: #fff;
+}
+
+/* Streif: Passagen (Mausefalle, Steilhang, Hausbergkante …) – kleiner Punkt auf der Linie, Name beim Reinzoomen */
+.mk-rsign.is-section span {
+  gap: 5px;
+  padding: 2px 8px 2px 4px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.mk-rsign.is-section i {
+  width: 9px;
+  height: 9px;
+  min-width: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.guest .map:not(.z-mid) .mk-rsign.is-section span {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* „Wohin möchten Sie?“ ohne Start-/Tal-Ziel: kurz sagen warum, mit Knopf */
+.dest-hint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+
+.dest-hint-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--sun-soft);
+  color: var(--sun-deep);
+}
+
+.dest-hint-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dest-hint-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dest-hint-text strong {
+  font-size: 0.95rem;
+}
+
+.dest-hint-text small {
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.dest-hint .btn {
+  flex: none;
+}
+
+/* ================================================================================
+   Auf der Streif: großes oranges Banner oben, Zielflaggen-Karos, große 21
+   ================================================================================ */
+.streif-banner {
+  position: fixed;
+  top: calc(var(--safe-top, 0px) + 96px);
+  left: 12px;
+  right: 12px;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  padding: 16px 18px 16px 16px;
+  border-radius: 24px;
+  background: linear-gradient(120deg, #ff7a1f 0%, #e5450d 55%, #b83204 100%);
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 10px 24px rgba(184, 50, 4, 0.35), 0 26px 60px rgba(11, 18, 38, 0.35);
+  animation: streif-in 0.55s var(--ease-spring) both;
+}
+
+.streif-banner.is-leaving {
+  animation: streif-out 0.4s ease-in both;
+}
+
+/* Zielflagge: Schachbrett-Karos am linken Rand */
+.streif-banner-flag {
+  flex: none;
+  width: 46px;
+  height: 58px;
+  border-radius: 10px;
+  background:
+    conic-gradient(#fff 25%, #0b1226 0 50%, #fff 0 75%, #0b1226 0) 0 0 / 23px 19.4px;
+  box-shadow: 0 0 0 2px #fff, 0 4px 10px rgba(11, 18, 38, 0.3);
+  animation: streif-wave 1.4s ease-in-out infinite alternate;
+  transform-origin: left center;
+}
+
+.streif-banner-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.streif-banner-text strong {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+.streif-banner-text span {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.streif-banner-text small {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+/* Große Pistennummer im Hintergrund */
+.streif-banner-num {
+  position: absolute;
+  right: -6px;
+  bottom: -30px;
+  font-family: var(--font-head);
+  font-size: 7.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+}
+
+@keyframes streif-in {
+  from { opacity: 0; transform: translateY(-24px) scale(0.94); }
+}
+
+@keyframes streif-out {
+  to { opacity: 0; transform: translateY(-16px) scale(0.97); }
+}
+
+@keyframes streif-wave {
+  from { transform: perspective(200px) rotateY(0deg); }
+  to { transform: perspective(200px) rotateY(-18deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streif-banner,
+  .streif-banner.is-leaving,
+  .streif-banner-flag {
+    animation: none;
+  }
+}
+
+/* Die Streif in „Ihr Weg“: orange hervorgehoben, Zielflaggen-Karos rechts */
+.step.is-streif {
+  margin: 4px -10px;
+  padding: 10px 10px;
+  border-radius: 16px;
+  background:
+    conic-gradient(rgba(255, 255, 255, 0.9) 25%, transparent 0 50%, rgba(255, 255, 255, 0.9) 0 75%, transparent 0) right 12px top 14px / 12px 12px no-repeat,
+    linear-gradient(120deg, #ff7a1f 0%, #e5450d 70%);
+  background-size: 24px 24px, auto;
+  color: #fff;
+  box-shadow: 0 8px 18px -8px rgba(229, 69, 13, 0.6);
+}
+
+.step.is-streif .step-text strong {
+  color: #fff;
+  font-size: 1.02rem;
+}
+
+.step.is-streif .step-text small {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.step.is-streif .step-icon {
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* Streif angeklickt: Linie läuft den Hang hinunter, leuchtender Schein, Start- und Zieltor */
+.streif-flow {
+  animation: streif-run 1.1s linear infinite;
+}
+
+@keyframes streif-run {
+  to { stroke-dashoffset: -26; }
+}
+
+.mk-streif-gate span {
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 10px;
+  background: #ff5b22;
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 2px #fff, 0 6px 14px rgba(184, 50, 4, 0.4);
+}
+
+.mk-streif-gate i {
+  width: 22px;
+  height: 18px;
+  border-radius: 4px;
+  background: conic-gradient(#fff 25%, #0b1226 0 50%, #fff 0 75%, #0b1226 0) 0 0 / 11px 9px;
+  box-shadow: 0 0 0 1.5px #fff;
+}
+
+.mk-streif-gate.is-finish span {
+  bottom: auto;
+  top: 10px;
+  left: -14px;
+  background: #0b1226;
+  transform: translateX(-100%); /* links neben dem Ziel-Pin, nicht darunter */
+}
+
+/* „Ihr Weg“: Passagen der Streif unter dem Schritt */
+.step-sections {
+  display: grid;
+  gap: 2px;
+  margin: 8px 0 2px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  list-style: none;
+  counter-reset: sec;
+}
+
+.step-sections li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.8rem;
+  counter-increment: sec;
+}
+
+.step-sections li::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.step-sections b {
+  flex: 1;
+  font-weight: 700;
+}
+
+.step-sections span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.74rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streif-flow {
+    animation: none;
+  }
+}
+
+.step.is-streif {
+  align-items: flex-start;
+}
+
+/* Eigenes Skigebiet: gezeichnete Skibus-Szene unter dem Hinweis, Bus wiegt leicht */
+.bus-scene {
+  margin: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+
+.bus-scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bus-scene .bus {
+  animation: bus-bump 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes bus-bump {
+  from { transform: translate(86px, 104px); }
+  to { transform: translate(86px, 102px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bus-scene .bus {
+    animation: none;
+  }
+}
+
+/* „Freund dazuholen“: nachtblaue Karte, Gesichter der Gruppe und ein freier oranger Platz */
+.friend-invite {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 76px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(11, 18, 38, 0.16), 0 14px 28px -10px rgba(11, 18, 38, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s var(--ease-spring);
+}
+
+.friend-invite:active {
+  transform: scale(0.985);
+}
+
+.friend-faces {
+  display: flex;
+  flex: none;
+}
+
+.friend-faces i {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background: var(--c, #435070);
+  color: #fff;
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 800;
+  box-shadow: 0 0 0 2.5px #0b1226;
+}
+
+.friend-faces i:first-child {
+  margin-left: 0;
+}
+
+.friend-faces .friend-slot {
+  background: var(--sun);
+  box-shadow: 0 0 0 2.5px #0b1226, 0 0 0 5px rgba(229, 69, 13, 0.35);
+  animation: friend-pulse 1.8s ease-out infinite;
+}
+
+.friend-slot svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
+}
+
+.friend-invite-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.friend-invite-text strong {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+}
+
+.friend-invite-text small {
+  color: #b9c6e4;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.friend-invite > svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: #b9c6e4;
+}
+
+@keyframes friend-pulse {
+  0% { box-shadow: 0 0 0 2.5px #0b1226, 0 0 0 4px rgba(229, 69, 13, 0.5); }
+  100% { box-shadow: 0 0 0 2.5px #0b1226, 0 0 0 12px rgba(229, 69, 13, 0); }
+}
+
+/* Eigener Code als vier Ziffern-Kacheln */
+.friend-mine strong.friend-digits {
+  display: flex;
+  gap: 6px;
+  letter-spacing: 0;
+}
+
+.friend-digits span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 50px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.18);
+  font-family: var(--font-head);
+  font-size: 1.7rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .friend-faces .friend-slot {
+    animation: none;
+  }
 }

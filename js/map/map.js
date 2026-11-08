@@ -13,6 +13,12 @@ export function createMap(el, { painted = false } = {}) {
   }).setView(config.resort.center, config.resort.zoom);
 
   if (painted) {
+    // Umland außerhalb der Winterkarte: echte Berge, weich und blass (tools/bake-surround.py) –
+    // beim Rauszoomen kein weißer Rand. Liegt unter den Kacheln.
+    map.createPane('surround').style.zIndex = 150;
+    fetch('assets/terrain/surround.json').then((r) => r.json()).then((b) => {
+      L.imageOverlay('assets/terrain/surround.webp', b, { pane: 'surround', interactive: false, className: 'terrain-surround' }).addTo(map);
+    }).catch(() => {});
     // Vorgemalte Winterkarte (tools/bake-terrain.py): liegt bei uns, das Handy rechnet nichts
     L.tileLayer('assets/terrain/{z}/{x}/{y}.webp', {
       minNativeZoom: 11,

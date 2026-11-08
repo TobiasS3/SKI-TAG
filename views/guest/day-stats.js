@@ -22,6 +22,7 @@ export const emptyDay = () => ({
   kmByDiff: { easy: 0, intermediate: 0, advanced: 0, freeride: 0 },
   runs: [],         // { startTime, endTime, dist, drop, top, pistes: [] }
   liftsUsed: {},    // Name → Anzahl
+  ridden: { lifts: [], pistes: [] }, // gefahrene Lifte/Pisten (Index im Pistennetz) – Filter „Gefahren“
   badges: [],
   huts: [],         // besuchte Hütten (Hüttenpass)
   doneCh: [],       // geschaffte Challenges
@@ -38,6 +39,19 @@ export function addPoint(day, p, skimap) {
   const prev = day.points.at(-1);
   const point = { lat: p.lat, lng: p.lng, alt: p.alt, time: p.time, speed: p.speed, kind: p.kind };
   const kmh = p.speed * 3.6;
+  // Gefahren: jeden Lift und jedes Pistenstück einmal merken
+  if (p.ref != null && (p.kind === 'lift' || p.kind === 'piste')) {
+    day.ridden ||= { lifts: [], pistes: [] }; // Tag aus älterer Version
+    day.ridden.at ||= {};
+    const list = p.kind === 'lift' ? day.ridden.lifts : day.ridden.pistes;
+    if (!list.includes(p.ref)) list.push(p.ref);
+    // Pisten: Stelle merken, an der das Schild steht – ein paar Signale nach dem Einfahren,
+    // dann liegt es sicher auf der eigenen Spur und nicht am Liftausstieg
+    if (p.kind === 'piste') {
+      const at = day.ridden.at[p.ref] ||= { n: 0, pos: [p.lat, p.lng] };
+      if (at.n < 4) { at.n += 1; at.pos = [p.lat, p.lng]; }
+    }
+  }
 
   const gap = prev ? (p.time - prev.time) / 1000 : 0;
   if (gap > 0 && gap < 120) day.elapsed += gap;

@@ -1,6 +1,6 @@
 // Tagesfilm: 9 Sekunden Hochformat-Video (für Storys) aus deinem Tag.
 //   Titel → ein Punkt fährt deinen Tag ab und zieht die Spur hinter sich her, Zahlen zählen mit → Endkarte.
-//   Kein Pistennetz im Hintergrund: zu sehen ist nur, was wirklich gefahren wurde.
+//   Im Hintergrund die vorgemalte Winterkarte (wie in der App), nachtblau abgedunkelt, damit Spur und Zahlen leuchten.
 //
 // Gezeichnet wird auf ein <canvas>. Zum Speichern nimmt MediaRecorder das Canvas als Video auf
 // (Safari: MP4, Chrome/Firefox: meist WebM). Ohne MediaRecorder gibt es ein Standbild (PNG).
@@ -121,6 +121,67 @@ function createFilm(canvas, day, skimap) {
   const P = (la, ln) => [box.x + box.w / 2 + (ln - cx) * kx * scale, box.y + box.h / 2 - (la - cy) * scale];
   const track = pts.map((p) => ({ xy: P(p.lat, p.lng), p }));
 
+  // --- Karte im Hintergrund: einmal aus den Kacheln zusammensetzen ------------------------
+  const bg = h('canvas', { width: W, height: H });
+
+  /** Längen/Breite → Kachel auf Zoom z (Web-Mercator) */
+  const tileX = (ln, z) => ((ln + 180) / 360) * 2 ** z;
+  const tileY = (la, z) => ((1 - Math.asinh(Math.tan((la * Math.PI) / 180)) / Math.PI) / 2) * 2 ** z;
+  const tileLng = (x, z) => (x / 2 ** z) * 360 - 180;
+  const tileLat = (y, z) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / 2 ** z))) * 180) / Math.PI;
+  const img = (src) => new Promise((ok) => {
+    const i = new Image();
+    i.onload = () => ok(i);
+    i.onerror = () => ok(null);
+    i.src = src;
+  });
+
+  async function paintMap(c) {
+    // sichtbarer Ausschnitt des ganzen Bildes in Grad
+    const lngAt = (x) => cx + (x - box.x - box.w / 2) / (kx * scale);
+    const latAt = (y) => cy - (y - box.y - box.h / 2) / scale;
+    const [west, east, north, south] = [lngAt(0), lngAt(W), latAt(0), latAt(H)];
+    // Zoomstufe passend zur Bildschärfe, höchstens ~60 Kacheln
+    let z = Math.min(15, Math.max(11, Math.ceil(Math.log2((kx * scale * 360) / 256))));
+    const count = (zz) => (Math.floor(tileX(east, zz)) - Math.floor(tileX(west, zz)) + 1) * (Math.floor(tileY(south, zz)) - Math.floor(tileY(north, zz)) + 1);
+    while (z > 11 && count(z) > 60) z -= 1;
+    const draws = [];
+    // Umland zuerst (unscharfe Berge), dann die Winterkarte darüber
+    try {
+      const b = await (await fetch('assets/terrain/surround.json')).json();
+      draws.push(img('assets/terrain/surround.webp').then((i) => i && [i, b[1][0], b[0][1], b[0][0], b[1][1]]));
+    } catch { /* ohne Umland */ }
+    for (let x = Math.floor(tileX(west, z)); x <= Math.floor(tileX(east, z)); x++) {
+      for (let y = Math.floor(tileY(north, z)); y <= Math.floor(tileY(south, z)); y++) {
+        draws.push(img(`assets/terrain/${z}/${x}/${y}.webp`).then((i) => i && [i, tileLat(y, z), tileLng(x, z), tileLat(y + 1, z), tileLng(x + 1, z)]));
+      }
+    }
+    const parts = (await Promise.all(draws)).filter(Boolean);
+    if (!parts.length) return false;
+    c.fillStyle = '#0b1226';
+    c.fillRect(0, 0, W, H);
+    for (const [i, n, w, s, e] of parts) {
+      const [x0, y0] = P(n, w);
+      const [x1, y1] = P(s, e);
+      c.drawImage(i, x0, y0, x1 - x0 + 0.6, y1 - y0 + 0.6); // +0,6: keine Haarlinien zwischen Kacheln
+    }
+    // Nachtblau darüber: in der Mitte die Karte gut zu sehen, oben (Titel) und unten (Zahlen) dunkel
+    c.fillStyle = 'rgba(11, 18, 38, 0.28)';
+    c.fillRect(0, 0, W, H);
+    const v = c.createLinearGradient(0, 0, 0, H);
+    v.addColorStop(0, 'rgba(11, 18, 38, 0.92)');
+    v.addColorStop(0.2, 'rgba(11, 18, 38, 0.2)');
+    v.addColorStop(0.58, 'rgba(11, 18, 38, 0.12)');
+    v.addColorStop(0.74, 'rgba(11, 18, 38, 0.85)');
+    v.addColorStop(1, 'rgba(11, 18, 38, 0.96)');
+    c.fillStyle = v;
+    c.fillRect(0, 0, W, H);
+    return true;
+  }
+  const bgReady = paintMap(bg.getContext('2d')).catch(() => false);
+  let hasMap = false;
+  bgReady.then((ok) => { hasMap = ok; });
+
   // Zahlen über die Spur verteilt (für das Mitzählen)
   const totals = { km: day.km || 0, descent: day.descent || 0, lifts: day.lifts || 0, runs: day.runs?.length || 0 };
   const date = new Date(day.startedAt || Date.now()).toLocaleDateString(getLang() === 'de' ? 'de-AT' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -132,19 +193,16 @@ function createFilm(canvas, day, skimap) {
     const drawP = ease(fade(time, 0.8, 5.8));        // Spur
     const endCard = fade(time, 6.4, 7.0);            // Endkarte blendet ein
 
-    // Hintergrund: Nachtblau wie der Start der App – keine Pisten vorgezeichnet,
-    // auf dem Bild steht nur, was der Punkt wirklich gefahren ist
-    const g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, '#0b1226');
-    g.addColorStop(1, '#1b2c5e');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-    // weiches Licht hinter der Spur
-    const glow = ctx.createRadialGradient(W / 2, box.y + box.h / 2, 40, W / 2, box.y + box.h / 2, box.w * 0.75);
-    glow.addColorStop(0, 'rgba(120, 150, 230, 0.18)');
-    glow.addColorStop(1, 'rgba(120, 150, 230, 0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, W, H);
+    // Hintergrund: die Winterkarte, nachtblau abgedunkelt. Bis sie geladen ist (oder ohne Kacheln): Nachtblau
+    if (hasMap) {
+      ctx.drawImage(bg, 0, 0);
+    } else {
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, '#0b1226');
+      g.addColorStop(1, '#1b2c5e');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
 
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -158,21 +216,31 @@ function createFilm(canvas, day, skimap) {
       const f = pos - n;
       const tip = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
       const path = [...track.slice(0, n + 1).map((x) => x.xy), tip];
-      // Weicher oranger Schein unter der Linie – auf Nachtblau hebt sich die Spur so am besten ab
+      // Weißer Rand wie in der App, darunter ein oranger Schein – so hebt sich die Spur auf der Karte ab
       ctx.beginPath();
       path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-      ctx.strokeStyle = 'rgba(255, 106, 43, 0.22)';
-      ctx.lineWidth = 20;
+      ctx.strokeStyle = 'rgba(255, 106, 43, 0.25)';
+      ctx.lineWidth = 24;
+      ctx.stroke();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 13;
       ctx.stroke();
       for (let i = 1; i < path.length; i++) {
         const lift = track[Math.min(i, track.length - 1)].p.kind === 'lift';
         ctx.beginPath();
         ctx.moveTo(...path[i - 1]);
         ctx.lineTo(...path[i]);
-        ctx.strokeStyle = lift ? 'rgba(255, 255, 255, 0.75)' : TRACK_COLOR;
-        ctx.lineWidth = lift ? 4 : 9;
-        ctx.setLineDash(lift ? [4, 10] : []);
+        // Lift wie in der App: orange Linie mit weißen Punkten; Piste: volles Orange
+        ctx.strokeStyle = TRACK_COLOR;
+        ctx.lineWidth = 9;
+        ctx.setLineDash([]);
         ctx.stroke();
+        if (lift) {
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 3.5;
+          ctx.setLineDash([1, 12]);
+          ctx.stroke();
+        }
       }
       ctx.setLineDash([]);
       // Start: grüner Punkt
@@ -284,7 +352,8 @@ function createFilm(canvas, day, skimap) {
   }
 
   /** Einmal komplett abspielen und aufnehmen → File (Video oder PNG) */
-  function record(onProgress) {
+  async function record(onProgress) {
+    await bgReady; // Karte muss im Bild sein, bevor die Aufnahme läuft
     const name = filmName(day);
     const { type, ext, video } = filmFormat();
     if (!video) {

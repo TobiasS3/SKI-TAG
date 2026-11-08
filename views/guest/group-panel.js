@@ -92,8 +92,15 @@ export function mountGroup(el, ctx, group) {
 
   function renderFriend() {
     if (!friendOpen) {
-      replace(friendCard, h('button', { class: 'btn btn-quiet btn-block', onclick: () => { friendOpen = true; renderFriend(); } },
-        icon('users'), t('friend.add')));
+      // Gesichter der Gruppe + ein freier Platz: hier kommt der neue Freund dazu
+      replace(friendCard, h('button', { class: 'friend-invite', onclick: () => { friendOpen = true; renderFriend(); } },
+        h('span', { class: 'friend-faces', 'aria-hidden': 'true' },
+          members.slice(0, 4).map((m) => h('i', { style: { '--c': m.color } }, (m.name || '?')[0])),
+          h('i', { class: 'friend-slot' }, icon('plus'))),
+        h('span', { class: 'friend-invite-text' },
+          h('strong', {}, t('friend.add')),
+          h('small', {}, t('friend.lead'))),
+        icon('chevron')));
       return;
     }
     const input = h('input', {
@@ -104,7 +111,8 @@ export function mountGroup(el, ctx, group) {
     replace(friendCard,
       h('div', { class: 'friend-mine' },
         h('small', {}, t('friend.mine')),
-        h('strong', { class: 'num' }, myCode || '····'),
+        h('strong', { class: 'friend-digits num', 'aria-label': myCode || '' },
+          [...(myCode || '····')].map((d) => h('span', {}, d))),
         h('span', { class: 'muted small' }, t('friend.mineHint'))),
       h('form', {
         class: 'friend-form',

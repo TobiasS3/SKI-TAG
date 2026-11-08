@@ -9,6 +9,7 @@ import { icon } from '../../js/components/icons.js';
 import { createMap } from '../../js/map/map.js';
 import { createTrack } from '../../js/map/layers.js';
 import { goalMarker } from '../../js/map/markers.js';
+import { createRidden, riddenOf } from './tracking.js';
 import { renderSummary, traceSVG } from './day-summary.js';
 import { openFilm } from './day-film.js';
 
@@ -87,6 +88,9 @@ function drawMap(el, day, skimap) {
 
   const track = createTrack(map);
   day.points.forEach((p) => track.add(p));
+  // Wie „Gefahren“: Liftnummer + Name und Pistennummern auf der Spur
+  el.classList.add('focus-track');
+  createRidden(map).set(riddenOf(day));
   if (pts.length) {
     L.circleMarker(pts[0], { pane: 'track', radius: 7, color: '#fff', weight: 3, fillColor: '#16b46b', fillOpacity: 1 }).addTo(map);
     goalMarker(pts[pts.length - 1]).addTo(map);

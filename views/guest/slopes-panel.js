@@ -8,14 +8,14 @@ import { h, replace, reducedMotion } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { on } from '../../js/core/events.js';
 import { api } from '../../js/services/api.js';
-import { route, routeToAny, skimap } from '../../js/services/slopes.js';
+import { route, routeToAny, routeVia, skimap } from '../../js/services/slopes.js';
 import { liftState, isRunning, pisteState } from '../../js/services/lift-status.js';
 import { openingState } from '../../js/utils/hours.js';
 import { drawRoute } from '../../js/map/layers.js';
 import { distance as geoDistance } from '../../js/map/geo.js';
 import { distance, duration } from '../../js/utils/format.js';
 import { clock, todayAt, now } from '../../js/utils/time.js';
-import { icon, liftIcon } from '../../js/components/icons.js';
+import { icon, iconHTML, liftIcon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
 import { config } from '../../js/config.js';
 import { placeLogo, placeCover, mediaFor } from './place-media.js';
@@ -108,27 +108,34 @@ export function mountRoutePanel(el, ctx) {
     ctx.map.once('moveend', go);
   }
 
-  function calculate() {
+  function calculate({ preview = false } = {}) {
+    cancelPeek();
     layer?.remove();
     layer = null;
     result = !target || !ctx.me.pos ? null
       : target.nodes ? routeToAny(ctx.me.pos, target.nodes, target.pos, mode) // Parkplatz: schnellster Zugang
-        : route(ctx.me.pos, target.node, mode);
+        : target.via ? routeVia(ctx.me.pos, target.node, target.via, 'fast') // Streif: zum Start, dann runter
+          : route(ctx.me.pos, target.node, mode);
     if (result && !result.unreachable && result.coords.length > 1) {
       layer = drawRoute(ctx.map, result.coords, result.steps, { color: '#ff5b22', flow: '#fff' });
+      const course = courseLines(target);
+      if (course) addCourse(layer, course, target);
+      if (target.via) addStreifLook(layer, result);
       if (animateNext) {
         drawIn(layer);
         el.classList.add('route-enter');
         setTimeout(() => el.classList.remove('route-enter'), 1100);
       }
-      const bounds = L.latLngBounds(result.coords).extend(ctx.me.pos);
+      const bounds = minSize(L.latLngBounds(result.coords).extend(ctx.me.pos));
+      if (course) bounds.extend(L.latLngBounds(course.flat()));
       if (animateNext) {
-        // Neue Route: Bereich klappt runter, Karte zeigt die ganze Route von weit oben.
-        // Antippen auf „Route“ holt die Details wieder hoch.
-        ctx.sheet.collapse();
-        setTimeout(() => ctx.fit(bounds, 14), 380);
+        // Neue Route: Bereich klappt runter, Karte zeigt die ganze Route, Countdown läuft,
+        // dann geht der Bereich oben bei „Route starten“ wieder auf
+        peekRoute(bounds, { title: target.name, seconds: PEEK_NEW_S, force: true });
+      } else if (preview) {
+        peekRoute(bounds);
       } else {
-        ctx.fit(bounds);
+        ctx.fit(bounds, FIT_ZOOM);
       }
     } else if (target) {
       ctx.fit(L.latLngBounds([target.pos, target.pos]), 15);
@@ -138,7 +145,125 @@ export function mountRoutePanel(el, ctx) {
     render();
   }
 
+  /**
+   * Ziel ist eine Piste (z. B. die Streif): die Route führt zum Start, die Piste selbst
+   * steht in ihrer Farbe bis ganz unten auf der Karte, mit Ziel-Schild.
+   */
+  function courseLines(place) {
+    if (place?.type !== 'piste') return null;
+    if (place.via) return []; // Streif: die Route fährt sie selbst ab, nur die Schilder kommen dazu
+    const lines = place.course?.length ? place.course : place.lines;
+    // Talabfahrt „… ins Tal“: die Route fährt die Piste schon ab
+    if (!lines?.length || (place.loNode != null && place.node === place.loNode)) return null;
+    return lines;
+  }
+
+  function addCourse(group, lines, place) {
+    if (!lines.length) return addSections(group, place);
+    const color = { easy: '#1f66d1', intermediate: '#e0242f', freeride: '#f08a24' }[place.diff] || '#0e0e10';
+    group.addLayer(L.polyline(lines, { pane: 'route', color: '#fff', weight: 12, lineCap: 'round', interactive: false }));
+    group.addLayer(L.polyline(lines, { pane: 'route', color, weight: 7, lineCap: 'round', interactive: false, className: 'route-course' }));
+    group.addLayer(L.polyline(lines, { pane: 'route', color: '#fff', weight: 1.6, dashArray: '1 9', lineCap: 'round', opacity: 0.8, interactive: false }));
+    addSections(group, place);
+    const end = place.course?.length ? place.course[0].at(-1) : place.loPos;
+    if (end) group.addLayer(finishSign(end, place));
+  }
+
+  function finishSign(end, place) {
+    return L.marker(end, {
+      pane: 'routeSigns', interactive: false, keyboard: false, zIndexOffset: 700,
+      icon: L.divIcon({ className: 'mk-rsign is-piste is-always is-finish', html: `<span>${iconHTML('flag')}<b>${esc(t('route.finish', { name: place.name }))}</b></span>`, iconSize: [0, 0] }),
+    });
+  }
+
+  /**
+   * Streif angeklickt: die Rennstrecke leuchtet orange, eine weiße Linie läuft den Hang hinunter,
+   * Start- und Zieltor mit Zielflaggen-Karos. Nur bei der Streif – sonst sieht die Route normal aus.
+   */
+  function addStreifLook(group, r) {
+    const line = r.steps.find((x) => x.key === 'via')?.coords;
+    if (!line?.length) return;
+    const opts = { pane: 'route', interactive: false, lineCap: 'round', lineJoin: 'round' };
+    group.addLayer(L.polyline(line, { ...opts, color: '#ff5b22', weight: 26, opacity: 0.22, className: 'streif-glow' }));
+    group.addLayer(L.polyline(line, { ...opts, color: '#fff', weight: 14 }));
+    group.addLayer(L.polyline(line, { ...opts, color: '#ff5b22', weight: 9 }));
+    group.addLayer(L.polyline(line, { ...opts, color: '#fff', weight: 2.6, dashArray: '10 16', className: 'streif-flow' }));
+    const gate = (pos, text, cls) => L.marker(pos, {
+      pane: 'routeSigns', interactive: false, keyboard: false, zIndexOffset: 800,
+      icon: L.divIcon({ className: `mk-streif-gate ${cls}`, html: `<span><i></i><b>${esc(text)}</b></span>`, iconSize: [0, 0] }),
+    });
+    group.addLayer(gate(line[0], t('streif.start'), 'is-start'));
+    group.addLayer(gate(line[line.length - 1], t('streif.finish'), 'is-finish'));
+  }
+
+  /** Passagen der Streif (Mausefalle, Steilhang …): kleine Schilder an der Linie */
+  function addSections(group, place) {
+    for (const sec of place.sections || []) {
+      group.addLayer(L.marker(sec.pos, {
+        pane: 'routeSigns', interactive: false, keyboard: false, zIndexOffset: 300,
+        icon: L.divIcon({ className: 'mk-rsign is-section', html: `<span><i></i><b>${esc(sec.name)}</b></span>`, iconSize: [0, 0] }),
+      }));
+    }
+  }
+
+  // --- Andere Einstellung (z. B. „Schwarze meiden“): Karte kurz zeigen -----------------
+  // Bereich klappt runter, die Karte zeigt die geänderte Route so groß wie möglich,
+  // ein Countdown läuft 3 Sekunden, dann geht der Bereich wieder auf. Antippen = sofort zurück,
+  // Karte verschieben = Countdown weg, man schaut selbst weiter.
+  let peek = null; // { timer, el, off }
+
+  function peekRoute(bounds, { title = t(`route.mode.${mode}`), seconds = PEEK_S, force = false } = {}) {
+    // Breiter Bildschirm: Bereich liegt neben der Karte, die Route ist sowieso zu sehen
+    if (!ctx.sheet.visibleHeight() || (!force && !ctx.sheet.isExpanded())) return ctx.fit(bounds, FIT_ZOOM);
+    ctx.sheet.collapse();
+    setTimeout(() => { if (peek) ctx.fit(bounds, FIT_ZOOM); }, 380);
+    let left = seconds;
+    const count = h('span', { class: 'route-peek-count num' }, String(left));
+    const pill = h('button', { class: 'route-peek', type: 'button', onclick: () => endPeek(true) },
+      h('span', { class: 'route-peek-ring', style: { '--peek-s': `${seconds}s` } }, count),
+      h('span', { class: 'route-peek-text' },
+        h('strong', {}, title),
+        h('small', {}, t('route.peek.sub'))));
+    ctx.sheet.el.parentElement.append(pill);
+    const onDrag = () => endPeek(false);
+    ctx.map.once('dragstart', onDrag);
+    const timer = setInterval(() => {
+      left -= 1;
+      if (left <= 0) return endPeek(true);
+      count.textContent = String(left);
+    }, 1000);
+    peek = { timer, el: pill, off: () => ctx.map.off('dragstart', onDrag), bounds };
+  }
+
+  /** back: Bereich wieder auf und die Route im freien Teil der Karte zeigen */
+  function endPeek(back) {
+    if (!peek) return;
+    const { bounds } = peek;
+    cancelPeek();
+    if (!back) return;
+    toTop();
+    ctx.sheet.open('route');
+    // Nicht neu einpassen: über dem offenen Bereich ist nur ein schmaler Streifen frei, die ganze
+    // Route passt dort nur weit rausgezoomt hinein. Zoom bleibt, die Route rückt in den freien Teil.
+    setTimeout(() => { if (layer) ctx.panTo(bounds.getCenter()); }, 380);
+  }
+
+  /** Bereich oben anfangen lassen: Route-Name und „Route starten“, nicht mitten im Weg */
+  function toTop() {
+    const scroller = el.closest('.sheet-content');
+    if (scroller) scroller.scrollTop = 0;
+  }
+
+  function cancelPeek() {
+    if (!peek) return;
+    clearInterval(peek.timer);
+    peek.off();
+    peek.el.remove();
+    peek = null;
+  }
+
   function clearRoute() {
+    cancelPeek();
     target = null;
     result = null;
     layer?.remove();
@@ -156,7 +281,7 @@ export function mountRoutePanel(el, ctx) {
     const flat = result.steps.flatMap((st, k) => st.coords.map((c) => ({ c, k })));
     running = { cur: 0, idx: 0, flat };
     // Fake-Chip fährt die Route ab (echter Chip: der Gast fährt selbst)
-    api.guide(ctx.session.chip, target.node, mode);
+    api.guide(ctx.session.chip, target.node, target.via ? 'fast' : mode, target.via || null);
     ctx.page.classList.add('route-running');
     renderBar(); // erst befüllen, dann misst der Bereich die richtige Höhe
     ctx.sheet.setTop(bar);
@@ -180,10 +305,44 @@ export function mountRoutePanel(el, ctx) {
     if (focusBefore === 'track') ctx.setFocus?.('track', { quiet: true });
   }
 
+  // Auf der Streif: einmal pro Abfahrt melden (erst der nächste Lift setzt das zurück)
+  let onStreif = false;
+  function streifNote(p) {
+    const piste = p.kind === 'piste' && p.ref != null ? skimap().pistes[p.ref] : null;
+    const isStreif = /^streif-rennstrecke/i.test(piste?.name || '');
+    if (isStreif && !onStreif) {
+      streifBanner();
+      navigator.vibrate?.([60, 60, 60, 60, 160]);
+    }
+    if (isStreif) onStreif = true;
+    else if (p.kind === 'lift') onStreif = false;
+  }
+
+  /** Großes oranges Banner: man ist auf der Streif. Antippen oder nach ein paar Sekunden weg. */
+  function streifBanner() {
+    ctx.page.querySelector('.streif-banner')?.remove();
+    const close = () => {
+      el2.classList.add('is-leaving');
+      setTimeout(() => el2.remove(), 400);
+    };
+    const el2 = h('button', { class: 'streif-banner', type: 'button', role: 'status', onclick: close },
+      h('span', { class: 'streif-banner-flag', 'aria-hidden': 'true' }),
+      h('span', { class: 'streif-banner-text' },
+        h('strong', {}, 'Streif'),
+        h('span', {}, t('streif.on')),
+        h('small', {}, t('streif.sub'))),
+      h('span', { class: 'streif-banner-num num', 'aria-hidden': 'true' }, '21'));
+    ctx.page.append(el2);
+    setTimeout(close, 6500);
+  }
+
+  /** Wo die Route endet: bei der Streif unten im Ziel, sonst am Ort selbst */
+  const goalPos = () => (target.via && result?.coords?.length ? result.coords[result.coords.length - 1] : target.pos);
+
   /** Neue Position: welcher Schritt ist dran? Angekommen? */
   function track() {
     if (!running || !ctx.me.pos) return;
-    if (geoDistance(ctx.me.pos, target.pos) < ARRIVE_M) return stop({ arrived: true });
+    if (geoDistance(ctx.me.pos, goalPos()) < ARRIVE_M) return stop({ arrived: true });
     // Nur vorwärts suchen – zurück auf der Route springt die Anzeige nicht
     let best = running.idx;
     let bestD = Infinity;
@@ -235,22 +394,27 @@ export function mountRoutePanel(el, ctx) {
       h('h2', { class: 'title route-name' }, target.name),
       ok ? routeHero(result) : null,
       ok ? h('button', { class: 'btn btn-sun btn-big btn-block route-start', onclick: start }, icon('nav'), t('route.start')) : null,
-      h('div', { class: 'choice-row', role: 'group', 'aria-label': t('tab.route') },
+      // Streif: selbst schwarz – „Schwarze meiden“ / „Nur blaue“ ergeben keinen Sinn
+      target.via ? h('p', { class: 'small muted steps-note' }, h('i', { class: 'dot diff-advanced' }), t('route.streifModes')) : null,
+      target.via || result?.unreachable ? null : h('div', { class: 'choice-row', role: 'group', 'aria-label': t('tab.route') },
         MODES.map((m) => h('button', {
           class: 'choice',
           'aria-pressed': String(m === mode),
-          onclick: () => { mode = m; calculate(); },
+          onclick: () => { if (m === mode) return; mode = m; calculate({ preview: true }); },
         }, m === 'easyOnly' ? h('i', { class: 'dot diff-easy' }) : null,
         m === 'avoidBlack' || m === 'preferBlack' ? h('i', { class: 'dot diff-advanced' }) : null,
         t(`route.mode.${m}`)))),
       result?.unreachable
-        ? h('div', { class: 'note note-area', role: 'note' }, icon('mountain'),
-          h('div', {},
-            h('strong', {}, t('route.otherAreaTitle')),
-            h('span', {}, t('route.otherArea', { area: result.area }))))
+        ? h('div', { class: 'stack' },
+          h('div', { class: 'note note-area', role: 'note' }, icon('mountain'),
+            h('div', {},
+              h('strong', {}, t('route.otherAreaTitle')),
+              h('span', {}, t('route.otherArea', { area: result.area })))),
+          h('figure', { class: 'bus-scene', 'aria-hidden': 'true', html: BUS_SVG }))
         : ok ? summary(result) : h('p', { class: 'note note-warn' }, t('route.none')),
       ok ? h('h3', { class: 'steps-title' }, t('route.follow')) : null,
       ok && ctx.liftStatus ? h('p', { class: 'small muted steps-note' }, icon('check'), t('route.statusIncluded')) : null,
+      ok && courseLines(target) ? h('p', { class: 'small muted steps-note' }, icon('flag'), t(target.via ? 'route.courseRide' : 'route.courseNote', { name: target.name })) : null,
       ok ? steps(result, target) : null,
     );
   }
@@ -265,19 +429,65 @@ export function mountRoutePanel(el, ctx) {
   }
 
   function emptyState() {
-    // Einzelne Ziele zum Antippen: zurück zum Start/Auto, ins Tal, Streif, 3S Bahn.
-    // Gruppen (alle Talabfahrten, Parkplätze, Hütten …) gibt es oben in der Suche.
+    // Oben das Praktische (zurück zum Start/Auto, ins Tal) groß mit Fahrzeit,
+    // darunter die Erlebnisse als Bild-Kacheln. Gruppen (Talabfahrten, Parkplätze, Hütten) stehen in der Suche.
     const rental = ctx.session.rental || (config.fakeData ? 'Hahnenkammbahn' : null);
     const list = destinations({ getPos: () => ctx.me.pos, rental });
-    return h('div', { class: 'stack' },
+    const main = list.filter((d) => d.primary);
+    const fun = list.filter((d) => !d.primary);
+    return h('div', { class: 'stack dest' },
       h('h2', { class: 'title' }, t('route.title')),
-      list.length ? h('ul', { class: 'quick-list dest-list' }, list.map((d) => h('li', {},
-        h('button', { class: `quick-item dest-item${d.primary ? ' is-primary' : ''}`, onclick: () => setTarget(d.item) },
-          h('span', { class: `search-sg-icon sg-${d.id}` }, icon(d.icon)),
-          h('span', { class: 'quick-text' }, h('strong', {}, t(`dest.${d.id}`)), h('small', {}, d.sub)),
-          icon('chevron'))))) : null,
-      h('p', { class: 'muted small' }, t('route.lead')),
+      main.length ? null : dayHint(),
+      main.length ? h('ul', { class: 'dest-main' }, main.map((d) => h('li', {},
+        h('button', { class: 'dest-go', onclick: () => setTarget(d.item) },
+          h('span', { class: `dest-go-icon sg-${d.id}` }, icon(d.icon)),
+          h('span', { class: 'dest-go-text' }, h('strong', {}, t(`dest.${d.id}`)), h('small', {}, d.lead || d.sub)),
+          d.eta != null ? h('span', { class: 'dest-go-eta' }, h('b', { class: 'num' }, duration(d.eta))) : icon('chevron'))))) : null,
+      fun.length ? h('h3', { class: 'dest-head' }, t('route.highlights')) : null,
+      fun.length ? h('ul', { class: `dest-tiles n-${fun.length}` }, fun.map((d) => h('li', {},
+        h('button', { class: 'dest-tile', onclick: () => setTarget(d.item), 'aria-label': `${t(`dest.${d.id}`)}, ${d.sub}` },
+          placeCover(d.item, [
+            h('span', { class: 'dest-tile-name' }, h('strong', {}, t(`dest.${d.id}`)), h('small', {}, d.lead || d.sub)),
+          ]),
+          d.eta != null ? h('span', { class: 'dest-tile-eta num' }, icon('route'), duration(d.eta))
+            // Keine Fahrzeit trotz Position: eigenes Skigebiet ohne Pistenverbindung (Kitzbüheler Horn)
+            : d.otherArea ? h('span', { class: 'dest-tile-eta is-area' }, icon('mountain'), t('route.ownArea')) : null)))) : null,
+      // Statt Hinweistext: gleich ins Suchfeld
+      h('button', { class: 'dest-search', onclick: focusSearch },
+        icon('search'),
+        h('span', {}, h('strong', {}, t('route.searchBtn')), h('small', {}, t('route.searchSub'))),
+        icon('chevron')),
     );
+  }
+
+  /**
+   * Noch kein „Zurück zum Start“ / „Ins Tal“: vor dem Start des Tages sagen, warum –
+   * und gleich den Knopf dazu. Ist der Tag schon gestartet, steht man gerade unten am Start.
+   */
+  function dayHint() {
+    const status = ctx.dayStatus?.() || 'idle';
+    if (status === 'idle') {
+      return h('div', { class: 'dest-hint' },
+        h('span', { class: 'dest-hint-icon' }, icon('play')),
+        h('span', { class: 'dest-hint-text' },
+          h('strong', {}, t('route.dayFirst')),
+          h('small', {}, t('route.dayFirstText'))),
+        h('button', { class: 'btn btn-sun btn-small', onclick: () => ctx.sheet.open('day') }, t('day.start')));
+    }
+    if (status !== 'running') return null;
+    return h('div', { class: 'dest-hint' },
+      h('span', { class: 'dest-hint-icon' }, icon('home')),
+      h('span', { class: 'dest-hint-text' },
+        h('strong', {}, t('route.atStart')),
+        h('small', {}, t('route.atStartText'))));
+  }
+
+  function focusSearch() {
+    const input = ctx.page.querySelector('.search-input');
+    if (!input) return;
+    ctx.sheet.collapse();
+    input.focus();
+    input.click();
   }
 
   /** Karte mit Foto (oder gezeichneter Szene), Logo, Infos und großen Knöpfen. */
@@ -399,7 +609,7 @@ export function mountRoutePanel(el, ctx) {
     const late = arrival > todayAt(config.resort.liftsClose) && r.lifts > 0;
     return h('div', { class: 'stack' },
       late ? h('p', { class: 'note note-warn' }, icon('clock'), t('route.afterClose')) : null,
-      r.blacks && mode !== 'preferBlack' ? h('p', { class: 'note' }, h('i', { class: 'dot diff-advanced' }), t('route.blackWarn')) : null,
+      r.blacks && mode !== 'preferBlack' && !target.via ? h('p', { class: 'note' }, h('i', { class: 'dot diff-advanced' }), t('route.blackWarn')) : null,
     );
   }
 
@@ -478,11 +688,16 @@ export function mountRoutePanel(el, ctx) {
     return h('ol', { class: 'steps' },
       r.steps.map((s, i) => {
         const state = current < 0 ? '' : i < current ? ' is-done' : i === current ? ' is-current' : '';
-        return h('li', { class: `step step-${s.kind}${state}` },
+        return h('li', { class: `step step-${s.kind}${state}${s.key === 'via' ? ' is-streif' : ''}` },
           stepIcon(s),
           h('span', { class: 'step-text' },
             h('strong', {}, s.kind === 'lift' ? s.item.name : pisteName(s.item)),
-            h('small', {}, `${t(s.kind === 'lift' ? 'route.verbUp' : 'route.verbDown')} · ${distance(s.len)} · ${duration(s.time)}`, liftNote(s))));
+            h('small', {}, `${t(s.kind === 'lift' ? 'route.verbUp' : 'route.verbDown')} · ${distance(s.len)} · ${duration(s.time)}`, liftNote(s)),
+            // Streif: die Passagen der Reihe nach, mit Abstand vom Start
+            s.key === 'via' && place.sections?.length
+              ? h('ol', { class: 'step-sections' }, place.sections.map((x) => h('li', {},
+                h('b', {}, x.name), h('span', { class: 'num' }, distance(x.at)))))
+              : null));
       }),
       h('li', { class: 'step step-goal' },
         h('span', { class: 'step-icon' }, icon('flag')),
@@ -496,10 +711,14 @@ export function mountRoutePanel(el, ctx) {
   const offs = [
     on('lang', () => { render(); renderOver(); }),
     on('me', track),
+    on('me', streifNote),
     // Route nur angeschaut, nicht gestartet: anderer Tab → Route verschwindet von der Karte
     on('sheet:tab', (id) => { if (id !== 'route' && target && !running) clearRoute(); }),
     on('focus', () => target && render()),
+    // Bereich selbst wieder aufgezogen: Countdown nicht mehr nötig
+    on('sheet:stage', (st) => { if (st !== 'peek' && peek) { cancelPeek(); toTop(); } }),
     on('meeting', () => { renderOver(); if (target) render(); }),
+    on('daystatus', () => { if (!target && !running) render(); }),
   ];
   render();
 
@@ -508,10 +727,11 @@ export function mountRoutePanel(el, ctx) {
     showPlace,
     closePreview,
     /** Die ganze Route ins Bild holen */
-    showOnMap: () => { if (layer && result?.coords) ctx.fit(L.latLngBounds(result.coords).extend(ctx.me.pos)); },
+    showOnMap: () => { if (layer && result?.coords) ctx.fit(L.latLngBounds(result.coords).extend(ctx.me.pos), FIT_ZOOM); },
     refresh: () => { if (!target) render(); },
     stop: () => stop(),
     destroy() {
+      cancelPeek();
       ctx.map.off('click', onMapClick);
       over.remove();
       if (running) api.guide(ctx.session.chip, null);
@@ -521,6 +741,45 @@ export function mountRoutePanel(el, ctx) {
   };
 }
 
+/** Kurze Wege (z. B. „Zurück zum Start“ aus 100 m) nicht riesig zeigen: mindestens ~700 m im Bild */
+function minSize(bounds) {
+  const c = bounds.getCenter();
+  if (c.distanceTo(bounds.getNorthEast()) >= 350) return bounds;
+  return bounds.extend(c.toBounds(700));
+}
+
+// Skibus zum eigenen Skigebiet: Bus mit Skiern am Dach fährt durchs Tal, hinten der Berg
+const BUS_SVG = `<svg viewBox="0 0 360 190" role="img">
+  <defs>
+    <linearGradient id="bus-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1226"/><stop offset="1" stop-color="#2a4380"/></linearGradient>
+  </defs>
+  <rect width="360" height="190" rx="22" fill="url(#bus-sky)"/>
+  <circle cx="290" cy="36" r="12" fill="#fff" opacity=".9"/>
+  <path d="M0 120 L70 62 L118 96 L190 34 L262 98 L310 70 L360 104 V190 H0Z" fill="#4a6299"/>
+  <path d="M172 50 L190 34 L210 52 L196 56Z M58 72 L70 62 L84 74 L72 76Z" fill="#fff"/>
+  <path d="M0 140 C 80 118, 160 116, 240 126 S 330 132, 360 122 V190 H0Z" fill="#fff"/>
+  <path d="M0 160 C 100 150, 250 150, 360 158 V190 H0Z" fill="#dfe8f5"/>
+  <path d="M0 168 H360" stroke="#c3cfe4" stroke-width="2" stroke-dasharray="14 12"/>
+  <g class="bus" transform="translate(86 104)">
+    <rect x="18" y="-6" width="120" height="6" rx="3" fill="#c9d3e6"/>
+    <path d="M30 -6 l8 -10 M54 -6 l8 -10 M78 -6 l8 -10 M102 -6 l8 -10" stroke="#e5450d" stroke-width="5" stroke-linecap="round"/>
+    <rect x="0" y="0" width="168" height="50" rx="12" fill="#0b1226" stroke="#fff" stroke-width="3"/>
+    <rect x="0" y="30" width="168" height="7" fill="#e5450d"/>
+    <rect x="12" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
+    <rect x="44" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
+    <rect x="76" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
+    <rect x="108" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
+    <path d="M140 8 h18 a4 4 0 0 1 4 4 v16 h-22z" fill="#9ec0f2"/>
+    <circle cx="36" cy="52" r="11" fill="#1b2747" stroke="#fff" stroke-width="3"/>
+    <circle cx="134" cy="52" r="11" fill="#1b2747" stroke="#fff" stroke-width="3"/>
+    <rect x="160" y="34" width="8" height="6" rx="2" fill="#ffd66b"/>
+  </g>
+  <text x="24" y="40" fill="#fff" font-family="system-ui, sans-serif" font-weight="800" font-size="20">SKIBUS</text>
+</svg>`;
+
+const FIT_ZOOM = 16;     // Route ins Bild: höchstens so nah – kurze Wege nicht unnötig klein
+const PEEK_S = 3;        // so lange zeigt die Karte eine geänderte Route
+const PEEK_NEW_S = 4;    // neue Route: Karte fliegt erst hin, die Linie zeichnet sich – etwas länger
 const ARRIVE_M = 45;     // so nah am Ziel = angekommen
 const OFF_ROUTE_M = 120; // weiter weg = nicht auf der Route, Anzeige bleibt stehen
 
@@ -537,6 +796,7 @@ function stepText(s) {
     : t('route.stepPiste', { name: pisteName(s.item) });
 }
 
+const esc = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 const stat = (label, value) => h('div', {}, h('dt', {}, label), h('dd', { class: 'num' }, String(value)));
 
 export function pisteName(p) {

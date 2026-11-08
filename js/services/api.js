@@ -190,8 +190,8 @@ export const api = {
    * Navigation läuft zu diesem Ziel (Knoten im Pistennetz), null = beendet.
    * Echter Chip: nichts zu tun – der Gast fährt selbst. Fake-Chip: fährt jetzt dorthin.
    */
-  guide(chipId, node, mode = 'fast') {
-    if (config.fakeData) fakeSims.get(chipId)?.goTo(node, mode);
+  guide(chipId, node, mode = 'fast', via = null) {
+    if (config.fakeData) fakeSims.get(chipId)?.goTo(node, mode, via);
   },
 
   /**

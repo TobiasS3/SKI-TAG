@@ -312,13 +312,10 @@ export async function mountGuest(root, session) {
           L.polyline(x.lift.coords, { pane: 'route', color: '#fff', weight: 11, interactive: false }),
           L.polyline(x.lift.coords, { pane: 'route', color: '#0e1530', weight: 7, interactive: false }),
           L.polyline(x.lift.coords, { pane: 'route', color: '#fff', weight: 2.5, dashArray: '1 8', lineCap: 'round', interactive: false }),
-          // Viele Lifte (z. B. „Alle Lifte“): nur das Code-Schild, sonst ist die Karte voller Namen.
-          // Ein einzelner Lift (angetippt) zeigt seinen Namen.
-          items.length === 1
-            ? sign(x.lift.coords[Math.floor(x.lift.coords.length / 2)], 'is-lift is-always',
-              `${x.lift.code ? `<i>${esc(x.lift.code)}</i>` : iconHTML(liftIcon(x.lift.type))}<b>${esc(x.name)}</b>`, 500)
-            : sign(x.lift.coords[Math.floor(x.lift.coords.length / 2)], 'is-lift is-code',
-              x.lift.code ? `<i>${esc(x.lift.code)}</i>` : iconHTML(liftIcon(x.lift.type)), 500),
+          // Viele Lifte (z. B. „Alle Lifte“): weit draußen nur das Code-Schild, beim Reinzoomen
+          // kommt der Name dazu (wie auf der normalen Karte). Ein einzelner Lift zeigt ihn immer.
+          sign(x.lift.coords[Math.floor(x.lift.coords.length / 2)], items.length === 1 ? 'is-lift is-always' : 'is-lift is-code',
+            `${x.lift.code ? `<i>${esc(x.lift.code)}</i>` : iconHTML(liftIcon(x.lift.type))}<b>${esc(x.name)}</b>`, 500),
         );
         continue;
       }
@@ -471,6 +468,8 @@ export async function mountGuest(root, session) {
 
   // --- Tabs füllen -----------------------------------------------------------------
   const tracking = mountTracking(sheet.body('day'), ctx);
+  ctx.dayStatus = () => tracking.status(); // Route-Tab: Hinweis „Starten Sie zuerst den Tag“
+  routePanel.refresh();
   cleanups.push(() => tracking.destroy(), () => routePanel.destroy());
   if (load('mapFocus', 'all') === 'track') setFocus('track', { quiet: true });
 
@@ -604,6 +603,10 @@ export async function mountGuest(root, session) {
     // Bis Mitternacht: so lange gilt der Code
     const left = Math.max(0, (todayAt('24:00') - clockNow()) / 60000);
     menu.replaceChildren(
+      // Kopf mit deutlichem X – sonst weiß man nicht, wie das Menü wieder zugeht
+      h('div', { class: 'menu-head' },
+        h('strong', {}, t('top.menuTitle')),
+        h('button', { class: 'menu-close x-btn', 'aria-label': t('close'), onclick: (e) => { e.stopPropagation(); closeMenu(); menuBtn.focus(); } }, icon('close'))),
       h('div', { class: 'menu-chip' },
         h('span', { class: 'menu-chip-art', 'aria-hidden': 'true' }),
         h('span', { class: 'menu-chip-text' },

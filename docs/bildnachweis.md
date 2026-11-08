@@ -21,9 +21,15 @@ Diese Fotos dürfen mit Namensnennung verwendet werden. Die App zeigt den Nachwe
 | `assets/places/commons/ehrenbachhoehe.jpg` | Ehrenbachhöhe | Daniel Pirch | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Ehrenbachh%C3%B6he_-_panoramio.jpg) |
 | `assets/places/commons/pengelstein.jpg` | Pengelstein (Berg, für die gleichnamige Hütte) | Kuhni74 | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Pengelstein-Ost-von-Jochberg-unten.jpg) |
 | `assets/places/commons/restaurant-panoramabahn.jpg` | Panoramabahn Kitzbüheler Alpen (für das Restaurant dort) | Wald1siedel | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Panoramabahn_Kitzb%C3%BCheler_Alpen.JPG) |
+| `assets/places/commons/alpenhaus.jpg` | Alpenhaus am Kitzbüheler Horn | Dguendel | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Kitzb%C3%BCheler_Horn,_das_Alpenhaus.jpg) |
+| `assets/places/commons/p3-lounge.jpg` | P3 Lounge am Pengelstein | Jan Sobotka | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:P3_Lounge_202512.jpg) |
+| `assets/places/commons/starthaus.jpg` | Start der Streif (Hahnenkammrennen) | Jan Sobotka | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Hahnenkamm_202512_03.jpg) |
+| `assets/places/commons/hornkoepfl.jpg` | Bergstation Sessellift Hornköpfl | Linie29 | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Sessellift_Hornk%C3%B6pfl_Bergstation_a.jpg) |
+| `assets/places/commons/jufen.jpg` | Bergstation Jufenalm | Jan Sobotka | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:KitzSki_Jufenalm_Bergstation_202512_01.jpg) |
 
 Neue Hütten-Fotos sucht `python3 tools/fetch-commons-photos.py` – nur Treffer mit dem Hüttennamen im Dateinamen.
 Danach von Hand prüfen: Falsche Treffer kommen in `WRONG` im Skript (z. B. „Red Bull“ = Fußballfoto).
+Ortsgenaue Suche (Nov. 2026): Fotos im Umkreis von 250 m um Hütte bzw. Tal-/Bergstation, jedes von Hand geprüft – Treffer, die laut Beschreibung etwas anderes zeigen, sind raus.
 Hütten ohne Foto zeigen eine gezeichnete Bergszene. Echte Fotos aller Hütten → über KitzSki als Partner.
 
 ## Startfilm
@@ -32,7 +38,7 @@ Der Login zeigt seit November 2026 einen selbst gezeichneten Film (`views/login/
 
 ## Gemalte Karte
 
-`assets/terrain/` ist mit `tools/bake-terrain.py` aus den frei nutzbaren [Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) (Mapzen, auf AWS) vorgerechnet und liegt bei uns. KitzSkis Panoramabild wird nicht verwendet. Wald, Wasser, Straßen, Häuser und Gipfel stammen aus OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL).
+`assets/terrain/` ist mit `tools/bake-terrain.py` aus den frei nutzbaren [Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) (Mapzen, auf AWS) vorgerechnet und liegt bei uns. KitzSkis Panoramabild wird nicht verwendet. Wald, Wasser, Straßen, Häuser und Gipfel stammen aus OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL). Das unscharfe Umland rundherum (`assets/terrain/surround.webp`) malt `tools/bake-surround.py` aus denselben Terrain Tiles.
 
 ## Schrift
 

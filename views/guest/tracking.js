@@ -2,9 +2,9 @@
 
 import { h, replace, reducedMotion } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
-import { on } from '../../js/core/events.js';
+import { on, emit } from '../../js/core/events.js';
 import { load, save } from '../../js/core/storage.js';
-import { createTrack } from '../../js/map/layers.js';
+import { createTrack, TRACK_COLOR } from '../../js/map/layers.js';
 import { duration, number } from '../../js/utils/format.js';
 import { isoDay, todayAt, now as clockNow } from '../../js/utils/time.js';
 import { config } from '../../js/config.js';
@@ -27,6 +27,8 @@ export function mountTracking(el, ctx) {
   if (!Array.isArray(day.runs)) day = emptyDay(); // gespeichert mit älterer Version
   const track = createTrack(ctx.map);
   day.points.forEach((p) => track.add(p));
+  const ridden = createRidden(ctx.map);
+  ridden.set(riddenOf(day));
 
   // --- Live-Ansicht -------------------------------------------------------------
   const now = h('p', { class: 'day-now' });
@@ -147,6 +149,7 @@ export function mountTracking(el, ctx) {
     if (day.status !== 'running') return;
     const fresh = addPoint(day, p, skimap());
     track.add(day.points.at(-1));
+    ridden.set(riddenOf(day));
     fresh.forEach((id, i) => setTimeout(() => {
       toast(t('badge.unlocked', { name: t(`badge.${id}`) }), { icon: 'trophy' });
       navigator.vibrate?.([30, 40, 30]);
@@ -186,10 +189,12 @@ export function mountTracking(el, ctx) {
     reminder?.close();
     day = { ...emptyDay(), status: 'running', startedAt: ctx.me.time || Date.now() };
     track.clear();
+    ridden.clear();
     save(KEY(), day);
     await playDayStart(e.currentTarget); // Drehkreuz-Moment auf dem Knopf, dann Live-Ansicht
     const from = el.querySelector('.day-hero')?.getBoundingClientRect();
     render();
+    emit('daystatus', day.status);
     launch(from);
   }
 
@@ -235,6 +240,7 @@ export function mountTracking(el, ctx) {
     save(KEY(), day);
     justEnded = true;
     render();
+    emit('daystatus', day.status);
   }
 
   const offs = [on('me', onPosition), on('lang', render), on('dayfull', () => day.status === 'running' && render())];
@@ -243,6 +249,7 @@ export function mountTracking(el, ctx) {
 
   return {
     hasPoints: () => day.points.length > 1,
+    status: () => day.status,
     destroy() {
       offs.forEach((off) => off());
       clearInterval(timer);
@@ -250,8 +257,122 @@ export function mountTracking(el, ctx) {
       reminder?.close();
       save(KEY(), day);
       track.remove();
+      ridden.remove();
     },
   };
+}
+
+/**
+ * Filter „Gefahren“: die Linien sind die eigene orange Spur. Darauf kommen Schilder, damit man sieht,
+ * was eine Piste war (farbiger Kreis mit Nummer) und was ein Lift (Liftnummer, Linie gestrichelt in Orange).
+ * Eigene Ebene, die nur im Filter „Gefahren“ zu sehen ist (css/components/map.css).
+ */
+export function createRidden(map) {
+  if (!map.getPane('ridden')) map.createPane('ridden').style.zIndex = 436; // über der Spur
+  if (!map.getPane('riddenSigns')) map.createPane('riddenSigns').style.zIndex = 446;
+  const group = L.layerGroup().addTo(map);
+  const shown = { lifts: new Set(), pistes: new Set() };
+  const esc = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+  const line = (coords, opts) => L.polyline(coords, { pane: 'ridden', interactive: false, lineCap: 'round', lineJoin: 'round', ...opts });
+  const sign = (pos, cls, html, z) => L.marker(pos, {
+    pane: 'riddenSigns', interactive: false, keyboard: false, zIndexOffset: z,
+    icon: L.divIcon({ className: `mk-rsign ${cls}`, html: `<span>${html}</span>`, iconSize: [0, 0] }),
+  });
+  const declutter = () => {
+    const placed = [];
+    map.getContainer().querySelectorAll('.leaflet-riddenSigns-pane .mk-rsign span').forEach((el) => {
+      el.style.visibility = '';
+      const r = el.getBoundingClientRect();
+      if (placed.some((q) => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2)) el.style.visibility = 'hidden';
+      else placed.push(r);
+    });
+  };
+  map.on('zoomend', declutter);
+  let pisteLines = null; // Piste → alle ihre Stücke (aus den Kanten des Pistennetzes)
+  const linesOf = (net, i) => {
+    if (!pisteLines) {
+      pisteLines = new Map();
+      net.edges.forEach((e) => {
+        if (e.kind !== 'piste') return;
+        if (!pisteLines.has(e.ref)) pisteLines.set(e.ref, []);
+        pisteLines.get(e.ref).push(e.coords);
+      });
+    }
+    return pisteLines.get(i);
+  };
+  const shownNames = new Set(); // dieselbe Piste besteht aus vielen Stücken – Schild nur einmal
+  return {
+    set(r) {
+      const net = skimap();
+      if (!r || !net) return;
+      let added = false;
+      // Lifte zuerst: ihr Schild gewinnt, wenn es eng wird
+      r.lifts.forEach((i) => {
+        const l = net.lifts[i];
+        if (shown.lifts.has(i) || !l?.coords) return;
+        shown.lifts.add(i);
+        added = true;
+        group.addLayer(line(l.coords, { color: '#fff', weight: 10 }));
+        group.addLayer(line(l.coords, { color: TRACK_COLOR, weight: 6 }));
+        group.addLayer(line(l.coords, { color: '#fff', weight: 2.2, dashArray: '1 8' }));
+        const mid = l.coords[Math.floor(l.coords.length / 2)];
+        const lead = l.code ? `<i>${esc(l.code)}</i>` : '';
+        group.addLayer(sign(mid, 'is-lift is-ridden', `${lead}<b>${esc(l.name)}</b>`, 500));
+      });
+      r.pistes.forEach((i) => {
+        const p = net.pistes[i];
+        // Stelle auf der eigenen Spur – sonst die Mitte der Piste
+        const at = r.at?.[i]?.pos || middleOf(linesOf(net, i));
+        if (shown.pistes.has(i) || !p || !at || (!p.ref && !p.name)) return;
+        shown.pistes.add(i);
+        const key = `${p.ref || ''}|${p.name || ''}`;
+        if (shownNames.has(key)) return;
+        shownNames.add(key);
+        added = true;
+        group.addLayer(sign(at, 'is-piste is-ridden', `<i class="diff-${p.diff}">${esc(p.ref || '')}</i>${p.name ? `<b>${esc(p.name)}</b>` : ''}`, 400));
+      });
+      if (added) requestAnimationFrame(declutter);
+    },
+    clear() {
+      group.clearLayers();
+      shown.lifts.clear();
+      shown.pistes.clear();
+      shownNames.clear();
+    },
+    remove() {
+      map.off('zoomend', declutter);
+      group.remove();
+    },
+  };
+}
+
+/** Mittelpunkt des längsten Stücks einer Piste */
+function middleOf(lines) {
+  if (!lines?.length) return null;
+  const longest = lines.reduce((a, b) => (b.length > a.length ? b : a));
+  return longest[Math.floor(longest.length / 2)];
+}
+
+/**
+ * Gefahrene Lifte/Pisten des Tages. Tage, die vor dieser Funktion gestartet wurden, haben
+ * noch keine Liste – dann aus „Mein Tag“ ableiten (Liftnamen, Pisten je Abfahrt).
+ */
+export function riddenOf(day) {
+  const net = skimap();
+  if (!net) return day.ridden;
+  const r = { lifts: [...(day.ridden?.lifts || [])], pistes: [...(day.ridden?.pistes || [])], at: day.ridden?.at || {} };
+  Object.keys(day.liftsUsed || {}).forEach((name) => {
+    const i = net.lifts.findIndex((l) => l.name === name);
+    if (i >= 0 && !r.lifts.includes(i)) r.lifts.push(i);
+  });
+  const label = (p) => (p.ref ? `${p.ref} ${p.name || ''}`.trim() : p.name);
+  const names = new Set((day.runs || []).flatMap((run) => run.pistes || []));
+  if (names.size) {
+    net.pistes.forEach((p, i) => {
+      if (names.has(label(p)) && !r.pistes.includes(i)) r.pistes.push(i);
+    });
+  }
+  return r;
 }
 
 /** Ein Wert im Tagespanel. big = einer der zwei großen Werte */
