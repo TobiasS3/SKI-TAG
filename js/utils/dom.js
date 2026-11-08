@@ -58,11 +58,10 @@ export const isWide = () => matchMedia(WIDE_MEDIA).matches;
  * Weicher Übergang für neuen Inhalt: kommt leicht von der Seite (dir: 1 = von rechts, -1 = von links,
  * 0 = von unten) und blendet ein. Bei „weniger Bewegung“ sofort.
  */
-export function slideIn(el, dir = 0, ms = 180) {
+export function slideIn(el, dir = 0, ms = 320) {
   if (!el?.animate || reducedMotion()) return;
-  // Klein und kurz: nur ein Hauch Bewegung, damit es sich nicht wie Laden anfühlt
-  const from = dir ? `translateX(${dir * 8}px)` : 'translateY(6px)';
-  el.animate([{ opacity: 0, transform: from }, { opacity: 1, transform: 'none' }], { duration: Math.min(ms, 200), easing: 'ease-out' });
+  const from = dir ? `translateX(${dir * 28}px)` : 'translateY(14px)';
+  el.animate([{ opacity: 0, transform: from }, { opacity: 1, transform: 'none' }], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' });
 }
 
 /**
@@ -84,15 +83,15 @@ export function smoothHidden(el, origin = 'top right') {
         out = null;
         native.set.call(el, false);
         if (was && el.animate && !reducedMotion()) {
-          el.animate([{ opacity: 0, transform: 'scale(.97) translateY(-3px)' }, { opacity: 1, transform: 'none' }],
-            { duration: 160, easing: 'ease-out' });
+          el.animate([{ opacity: 0, transform: 'scale(.94) translateY(-6px)' }, { opacity: 1, transform: 'none' }],
+            { duration: 240, easing: 'cubic-bezier(.2,.9,.25,1)' });
         }
         return;
       }
       if (was || out) return;
       if (!el.animate || reducedMotion()) return native.set.call(el, true);
-      out = el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.98)' }],
-        { duration: 120, easing: 'ease-in' });
+      out = el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.96) translateY(-4px)' }],
+        { duration: 170, easing: 'cubic-bezier(.4,0,.7,1)' });
       out.onfinish = () => { out = null; native.set.call(el, true); };
     },
   });
