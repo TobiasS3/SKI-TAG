@@ -410,7 +410,7 @@ export function mountRoutePanel(el, ctx) {
             h('div', {},
               h('strong', {}, t('route.otherAreaTitle')),
               h('span', {}, t('route.otherArea', { area: result.area })))),
-          h('figure', { class: 'bus-scene', 'aria-hidden': 'true', html: BUS_SVG }))
+          h('figure', { class: 'bus-scene', 'aria-hidden': 'true', html: busScene(shortArea(result.area)) }))
         : ok ? summary(result) : h('p', { class: 'note note-warn' }, t('route.none')),
       ok ? h('h3', { class: 'steps-title' }, t('route.follow')) : null,
       ok && ctx.liftStatus ? h('p', { class: 'small muted steps-note' }, icon('check'), t('route.statusIncluded')) : null,
@@ -748,34 +748,43 @@ function minSize(bounds) {
   return bounds.extend(c.toBounds(700));
 }
 
-// Skibus zum eigenen Skigebiet: Bus mit Skiern am Dach fährt durchs Tal, hinten der Berg
-const BUS_SVG = `<svg viewBox="0 0 360 190" role="img">
-  <defs>
-    <linearGradient id="bus-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1226"/><stop offset="1" stop-color="#2a4380"/></linearGradient>
-  </defs>
-  <rect width="360" height="190" rx="22" fill="url(#bus-sky)"/>
-  <circle cx="290" cy="36" r="12" fill="#fff" opacity=".9"/>
-  <path d="M0 120 L70 62 L118 96 L190 34 L262 98 L310 70 L360 104 V190 H0Z" fill="#4a6299"/>
-  <path d="M172 50 L190 34 L210 52 L196 56Z M58 72 L70 62 L84 74 L72 76Z" fill="#fff"/>
-  <path d="M0 140 C 80 118, 160 116, 240 126 S 330 132, 360 122 V190 H0Z" fill="#fff"/>
-  <path d="M0 160 C 100 150, 250 150, 360 158 V190 H0Z" fill="#dfe8f5"/>
-  <path d="M0 168 H360" stroke="#c3cfe4" stroke-width="2" stroke-dasharray="14 12"/>
-  <g class="bus" transform="translate(86 104)">
+/**
+ * Skibus zum eigenen Skigebiet: links der Berg, an dem man ist, rechts der andere (mit Namen) – beide mit Gondel.
+ * Der Bus fährt einmal langsam von der linken Talstation zur rechten und bleibt dort stehen.
+ */
+function busScene(toName) {
+  const gondola = (x, y) => `<g transform="translate(${x} ${y})"><path d="M0 0v6" stroke="#fff" stroke-width="2"/><rect x="-9" y="6" width="18" height="16" rx="4" fill="#fff"/><rect x="-6" y="9" width="12" height="6" rx="1.5" fill="#2a4380"/><rect x="-9" y="18" width="18" height="2.5" fill="#e5450d"/></g>`;
+  const station = (x) => `<g transform="translate(${x} 150)"><rect x="-13" y="-12" width="26" height="14" rx="2" fill="#c9d3e6"/><path d="M-16 -12 L0 -22 L16 -12Z" fill="#8fa3c9"/></g>`;
+  return `<svg viewBox="0 0 360 200" role="img">
+  <defs><linearGradient id="bus-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1226"/><stop offset="1" stop-color="#2a4380"/></linearGradient></defs>
+  <rect width="360" height="200" fill="url(#bus-sky)"/>
+  <circle cx="180" cy="34" r="11" fill="#fff" opacity=".85"/>
+  <path d="M-10 160 L78 50 L150 150Z" fill="#4a6299"/><path d="M62 70 L78 50 L96 72 L82 76Z" fill="#fff"/>
+  <path d="M210 150 L284 46 L370 160Z" fill="#4a6299"/><path d="M268 68 L284 46 L302 70 L286 74Z" fill="#fff"/>
+  <path d="M40 150 L84 62" stroke="#fff" stroke-width="1.6"/><path d="M320 150 L278 60" stroke="#fff" stroke-width="1.6"/>
+  ${gondola(58, 98)}${gondola(296, 96)}
+  <path d="M0 150 C 90 138, 270 138, 360 150 V200 H0Z" fill="#fff"/>
+  ${station(40)}${station(320)}
+  <path d="M0 176 H360" stroke="#c3cfe4" stroke-width="10"/>
+  <path d="M0 176 H360" stroke="#fff" stroke-width="1.5" stroke-dasharray="10 10"/>
+  <g class="bus"><g transform="scale(.55)">
     <rect x="18" y="-6" width="120" height="6" rx="3" fill="#c9d3e6"/>
     <path d="M30 -6 l8 -10 M54 -6 l8 -10 M78 -6 l8 -10 M102 -6 l8 -10" stroke="#e5450d" stroke-width="5" stroke-linecap="round"/>
     <rect x="0" y="0" width="168" height="50" rx="12" fill="#0b1226" stroke="#fff" stroke-width="3"/>
     <rect x="0" y="30" width="168" height="7" fill="#e5450d"/>
-    <rect x="12" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
-    <rect x="44" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
-    <rect x="76" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
-    <rect x="108" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
+    <rect x="12" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/><rect x="44" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
+    <rect x="76" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/><rect x="108" y="8" width="26" height="16" rx="4" fill="#9ec0f2"/>
     <path d="M140 8 h18 a4 4 0 0 1 4 4 v16 h-22z" fill="#9ec0f2"/>
-    <circle cx="36" cy="52" r="11" fill="#1b2747" stroke="#fff" stroke-width="3"/>
-    <circle cx="134" cy="52" r="11" fill="#1b2747" stroke="#fff" stroke-width="3"/>
+    <circle cx="36" cy="52" r="11" fill="#1b2747" stroke="#fff" stroke-width="3"/><circle cx="134" cy="52" r="11" fill="#1b2747" stroke="#fff" stroke-width="3"/>
     <rect x="160" y="34" width="8" height="6" rx="2" fill="#ffd66b"/>
-  </g>
-  <text x="24" y="40" fill="#fff" font-family="system-ui, sans-serif" font-weight="800" font-size="20">SKIBUS</text>
+  </g></g>
+  <text x="16" y="28" fill="#fff" font-family="system-ui, sans-serif" font-weight="800" font-size="12" letter-spacing=".08em">SKIBUS</text>
+  <text x="348" y="196" fill="#435070" font-family="system-ui, sans-serif" font-weight="700" font-size="11" text-anchor="end">${escapeXml(toName)}</text>
 </svg>`;
+}
+/** „Hahnenkamm · Pengelstein · Resterhöhe“ → „Hahnenkamm“ (passt unter den Berg) */
+const shortArea = (a) => String(a || '').split(' · ')[0];
+const escapeXml = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 const FIT_ZOOM = 16;     // Route ins Bild: höchstens so nah – kurze Wege nicht unnötig klein
 const PEEK_S = 3;        // so lange zeigt die Karte eine geänderte Route

@@ -9012,14 +9012,15 @@ small.wx-range-t {
   height: auto;
 }
 
-/* Einmal langsam vom linken zum rechten Berg, dann ist er weg */
+/* Einmal langsam von der linken Talstation zur rechten – dort bleibt er stehen */
 .bus-scene .bus {
-  animation: bus-drive 7s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.4s both;
+  transform: translate(232px, 147px);
+  animation: bus-drive 20s cubic-bezier(0.35, 0, 0.3, 1) 0.6s both;
 }
 
 @keyframes bus-drive {
-  from { transform: translate(-180px, 104px); }
-  to { transform: translate(372px, 104px); }
+  from { transform: translate(36px, 147px); }
+  to { transform: translate(232px, 147px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
