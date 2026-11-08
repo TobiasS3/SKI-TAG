@@ -753,10 +753,9 @@ function minSize(bounds) {
  * Der Bus fährt einmal langsam von der linken Talstation zur rechten und bleibt dort stehen.
  */
 function busScene(toName, leftType, rightType) {
-  // Was am Seil hängt – Aufhängung beginnt genau auf dem Seil (x, y)
+  // Was am Seil hängt – Gondel, Sessel oder Schlepplift (Seilbahnen als Gondel). Aufhängung genau auf dem Seil (x, y)
   const carrier = (type, x, y) => {
     const t = {
-      cable_car: `<path d="M-4 0v7M4 0v7" stroke="#fff" stroke-width="2"/><rect x="-14" y="7" width="28" height="19" rx="4" fill="#fff"/><rect x="-11" y="10" width="22" height="7" rx="1.5" fill="#2a4380"/><rect x="-14" y="22" width="28" height="2.5" fill="#e5450d"/>`,
       chair_lift: `<g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M0 0v9M-8 9h16M-8 9v10M8 9v10M-9 15h18"/></g><rect x="-9" y="18" width="18" height="4" rx="2" fill="#e5450d" stroke="#fff" stroke-width="1.5"/>`,
       't-bar': `<path d="M0 0v20" stroke="#fff" stroke-width="2"/><path d="M-7 20h14" stroke="#e5450d" stroke-width="3.5" stroke-linecap="round"/>`,
       platter: `<path d="M0 0v18" stroke="#fff" stroke-width="2"/><circle cy="21" r="4" fill="#e5450d" stroke="#fff" stroke-width="1.5"/>`,
