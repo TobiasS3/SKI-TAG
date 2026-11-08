@@ -127,11 +127,12 @@ function buildSuggestions(items, getPos, rental) {
       sub: `${t('dest.start.sub', { name: kassa.name })}${eta(startEta)}`,
     },
     // Ins Tal: gleich die Route ans Ende der schnellsten Talabfahrt
-    nearest && {
+    // Ins Tal: immer da – schon unten, dann nur der Hinweis „Sie sind gerade im Tal“ (kein Ziel)
+    nearest ? {
       id: 'down', icon: 'arrowDown', primary: true, eta: nearest.eta, lead: t('search.sg.down.via', { name: nearest.via }),
       item: { ...nearest, name: `${nearest.name} ${t('search.sg.down.to')}`, pos: nearest.loPos, node: nearest.loNode },
       sub: t('search.sg.down.sub', { name: nearest.via, time: duration(nearest.eta) }),
-    },
+    } : me && { id: 'down', icon: 'arrowDown', primary: true, inValley: true, lead: t('dest.down.here'), sub: t('dest.down.here') },
     streifBase && { id: 'streif', icon: 'flag', item: streifBase, ...goal(t('search.sg.streif.sub'), streifBase) },
     startHouse && { id: 'starthaus', icon: 'flag', item: startHouse, ...goal(t('dest.starthaus.sub'), startHouse) },
     flying && { id: 'flying', icon: 'gondola', item: flying, ...goal(t('search.sg.flying.sub'), flying) },
@@ -223,7 +224,7 @@ function streifCourse() {
   return {
     node: segs[0].a, // Route führt zum Start …
     pos: net.nodes[segs[0].a],
-    via, // … und dann die ganze Streif hinunter
+    viaEdges: via, // … und dann die ganze Streif hinunter (nicht „via“: das ist bei Talabfahrten der Pistenname)
     finishPos: line[line.length - 1],
     course: [line],
     sections: STREIF_SECTIONS.map(([name, f]) => ({ name, at: len * f, pos: pointAlong(line, len * f) })),
@@ -263,7 +264,10 @@ export function createSearch({ onPick, onShow, onGroup, getPos, rental }) {
     if (!vv || list.hidden) return;
     const top = list.getBoundingClientRect().top;
     const free = vv.offsetTop + vv.height - top - 12;
-    list.style.maxHeight = free < innerHeight * 0.6 ? `${Math.max(140, Math.round(free))}px` : '';
+    const keyboard = free < innerHeight * 0.6;
+    // Tastatur offen: Vorschläge kompakt (ohne Untertitel), damit alle auf einen Blick passen
+    list.classList.toggle('is-tight', keyboard);
+    list.style.maxHeight = keyboard ? `${Math.max(140, Math.round(free))}px` : '';
   };
   new MutationObserver(() => requestAnimationFrame(fitToKeyboard)).observe(list, { attributes: true, attributeFilter: ['hidden'] });
   vv?.addEventListener('resize', fitToKeyboard);

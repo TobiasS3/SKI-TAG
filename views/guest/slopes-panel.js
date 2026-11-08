@@ -115,13 +115,13 @@ export function mountRoutePanel(el, ctx) {
     layer = null;
     result = !target || !ctx.me.pos ? null
       : target.nodes ? routeToAny(ctx.me.pos, target.nodes, target.pos, mode) // Parkplatz: schnellster Zugang
-        : target.via ? routeVia(ctx.me.pos, target.node, target.via, 'fast') // Streif: zum Start, dann runter
+        : target.viaEdges ? routeVia(ctx.me.pos, target.node, target.viaEdges, 'fast') // Streif: zum Start, dann runter
           : route(ctx.me.pos, target.node, mode);
     if (result && !result.unreachable && result.coords.length > 1) {
       layer = drawRoute(ctx.map, result.coords, result.steps, { color: '#ff5b22', flow: '#fff' });
       const course = courseLines(target);
       if (course) addCourse(layer, course, target);
-      if (target.via) addStreifLook(layer, result);
+      if (target.viaEdges) addStreifLook(layer, result);
       if (animateNext) {
         drawIn(layer);
         el.classList.add('route-enter');
@@ -152,7 +152,7 @@ export function mountRoutePanel(el, ctx) {
    */
   function courseLines(place) {
     if (place?.type !== 'piste') return null;
-    if (place.via) return []; // Streif: die Route fährt sie selbst ab, nur die Schilder kommen dazu
+    if (place.viaEdges) return []; // Streif: die Route fährt sie selbst ab, nur die Schilder kommen dazu
     const lines = place.course?.length ? place.course : place.lines;
     // Talabfahrt „… ins Tal“: die Route fährt die Piste schon ab
     if (!lines?.length || (place.loNode != null && place.node === place.loNode)) return null;
@@ -282,7 +282,7 @@ export function mountRoutePanel(el, ctx) {
     const flat = result.steps.flatMap((st, k) => st.coords.map((c) => ({ c, k })));
     running = { cur: 0, idx: 0, flat };
     // Fake-Chip fährt die Route ab (echter Chip: der Gast fährt selbst)
-    api.guide(ctx.session.chip, target.node, target.via ? 'fast' : mode, target.via || null);
+    api.guide(ctx.session.chip, target.node, target.viaEdges ? 'fast' : mode, target.viaEdges || null);
     ctx.page.classList.add('route-running');
     renderBar(); // erst befüllen, dann misst der Bereich die richtige Höhe
     ctx.sheet.setTop(bar);
@@ -338,7 +338,7 @@ export function mountRoutePanel(el, ctx) {
   }
 
   /** Wo die Route endet: bei der Streif unten im Ziel, sonst am Ort selbst */
-  const goalPos = () => (target.via && result?.coords?.length ? result.coords[result.coords.length - 1] : target.pos);
+  const goalPos = () => (target.viaEdges && result?.coords?.length ? result.coords[result.coords.length - 1] : target.pos);
 
   /** Neue Position: welcher Schritt ist dran? Angekommen? */
   function track() {
@@ -396,8 +396,8 @@ export function mountRoutePanel(el, ctx) {
       ok ? routeHero(result) : null,
       ok ? h('button', { class: 'btn btn-sun btn-big btn-block route-start', onclick: start }, icon('nav'), t('route.start')) : null,
       // Streif: selbst schwarz – „Schwarze meiden“ / „Nur blaue“ ergeben keinen Sinn
-      target.via ? h('p', { class: 'small muted steps-note' }, h('i', { class: 'dot diff-advanced' }), t('route.streifModes')) : null,
-      target.via || result?.unreachable ? null : h('div', { class: 'choice-row', role: 'group', 'aria-label': t('tab.route') },
+      target.viaEdges ? h('p', { class: 'small muted steps-note' }, h('i', { class: 'dot diff-advanced' }), t('route.streifModes')) : null,
+      target.viaEdges || result?.unreachable ? null : h('div', { class: 'choice-row', role: 'group', 'aria-label': t('tab.route') },
         MODES.map((m) => h('button', {
           class: 'choice',
           'aria-pressed': String(m === mode),
@@ -415,7 +415,7 @@ export function mountRoutePanel(el, ctx) {
         : ok ? summary(result) : h('p', { class: 'note note-warn' }, t('route.none')),
       ok ? h('h3', { class: 'steps-title' }, t('route.follow')) : null,
       ok && ctx.liftStatus ? h('p', { class: 'small muted steps-note' }, icon('check'), t('route.statusIncluded')) : null,
-      ok && courseLines(target) ? h('p', { class: 'small muted steps-note' }, icon('flag'), t(target.via ? 'route.courseRide' : 'route.courseNote', { name: target.name })) : null,
+      ok && courseLines(target) ? h('p', { class: 'small muted steps-note' }, icon('flag'), t(target.viaEdges ? 'route.courseRide' : 'route.courseNote', { name: target.name })) : null,
       ok ? steps(result, target) : null,
     );
   }
@@ -440,12 +440,16 @@ export function mountRoutePanel(el, ctx) {
     const fun = list.filter((d) => !d.primary);
     return h('div', { class: 'stack dest' },
       h('h2', { class: 'title' }, t('route.title')),
-      main.length ? null : dayHint(),
+      main.some((d) => d.id === 'start') ? null : dayHint(),
       main.length ? h('ul', { class: 'dest-main' }, main.map((d) => h('li', {},
-        h('button', { class: 'dest-go', onclick: () => setTarget(d.item) },
+        h('button', {
+          class: `dest-go${d.inValley ? ' is-here' : ''}`,
+          disabled: d.inValley ? true : null,
+          onclick: () => d.item && setTarget(d.item),
+        },
           h('span', { class: `dest-go-icon sg-${d.id}` }, icon(d.icon)),
           h('span', { class: 'dest-go-text' }, h('strong', {}, t(`dest.${d.id}`)), h('small', {}, d.lead || d.sub)),
-          d.eta != null ? h('span', { class: 'dest-go-eta' }, h('b', { class: 'num' }, duration(d.eta))) : icon('chevron'))))) : null,
+          d.inValley ? icon('check') : d.eta != null ? h('span', { class: 'dest-go-eta' }, h('b', { class: 'num' }, duration(d.eta))) : icon('chevron'))))) : null,
       fun.length ? h('h3', { class: 'dest-head' }, t('route.highlights')) : null,
       fun.length ? h('ul', { class: `dest-tiles n-${fun.length}` }, fun.map((d) => h('li', {},
         h('button', { class: 'dest-tile', onclick: () => setTarget(d.item), 'aria-label': `${t(`dest.${d.id}`)}, ${d.sub}` },
@@ -612,7 +616,7 @@ export function mountRoutePanel(el, ctx) {
     const late = arrival > todayAt(config.resort.liftsClose) && r.lifts > 0;
     return h('div', { class: 'stack' },
       late ? h('p', { class: 'note note-warn' }, icon('clock'), t('route.afterClose')) : null,
-      r.blacks && mode !== 'preferBlack' && !target.via ? h('p', { class: 'note' }, h('i', { class: 'dot diff-advanced' }), t('route.blackWarn')) : null,
+      r.blacks && mode !== 'preferBlack' && !target.viaEdges ? h('p', { class: 'note' }, h('i', { class: 'dot diff-advanced' }), t('route.blackWarn')) : null,
     );
   }
 

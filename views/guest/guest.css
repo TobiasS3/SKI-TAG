@@ -9151,3 +9151,52 @@ small.wx-range-t {
 .mk-rsign span.is-compact b {
   display: none;
 }
+
+/* Schon im Tal: Knopf bleibt sichtbar, aber ruhig – nur ein Hinweis, kein Ziel */
+.dest-go.is-here {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+  cursor: default;
+}
+
+.dest-go.is-here .dest-go-icon {
+  background: var(--ice);
+  color: var(--ink-2);
+}
+
+.dest-go.is-here .dest-go-text small {
+  color: var(--ink-2);
+}
+
+.dest-go.is-here > svg {
+  color: var(--ok);
+}
+
+.dest-go.is-here:active {
+  transform: none;
+}
+
+/* Tastatur offen: alle Vorschläge auf einen Blick – flacher, ohne Untertitel */
+.search-results.is-tight {
+  padding: 4px;
+}
+
+.search-results.is-tight .search-head {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.search-results.is-tight .search-suggest {
+  min-height: 44px;
+  padding: 4px 8px;
+}
+
+.search-results.is-tight .search-suggest .search-text small {
+  display: none;
+}
+
+.search-results.is-tight .search-sg-icon {
+  width: 32px;
+  height: 32px;
+}
