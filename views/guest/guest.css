@@ -4867,6 +4867,32 @@
   }
 }
 
+/* Schmale Handys: Text bekommt die ganze Breite, Knopf darunter (sonst bricht die Frage Wort für Wort um) */
+@media (max-width: 479px) {
+  .top-note {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    column-gap: 12px;
+    row-gap: 10px;
+  }
+
+  .top-note-lead {
+    grid-area: 1 / 1;
+  }
+
+  .top-note-text {
+    grid-area: 1 / 2;
+  }
+
+  .top-note-close {
+    grid-area: 1 / 3;
+  }
+
+  .top-note .btn {
+    grid-area: 2 / 1 / 3 / -1;
+  }
+}
+
 .guest .step-icon {
   border-radius: 50%;
 }
