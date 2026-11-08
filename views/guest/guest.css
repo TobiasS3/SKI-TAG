@@ -8998,7 +8998,7 @@ small.wx-range-t {
   align-items: flex-start;
 }
 
-/* Eigenes Skigebiet: gezeichnete Skibus-Szene unter dem Hinweis, Bus wiegt leicht */
+/* Eigenes Skigebiet: gezeichnete Skibus-Szene unter dem Hinweis – der Bus fährt einmal durchs Tal */
 .bus-scene {
   margin: 0;
   border-radius: 22px;
@@ -9012,13 +9012,14 @@ small.wx-range-t {
   height: auto;
 }
 
+/* Einmal langsam vom linken zum rechten Berg, dann ist er weg */
 .bus-scene .bus {
-  animation: bus-bump 0.9s ease-in-out infinite alternate;
+  animation: bus-drive 7s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.4s both;
 }
 
-@keyframes bus-bump {
-  from { transform: translate(86px, 104px); }
-  to { transform: translate(86px, 102px); }
+@keyframes bus-drive {
+  from { transform: translate(-180px, 104px); }
+  to { transform: translate(372px, 104px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

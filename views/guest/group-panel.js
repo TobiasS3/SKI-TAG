@@ -601,7 +601,9 @@ export function mountGroup(el, ctx, group) {
     });
   }
 
-  const offs = [on('lang', render), on('me', schedule), on('sheet:tab', schedule), on('sheet:expanded', schedule), on('meeting', () => {
+  const offs = [on('lang', render), on('me', schedule), on('sheet:tab', schedule),
+    // Anderer Tab: aufgeklappter Freundes-Code geht wieder zu
+    on('sheet:tab', (id) => { if (id !== 'group' && friendOpen) { friendOpen = false; renderFriend(); } }), on('sheet:expanded', schedule), on('meeting', () => {
     etaCache.at = 0;
     renderMeeting();
   })];
