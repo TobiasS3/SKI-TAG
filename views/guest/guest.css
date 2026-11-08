@@ -9220,27 +9220,42 @@ small.wx-range-t {
   height: 32px;
 }
 
-/* Vorschläge: klappen weich von oben auf (wie ein Menü), Höhe gleitet statt zu springen */
+/* Vorschläge: kurz und leicht einblenden – nichts, was die Größe ändert */
 .search-results {
-  transform-origin: top center;
-  animation: search-open 320ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
-  transition: max-height 240ms ease;
+  animation: search-open 160ms ease-out both;
 }
 
 @keyframes search-open {
   from {
     opacity: 0;
-    transform: translateY(-6px) scaleY(0.92);
-    clip-path: inset(0 0 100% 0 round 24px);
+    transform: translateY(-4px);
   }
-  to {
-    clip-path: inset(0 0 0 0 round 24px);
-  }
+}
+
+/* Handy beim Tippen: feste Höhe über der Tastatur, kein Nachmessen */
+.search-results.is-tight {
+  max-height: 44vh;
+}
+
+/* Knöpfe: kleines Eindrücken beim Antippen – überall gleich, kostet nichts */
+.guest button,
+.guest .btn,
+.modal-backdrop button {
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.guest button:active:not(:disabled),
+.modal-backdrop button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .search-results {
     animation: none;
-    transition: none;
   }
+}
+
+/* Countdown-Pille sitzt mittig per translateX – beim Eindrücken nicht verrutschen */
+.guest .route-peek:active {
+  transform: translateX(-50%) scale(0.97);
 }

@@ -284,3 +284,22 @@
   opacity: 0;
 }
 
+
+/* Zoomen: Pisten und Lifte (ein Bild) kurz aus, danach scharf wieder da.
+   Route, Spur und „Gefahren“ bleiben sichtbar, ihre Strichstärke wächst nicht mit. */
+.map .leaflet-route-pane path,
+.map .leaflet-track-pane path,
+.map .leaflet-ridden-pane path {
+  vector-effect: non-scaling-stroke;
+}
+
+.map .leaflet-pistes-pane,
+.map .leaflet-lifts-pane {
+  transition: opacity 0.2s ease;
+}
+
+.map.is-zooming .leaflet-pistes-pane,
+.map.is-zooming .leaflet-lifts-pane {
+  opacity: 0;
+  transition-duration: 0.1s;
+}
