@@ -35,20 +35,6 @@ export function pointAlong(coords, meters) {
   return coords[coords.length - 1];
 }
 
-/** Index des nächsten Punkts aus einer Liste. */
-export function nearestIndex(point, points) {
-  let best = -1;
-  let bestD = Infinity;
-  points.forEach((p, i) => {
-    const d = distance(point, p);
-    if (d < bestD) {
-      bestD = d;
-      best = i;
-    }
-  });
-  return best;
-}
-
 /** Richtung von a nach b in Grad (0 = Norden, 90 = Osten). */
 export function bearing(a, b) {
   const lat1 = rad(a[0]);

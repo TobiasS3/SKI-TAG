@@ -405,7 +405,7 @@ function animateCabins(map, skimap, liftEdges, liftRuns) {
 
   const tick = (now) => {
     frame = requestAnimationFrame(tick);
-    if (moving || document.hidden || now - last < 66) return; // ~15 Bilder/s, schont den Akku
+    if (moving || document.hidden || now - last < 100) return; // 10 Bilder/s reichen für langsame Kabinen, schont den Akku
     last = now;
     draw(now);
   };

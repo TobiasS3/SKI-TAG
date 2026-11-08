@@ -18,20 +18,6 @@ export function meMarker(pos, initial = '') {
   });
 }
 
-/** Jemand aus der Gruppe: Anfangsbuchstabe in eigener Farbe. */
-export function friendMarker(pos, member) {
-  return L.marker(pos, {
-    icon: L.divIcon({
-      className: `mk-friend${member.kid ? ' is-kid' : ''}`,
-      html: `<span style="--c:${member.color}">${member.name[0]}</span>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 17],
-    }),
-    zIndexOffset: 900,
-    title: member.name,
-  });
-}
-
 /** Hütte: Logo (oder Haus-Symbol), Name ab Zoom 15. */
 export function hutMarker(hut) {
   return L.marker(hut.pos, {

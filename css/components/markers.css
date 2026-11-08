@@ -324,8 +324,6 @@
   transition: transform var(--t-fast) var(--ease-spring);
 }
 
-
-
 .mk-hut-badge svg {
   width: 16px;
   height: 16px;

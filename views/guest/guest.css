@@ -88,10 +88,6 @@
   font-size: 1.25rem;
 }
 
-.pill-aval > svg {
-  color: var(--ink-2);
-}
-
 .aval-mini {
   display: grid;
   place-items: center;
@@ -637,16 +633,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 16px 40px rgba(0, 0, 0, 0.28);
 }
 
-.instrument-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: var(--night-muted);
-}
-
 /* Statistik-Kacheln */
 .day-stats {
   display: grid;
@@ -936,23 +922,6 @@
   gap: var(--sp-3);
 }
 
-.recap-big {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.recap-km {
-  font-size: 5.2rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.recap-unit {
-  font-weight: 650;
-  color: var(--night-muted);
-}
-
 .profile {
   display: flex;
   align-items: flex-end;
@@ -1020,15 +989,6 @@
 
 @keyframes ready-pulse {
   50% { box-shadow: 0 0 0 6px rgba(22, 180, 107, 0.25); }
-}
-
-/* ================================================================================
-   Route
-   ================================================================================ */
-.quick-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .quick-item {
@@ -1335,62 +1295,6 @@
 .place-kind {
   font-size: var(--fs-s);
   color: var(--ink-2);
-}
-
-/* Zusammenfassung */
-.route-summary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-  padding: var(--sp-4);
-  border-radius: 20px;
-  background: var(--paper);
-  box-shadow: var(--shadow-1);
-}
-
-.route-time {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.route-big {
-  font-size: 3.4rem;
-  font-weight: 700;
-}
-
-.route-eta {
-  padding: 4px 10px;
-  border-radius: var(--r-pill);
-  background: var(--sun-soft);
-  color: var(--sun-deep);
-  font-size: var(--fs-s);
-  font-weight: 700;
-}
-
-.route-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin: 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-}
-
-.route-stats > div + div {
-  padding-left: 10px;
-  border-left: 1px solid var(--line);
-}
-
-.route-stats dt {
-  font-size: 11px;
-  color: var(--ink-3);
-  font-weight: 650;
-}
-
-.route-stats dd {
-  margin: 4px 0 0;
-  font-size: 1.45rem;
 }
 
 /* „Den Schildern folgen“ über der Wegbeschreibung */
@@ -2333,40 +2237,6 @@
   background: var(--ice);
 }
 
-/* Schalter in einer Zeile (z. B. „Nur Route zeigen“) */
-.switch-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 16px;
-  background: var(--ice);
-  text-align: left;
-}
-
-.switch-row > svg {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  color: var(--ink-2);
-}
-
-.switch-row > span {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.switch-row strong {
-  font-size: var(--fs-s);
-}
-
-.switch-row small {
-  font-size: var(--fs-xs);
-  color: var(--ink-3);
-}
-
 .switch {
   position: relative;
   flex: none;
@@ -2389,14 +2259,6 @@
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   transition: transform var(--t-med) var(--ease-spring);
-}
-
-.switch-row.is-on .switch {
-  background: var(--action);
-}
-
-.switch-row.is-on .switch::after {
-  transform: translateX(18px);
 }
 
 /* ================================================================================
@@ -4040,51 +3902,6 @@
   color: var(--sos-deep);
 }
 
-/* ================================================================================
-   Tagesfilm (views/guest/day-film.js)
-   ================================================================================ */
-.film-cta {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  margin-bottom: var(--sp-3);
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: linear-gradient(120deg, #2f6dff, #7a5cff 55%, #ff6a13);
-  color: #fff;
-  text-align: left;
-  box-shadow: var(--shadow-2);
-}
-
-.film-cta > span:last-child {
-  display: flex;
-  flex-direction: column;
-}
-
-.film-cta strong {
-  font-size: var(--fs-l);
-}
-
-.film-cta small {
-  opacity: 0.9;
-}
-
-.film-cta-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.film-cta-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
 .film {
   position: fixed;
   inset: 0;
@@ -5012,11 +4829,6 @@
   z-index: 1090;
 }
 
-.guest .film-cta {
-  background: var(--action);
-  color: #fff;
-}
-
 .guest .trace-line {
   stroke: #ff6a2b;
 }
@@ -5504,10 +5316,6 @@
   box-shadow: var(--shadow-3);
 }
 
-.guest .film-cta {
-  background: linear-gradient(120deg, #e5450d, #f4703a);
-}
-
 /* Gipfelschilder: Schrift hell auf Nacht */
 .guest .mk-peak span,
 .guest .mk-peak b {
@@ -5657,10 +5465,6 @@
 
 .modal-info .seg-btn[aria-selected="true"] {
   background: var(--ink);
-}
-
-.guest .film-cta {
-  background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
 }
 
 .guest .sheet-badge {
@@ -6112,22 +5916,8 @@
   background: linear-gradient(135deg, #0b1226 0%, #1b2c5e 100%);
 }
 
-.recap-hero .instrument-head {
-  color: #c5d0ea;
-  font-weight: 600;
-}
-
 .recap-hero .day-chip {
   display: none;
-}
-
-.recap-km {
-  font-weight: 800;
-  letter-spacing: -0.045em;
-}
-
-.recap-unit {
-  color: #c5d0ea;
 }
 
 .recap-hero .day-stats {
@@ -6169,22 +5959,6 @@
 
 .recap-hero .stat small {
   color: #c5d0ea;
-}
-
-.guest .film-cta {
-  border-radius: 22px;
-  background: #fff;
-  color: var(--ink);
-  box-shadow: var(--shadow-1);
-}
-
-.guest .film-cta small {
-  color: var(--ink-2);
-}
-
-.guest .film-cta-icon {
-  background: var(--sun);
-  color: #fff;
 }
 
 .guest .recap .run-n {
@@ -6388,7 +6162,6 @@
   background: url("../../assets/images/hut-badge.svg") center / 100% no-repeat;
   box-shadow: none;
 }
-
 
 .place-cover .place-logo.is-badge {
   background-color: transparent;
@@ -6603,7 +6376,6 @@ small.wx-range-t {
   background: var(--sun);
   color: #fff;
 }
-
 
 /* ================================================================================
    Chip-Knopf oben rechts + Menü (Chip, Zugang, Sprache)
@@ -7266,22 +7038,6 @@ small.wx-range-t {
   from { opacity: 0; transform: translateY(40px); }
 }
 
-.recap-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #c5d0ea;
-}
-
-.recap-kicker i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #34d391;
-}
-
 .recap-title {
   margin: 6px 0 18px;
   font-family: var(--font-head);
@@ -7666,10 +7422,6 @@ small.wx-range-t {
 .guest .mk-hut .mk-label {
   left: 33px;
   top: -12px;
-}
-
-.map.has-group.group-huts .mk-hut {
-  display: block !important;
 }
 
 /* Zurück in der Route: deutlich als Knopf, dunkel wie die Kopfleiste */
@@ -9103,7 +8855,7 @@ small.wx-range-t {
 .friend-faces .friend-slot {
   background: var(--sun);
   box-shadow: 0 0 0 2.5px #0b1226, 0 0 0 5px rgba(229, 69, 13, 0.35);
-  animation: friend-pulse 1.8s ease-out infinite;
+  animation: friend-slot-pulse 1.8s ease-out infinite;
 }
 
 .friend-slot svg {
@@ -9138,7 +8890,8 @@ small.wx-range-t {
   color: #b9c6e4;
 }
 
-@keyframes friend-pulse {
+/* eigener Name – „friend-pulse“ gehört dem Freund-Punkt auf der Karte (markers.css) */
+@keyframes friend-slot-pulse {
   0% { box-shadow: 0 0 0 2.5px #0b1226, 0 0 0 4px rgba(229, 69, 13, 0.5); }
   100% { box-shadow: 0 0 0 2.5px #0b1226, 0 0 0 12px rgba(229, 69, 13, 0); }
 }

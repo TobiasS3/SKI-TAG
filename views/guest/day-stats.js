@@ -29,8 +29,6 @@ export const emptyDay = () => ({
   afterLift: true,  // nächste Piste zählt als neue Abfahrt
 });
 
-export const runsCount = (day) => day.runs.length;
-
 /**
  * Neuen Punkt einrechnen. Gibt neu freigeschaltete Abzeichen zurück.
  * p = { lat, lng, alt, speed, kind, ref, time },  skimap = Pistennetz

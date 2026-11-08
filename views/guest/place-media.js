@@ -16,14 +16,6 @@ export const setMedia = (m) => {
 
 export const mediaFor = (name) => media[name] || null;
 
-/** Anfangsbuchstaben: „Gasthof Fleckalm“ → „GF“, „Seidlalm“ → „SE“ */
-export function initials(name) {
-  const skip = new Set(['bei', 'am', 'im', 'zum', 'zur', 'der', 'die', 'das', 'und', 'the', 'de']);
-  const words = name.replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).filter((w) => w && !skip.has(w.toLowerCase()));
-  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
-  return (words[0] || '?').slice(0, 2).toUpperCase();
-}
-
 // Ruhige Farben fürs Monogramm – passend zum Design (Schwarz, Grau, Akzente)
 const MONO_COLORS = ['#0e0e10', '#2a2a30', '#ff6a13', '#2f6dff', '#55555d', '#16b46b'];
 
