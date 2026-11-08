@@ -575,7 +575,7 @@ export function mountGroup(el, ctx, group) {
     replace(el,
       h('header', { class: 'group-head' },
         h('div', {},
-          h('h2', { class: 'title' }, group.name),
+          h('h2', { class: 'title' }, t('group.title')),
           lead)),
       warning,
       list,

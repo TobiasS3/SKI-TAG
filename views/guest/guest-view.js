@@ -495,7 +495,7 @@ export async function mountGuest(root, session) {
     pisteList(skimap).forEach((x) => !pisteState(pisteStatus, x.piste).open && x.refs.forEach((r) => shut.add(r)));
     setClosedPistes([...shut]);
   }
-  groupName = group?.name ?? null;
+  groupName = group ? t('group.title') : null; // kein Familienname – einfach „Ihre Gruppe“
   ctx.liftStatus = liftStatus; // Route-Tab zeigt bei jedem Lift, ob und bis wann er fährt
   ctx.pisteStatus = pisteStatus; // … und bei Pisten, ob sie offen sind
 

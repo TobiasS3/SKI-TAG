@@ -359,6 +359,7 @@ const de = {
   'aval.link': 'Lawinenbericht Tirol',
 
   'group.lead': '{n} Personen, live auf der Karte',
+  'group.title': 'Ihre Gruppe',
   'group.you': 'Sie',
   'group.kid': 'Kind',
   'group.show': 'Zeigen',
@@ -1147,6 +1148,7 @@ const en = {
   'aval.link': 'Tyrol avalanche report',
 
   'group.lead': '{n} people, live on the map',
+  'group.title': 'Your group',
   'group.you': 'You',
   'group.kid': 'Child',
   'group.show': 'Show',
