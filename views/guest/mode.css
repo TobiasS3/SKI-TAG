@@ -1,0 +1,565 @@
+/* Ansicht wählen (Solo-Fahrt / Familie & Gruppe / Alles im Blick) – views/guest/guest-mode.js
+   Auswahl nach dem Login, fliegendes Symbol zum Chip, Bestätigung beim Umschalten.
+   Farbe mit Bedeutung: Orange = eigene Spur, Blau = Ihre Leute, Nachtschwarz = alles. */
+
+.mode-choice {
+  --mode-solo: #ff5b22;
+  --mode-group: #2f6dff;
+  --mode-all: #0b1226;
+}
+
+.is-choosing .login-iris {
+  clip-path: circle(160vmax at var(--iris-x, 50%) var(--iris-y, 80%));
+}
+
+.mode-choice {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding: calc(var(--safe-top) + var(--sp-5)) var(--sp-4) calc(var(--safe-bottom) + var(--sp-5));
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: #fff;
+}
+
+.mode-choice:focus {
+  outline: none;
+}
+
+.mode-head,
+.mode-list {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.mode-head {
+  margin-top: auto; /* mittig, solange Platz ist – sonst oben anfangen statt oben abschneiden */
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 500ms ease 150ms, transform 700ms var(--ease-out) 150ms;
+}
+
+.mode-choice.is-open .mode-head {
+  opacity: 1;
+  transform: none;
+}
+
+.mode-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.75rem, 7vw, 2.2rem);
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.mode-hint {
+  margin-top: var(--sp-2);
+  max-width: 36ch;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+
+
+
+
+.mode-list {
+  display: grid;
+  gap: 14px;
+  margin-bottom: auto;
+}
+
+/* --- Spur, Schnee, Skifahrer ---------------------------------------------------- */
+.mode-track {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 900ms ease;
+}
+
+.mode-track path {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-track-line {
+  stroke-width: 4;
+}
+
+.mode-track-spray {
+  stroke-width: 20;
+  opacity: 0.16;
+}
+
+.mode-choice.is-ridden .mode-track {
+  opacity: 0.35;
+}
+
+.mode-skier {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 60px;
+  height: 60px;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+.mode-skier svg {
+  width: 60px;
+  height: 60px;
+}
+
+.mode-flake {
+  position: fixed;
+  z-index: 2;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* --- Box: groß, Rand in der Farbe der Ansicht, gewölbt = antippbar ------------------- */
+.mode-card {
+  --c: #182650; /* Navy wie Kopfleiste und Tab-Leiste */
+  display: grid;
+  grid-template-columns: 56px 1fr 22px;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 108px;
+  padding: 20px 18px 20px 20px;
+  border-radius: 24px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42), inset 0 0 0 3px var(--c), inset 0 -4px 0 rgba(14, 14, 16, 0.06);
+  opacity: 0;
+  transform: scale(0.06) rotate(var(--tilt, 0deg));
+  transition: transform 680ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease, box-shadow var(--t-fast);
+}
+
+.mode-card.is-open {
+  opacity: 1;
+  transform: none;
+}
+
+.mode-card:active {
+  transform: translateY(2px) scale(0.985);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), inset 0 0 0 3px var(--c), inset 0 2px 4px rgba(14, 14, 16, 0.08);
+  transition-duration: 90ms;
+}
+
+.mode-card:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 3px;
+}
+
+.mode-icon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: #182650;
+  color: #fff;
+}
+
+.mode-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+
+
+.mode-solo .mode-icon,
+.mode-icon.mode-solo {
+  background: #ff5b22;
+}
+
+.mode-group .mode-icon,
+.mode-icon.mode-group {
+  background: #2f6dff;
+}
+
+.mode-all .mode-icon,
+.mode-icon.mode-all {
+  background: #182650;
+}
+
+.mode-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mode-name {
+  font-family: var(--font-head);
+  font-size: 1.45rem;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.mode-lead {
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: #182650;
+}
+
+/* Was man bekommt: eine kurze Zeile, gut lesbar */
+.mode-what {
+  margin-top: 4px;
+  font-size: 0.92rem;
+  line-height: 1.38;
+  color: var(--ink-2);
+}
+
+
+
+
+
+
+
+
+.mode-go {
+  width: 24px;
+  height: 24px;
+  color: #182650;
+}
+
+/* Gewählt: die anderen fallen weg, die gewählte blendet aus, nur ihr Symbol fliegt weiter */
+.mode-choice.is-picked .mode-head,
+.mode-choice.is-picked .mode-card {
+  opacity: 0;
+  transform: translateY(40px) scale(0.92);
+  transition: opacity 360ms ease, transform 520ms var(--ease-out);
+}
+
+.mode-choice.is-picked .mode-head {
+  transform: translateY(-14px);
+}
+
+.mode-choice.is-picked .mode-card.is-chosen {
+  transform: scale(1.04);
+  box-shadow: 0 0 0 4px var(--c), 0 14px 34px rgba(0, 0, 0, 0.4), inset 0 0 0 3px var(--c);
+  transition: opacity 300ms ease 380ms, transform 260ms cubic-bezier(0.34, 1.5, 0.5, 1), box-shadow 120ms;
+}
+
+/* --- Symbol fliegt zum Chip (hängt am body, lebt über den Bildschirmwechsel) --------- */
+.mode-fly {
+  position: fixed;
+  z-index: 3300; /* über dem Chip-Bildschirm */
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #0b1226;
+  color: #fff;
+  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition:
+    left 760ms cubic-bezier(0.65, 0, 0.25, 1),
+    top 760ms cubic-bezier(0.65, 0, 0.25, 1),
+    width 760ms cubic-bezier(0.65, 0, 0.25, 1),
+    height 760ms cubic-bezier(0.65, 0, 0.25, 1),
+    border-radius 760ms ease,
+    background 420ms ease,
+    opacity 280ms ease;
+}
+
+.mode-fly-solo {
+  background: #ff5b22;
+}
+
+.mode-fly-group {
+  background: #2f6dff;
+}
+
+.mode-fly svg {
+  width: 44%;
+  height: 44%;
+  transition: opacity 300ms ease;
+}
+
+.mode-fly.is-flying {
+  border-radius: 36px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 10px rgba(255, 255, 255, 0.08);
+}
+
+/* Landet auf dem Chip: wird zum dunklen Gehäuse, Symbol blendet aus */
+.mode-fly.is-landing {
+  border-radius: 36px;
+  background: #18181c;
+}
+
+.mode-fly.is-landing svg {
+  opacity: 0;
+}
+
+.mode-fly.is-gone {
+  opacity: 0;
+}
+
+/* --- Bestätigung nach dem Umschalten ----------------------------------------------- */
+.mode-hud {
+  position: fixed;
+  top: 42%;
+  left: 50%;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 20px;
+  background: #0b1226;
+  color: #fff;
+  box-shadow: 0 16px 36px rgba(11, 18, 38, 0.4);
+  transform: translateX(-50%);
+  animation: hud-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mode-hud.is-leaving {
+  animation: hud-out 360ms ease both;
+}
+
+.mode-hud .mode-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  align-self: center;
+}
+
+.mode-hud.mode-all .mode-icon {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.mode-hud .mode-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.mode-hud-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mode-hud-text small {
+  font-size: 12px;
+  white-space: nowrap;
+  color: #c5d0ea;
+}
+
+.mode-hud-text strong {
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.mode-hud-check {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: #16b46b;
+  animation: hud-check 420ms cubic-bezier(0.34, 1.4, 0.5, 1) 220ms both;
+}
+
+.mode-hud-check svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 3;
+}
+
+@keyframes hud-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(0.92);
+  }
+}
+
+@keyframes hud-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.96);
+  }
+}
+
+@keyframes hud-check {
+  from {
+    transform: scale(0);
+  }
+}
+
+@media (max-height: 780px) {
+  .mode-choice {
+    gap: var(--sp-4);
+  }
+
+  .mode-card {
+    min-height: 0;
+    gap: 14px;
+    padding: 14px 14px 14px 16px;
+  }
+
+  .mode-list {
+    gap: 10px;
+  }
+
+  .mode-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+  }
+
+  .mode-name {
+    font-size: 1.3rem;
+  }
+
+  .mode-what {
+    font-size: 0.88rem;
+  }
+
+  .mode-chiphint {
+    margin-top: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-hud,
+  .mode-hud-check {
+    animation: none;
+  }
+}
+
+/* „Jederzeit änderbar“: Leiste mit Bild der Ecke oben rechts (Wetter + Chip-Knopf) */
+.mode-chiphint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 10px 10px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.mch-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mch-text strong {
+  font-size: 1.02rem;
+  color: #fff;
+}
+
+.mch-text small {
+  font-size: 0.86rem;
+  color: #c5d0ea;
+}
+
+/* Das Stück Kopfleiste wie in der App: Navy-Verlauf, helle Knöpfe */
+.mch-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 6px;
+  border-radius: 16px 16px 16px 16px;
+  background: linear-gradient(120deg, #0b1226, #182650);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.mch-pill {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 44px;
+  padding: 0 10px 0 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.13);
+  opacity: 0.55; /* nur zur Orientierung */
+}
+
+.mch-pill small {
+  font-size: 10px;
+  color: #c5d0ea;
+}
+
+.mch-pill b {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.mch-pill svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Der Chip-Knopf – orange umrandet, leuchtet ein paar Mal auf */
+.mch-chip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  box-shadow: 0 0 0 2.5px #ff6a2b;
+  animation: mch-point 900ms ease-out 1.2s 3;
+}
+
+.mch-chip .bat {
+  margin-right: 4px;
+}
+
+.mch-more {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 10px;
+  height: 10px;
+  color: #c5d0ea;
+}
+
+@keyframes mch-point {
+  0% {
+    box-shadow: 0 0 0 2.5px #ff6a2b, 0 0 0 0 rgba(255, 106, 43, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 0 2.5px #ff6a2b, 0 0 0 12px rgba(255, 106, 43, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mch-chip {
+    animation: none;
+  }
+}

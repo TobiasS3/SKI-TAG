@@ -510,7 +510,7 @@ export function mountRoutePanel(el, ctx) {
         h('span', { class: 'dest-hint-text' },
           h('strong', {}, t('route.dayFirst')),
           h('small', {}, t('route.dayFirstText'))),
-        h('button', { class: 'btn btn-sun btn-small', onclick: () => ctx.sheet.open('day') }, t('day.start')));
+        h('button', { class: 'btn btn-sun btn-small', onclick: () => (ctx.openDay ? ctx.openDay() : ctx.sheet.open('day')) }, t('day.start')));
     }
     if (status !== 'running') return null;
     return h('div', { class: 'dest-hint' },
@@ -856,7 +856,7 @@ const escapeXml = (v) => String(v).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0
 const FIT_ZOOM = 16;     // Route ins Bild: höchstens so nah – kurze Wege nicht unnötig klein
 const EMPTY_REFRESH_MS = 20000; // „Wohin möchten Sie?“ höchstens so oft neu rechnen
 const PEEK_S = 3;        // so lange zeigt die Karte eine geänderte Route
-const PEEK_NEW_S = 4;    // neue Route: Karte fliegt erst hin, die Linie zeichnet sich – etwas länger
+const PEEK_NEW_S = 3;    // neue Route: Karte fliegt hin, die Linie zeichnet sich (Nutzer will 3 s)
 const ARRIVE_M = 45;     // so nah am Ziel = angekommen
 const OFF_ROUTE_M = 120; // weiter weg = nicht auf der Route, Anzeige bleibt stehen
 

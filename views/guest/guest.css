@@ -9034,3 +9034,851 @@ small.wx-range-t {
 .search-results.is-tight {
   max-height: 44vh;
 }
+
+/* ================================================================================
+   Ansicht (Solo-Fahrt / Familie & Gruppe / Alles im Blick) – views/guest/guest-mode.js
+   ================================================================================ */
+
+/* Umschalter im Chip-Menü: drei dicke Knöpfe mit farbigem Symbol, der aktive ist weiß mit Haken */
+.menu-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.menu-mode-title {
+  padding: 4px 4px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c5d0ea;
+}
+
+.menu-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.25);
+  color: #fff;
+  text-align: left;
+  transition: background var(--t-fast), color var(--t-fast), transform 90ms ease;
+}
+
+.menu-mode-btn:active {
+  transform: scale(0.98);
+}
+
+.menu-mode-btn .mode-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: #fff;
+}
+
+.menu-mode-btn .mode-icon.mode-all {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.menu-mode-btn .mode-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.menu-mode-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.menu-mode-btn strong {
+  font-size: 1.02rem;
+  color: #fff;
+}
+
+.menu-mode-btn small {
+  font-size: 12.5px;
+  color: #c5d0ea;
+}
+
+.menu-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.menu-mode-btn[aria-pressed="true"] {
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--sun), 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.menu-mode-btn[aria-pressed="true"] .mode-icon.mode-all {
+  background: #0b1226;
+}
+
+.menu-mode-btn[aria-pressed="true"] strong {
+  color: var(--ink);
+}
+
+.menu-mode-btn[aria-pressed="true"] small {
+  color: var(--ink-2);
+}
+
+.menu-mode-btn .menu-mode-check {
+  margin-left: auto;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  stroke-width: 3;
+  color: var(--sun);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 160ms ease, transform 260ms cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.menu-mode-btn[aria-pressed="true"] .menu-mode-check {
+  opacity: 1;
+  transform: none;
+}
+
+/* „Mein Tag“ oben neben der Suche (nur Familie & Gruppe) – nachtblau wie die Knöpfe der Kopfleiste.
+   Während die Suche offen ist, geht er weg, damit die Liste die ganze Breite hat. */
+.guest .search:has(> .day-top:not([hidden])):not(:has(.search-results:not([hidden]))) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+}
+
+.guest .search > .search-results {
+  grid-column: 1 / -1;
+}
+
+.guest .search:has(.search-results:not([hidden])) > .day-top {
+  display: none;
+}
+
+.day-top {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  height: 50px;
+  min-width: 76px;
+  padding: 0 14px 0 12px;
+  border-radius: 18px;
+  background: var(--paper);
+  color: #182650;
+  text-align: left;
+  box-shadow: var(--shadow-2), inset 0 0 0 3px #182650; /* weiß mit Navy-Rand, Orange nur innen */
+  transition: transform 90ms ease;
+}
+
+.day-top:active {
+  transform: scale(0.96);
+}
+
+.day-top .pill-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--sun);
+  white-space: nowrap;
+}
+
+.day-top .pill-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.day-top .pill-row svg {
+  width: 16px;
+  height: 16px;
+}
+
+.day-top .pill-row svg {
+  color: var(--sun);
+}
+
+.day-top-rec {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16b46b;
+}
+
+/* ================================================================================
+   Tag starten / beenden im Chip-Menü + Info mit Pfeil (views/guest/day-coach.js)
+   ================================================================================ */
+
+/* Fette Leiste ganz oben im Menü: orange = starten, weiß mit dunklem Rand = beenden */
+.menu-day {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  margin-top: 10px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 16px;
+  text-align: left;
+  transition: transform 90ms ease;
+}
+
+.menu-day:active {
+  transform: scale(0.98);
+}
+
+.menu-day.is-start {
+  background: linear-gradient(180deg, #ff6a2b, #e5450d);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(229, 69, 13, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Tag läuft: ruhiger Bereich im Menü-Stil, oben der Status, darunter weißer Knopf „Tag beenden“ */
+.menu-day-run {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-day-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 2px 10px;
+  font-size: 13px;
+  color: #c5d0ea;
+}
+
+.menu-day-status i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4fe0a2;
+  box-shadow: 0 0 0 3px rgba(79, 224, 162, 0.2);
+}
+
+.menu-day-status > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-day-status strong {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: #fff;
+}
+
+.menu-day-status small {
+  font-size: 12.5px;
+  color: #c5d0ea;
+}
+
+.menu-day-stop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  border-radius: 13px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-head);
+  font-size: 1.08rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 -2px 0 rgba(11, 18, 38, 0.08);
+  transition: transform 90ms ease;
+}
+
+.menu-day-stop:active {
+  transform: scale(0.98);
+}
+
+.menu-day-stop-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #ff5b22;
+  color: #fff;
+}
+
+.menu-day-stop-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.menu-day-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+
+.menu-day-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.menu-day-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.menu-day strong {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.menu-day small {
+  font-size: 12.5px;
+  opacity: 0.85;
+}
+
+
+.menu-day > svg:last-child {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
+}
+
+/* Chip-Knopf: Tag läuft → schmaler grüner Strich unten im Knopf (wie eine Anzeige „läuft“) */
+.guest .pill-chip .pill-rec-dot {
+  position: absolute;
+  left: 10px;
+  right: 18px;
+  bottom: 7px;
+  height: 3px;
+  border-radius: 2px;
+  background: #4fe0a2;
+}
+
+/* Chip-Knopf wird gezeigt: leuchtet dreimal auf, dann Ruhe */
+.guest .pill-chip.is-pointed {
+  animation: chip-point 800ms ease-out 3;
+}
+
+@keyframes chip-point {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 106, 43, 0.85);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(255, 106, 43, 0);
+  }
+}
+
+/* Info-Karte unter der Kopfleiste, Pfeil zeigt auf den Chip-Knopf */
+.day-coach {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--sp-3) + 74px);
+  right: var(--sp-3);
+  z-index: 1150;
+  width: min(340px, calc(100% - var(--sp-3) * 2));
+  padding: 16px;
+  border-radius: 20px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 18px 44px rgba(11, 18, 38, 0.35), inset 0 0 0 2.5px #182650;
+  animation: coach-in 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.day-coach.is-leaving {
+  animation: coach-out 280ms ease both;
+}
+
+@keyframes coach-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.6);
+  }
+}
+
+@keyframes coach-out {
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.92);
+  }
+}
+
+.coach-arrow {
+  position: absolute;
+  top: -11px;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  border-radius: 4px 0 0 0;
+  background: #fff;
+  box-shadow: inset 2.5px 2.5px 0 #182650;
+  transform: rotate(45deg);
+}
+
+.coach-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coach-head strong {
+  font-family: var(--font-head);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.coach-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #0b1226;
+  color: #fff;
+}
+
+.coach-icon.is-start {
+  background: #ff5b22;
+}
+
+.coach-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.day-coach p {
+  margin: 10px 0 14px;
+  font-size: 0.95rem;
+  line-height: 1.42;
+  color: var(--ink-2);
+}
+
+.coach-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.day-coach .btn {
+  width: 100%;
+}
+
+/* In „Mein Tag“: Karte „Tag beenden“ – navy wie die Kopfleiste, mit Pistenlinien und dem Chip-Knopf
+   im Kleinen; antippen öffnet das Chip-Menü, dort wird beendet */
+.day-stop-where {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 104px;
+  margin-top: var(--sp-4);
+  padding: 20px 18px 20px 18px;
+  border-radius: 24px;
+  background:
+    url("../../assets/images/piste-lines.svg") right -40px center / 170px no-repeat,
+    linear-gradient(120deg, #0b1226, #182650);
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(11, 18, 38, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 90ms ease;
+}
+
+.day-stop-where:active {
+  transform: scale(0.98);
+}
+
+/* Der Chip-Knopf von oben rechts im Kleinen: Akku, grüner Strich (läuft), Pfeil */
+.dsw-chip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 0 3px #ff6a2b;
+}
+
+.dsw-chip .bat {
+  width: 19px;
+  height: 11px;
+  margin-right: 3px;
+}
+
+.dsw-rec {
+  position: absolute;
+  left: 11px;
+  right: 15px;
+  bottom: 8px;
+  height: 3px;
+  border-radius: 2px;
+  background: #4fe0a2;
+}
+
+.dsw-arrow {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 11px;
+  height: 11px;
+  color: #c5d0ea;
+}
+
+.dsw-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dsw-text strong {
+  font-family: var(--font-head);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.dsw-text small {
+  font-size: 0.95rem;
+  color: #c5d0ea;
+}
+
+.dsw-go {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  color: #ff6a2b;
+}
+
+/* Treffpunkt ausmachen: hell, dunkler Rand, gewölbt = antippbar */
+.meet-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1), inset 0 0 0 2.5px #182650;
+  color: var(--ink);
+  text-align: left;
+  font-size: inherit;
+  transition: transform 90ms ease;
+}
+
+.meet-empty:active {
+  transform: scale(0.98);
+}
+
+.meet-empty-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--ok); /* Treffpunkt = grün wie auf der Karte */
+  color: #fff;
+}
+
+.meet-empty-icon svg,
+.meet-empty .meet-empty-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #fff;
+}
+
+.meet-empty-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meet-empty-text strong {
+  font-size: 1rem;
+}
+
+.meet-empty-text small {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+.meet-empty > svg:last-child {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+}
+
+/* Route-Tab ganz unten: Hütten, Lifte suchen – deutlicher (hell, dunkler Rand) */
+.dest-search {
+  min-height: 64px;
+  margin-top: 8px;
+  padding: 10px 14px 10px 10px;
+  border: 0;
+  background: var(--paper);
+  box-shadow: var(--shadow-1), inset 0 0 0 2.5px #182650;
+}
+
+.dest-search > svg:first-child {
+  box-sizing: content-box;
+  padding: 11px;
+  border-radius: 12px;
+  background: #182650;
+  color: #fff;
+}
+
+.dest-search strong {
+  font-size: 1rem;
+}
+
+.dest-search small {
+  font-size: 0.82rem;
+}
+
+/* „Mein Tag“ mehr Luft zum Rand – als Tab und als Fenster (Familie & Gruppe) */
+#pane-day {
+  padding-inline: 6px;
+}
+
+.modal-info #pane-day {
+  padding: 10px 8px 8px;
+}
+
+/* Im Fenster: Überschrift nicht unter das ✕ schieben */
+.modal-info #pane-day .day-bar,
+.modal-info #pane-day .day-hero {
+  margin-right: 0;
+}
+
+.modal-info #pane-day .day-bar {
+  padding-right: 56px;
+}
+
+/* Startzustand im Fenster: dunkle Karte unter das ✕ */
+.modal-info #pane-day > .day-intro {
+  padding-top: 46px;
+}
+
+/* ================================================================================
+   „Tag beenden?“ – eigene Rückfrage (views/guest/day-stop.js)
+   Navy-Kopf mit Pistenlinien und den Zahlen des Tages, darunter orange „Tag beenden“
+   ================================================================================ */
+.ds-backdrop {
+  place-items: center;
+  padding: var(--sp-4);
+}
+
+.day-stop-modal {
+  width: min(400px, 100%);
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--paper);
+  box-shadow: 0 30px 70px rgba(11, 18, 38, 0.5);
+  animation: ds-in 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ds-backdrop.is-closing .day-stop-modal {
+  animation: ds-out 240ms ease both;
+}
+
+@keyframes ds-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.92);
+  }
+}
+
+@keyframes ds-out {
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+
+.ds-head {
+  padding: 22px 22px 20px;
+  background:
+    url("../../assets/images/piste-lines.svg") right -30px top -10px / 200px no-repeat,
+    linear-gradient(120deg, #0b1226, #182650);
+  color: #fff;
+}
+
+.ds-rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c5d0ea;
+}
+
+.ds-rec i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4fe0a2;
+  box-shadow: 0 0 0 3px rgba(79, 224, 162, 0.2);
+}
+
+.ds-head h2 {
+  margin-top: 6px;
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.ds-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.ds-stat {
+  display: flex;
+  flex-direction: column; /* Zahl oben, Name darunter */
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.ds-stat dd,
+.ds-stat dt {
+  margin: 0;
+  text-align: left;
+}
+
+.ds-stat dd {
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ds-stat dd small {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c5d0ea;
+}
+
+.ds-stat dt {
+  font-size: 12px;
+  color: #c5d0ea;
+}
+
+.ds-body {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px 20px;
+}
+
+.ds-body p {
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+  line-height: 1.42;
+  color: var(--ink-2);
+}
+
+.ds-ok {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 58px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ff6a2b, #e5450d);
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(229, 69, 13, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 90ms ease;
+}
+
+.ds-ok-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.ds-ok-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.ds-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  border-radius: 16px;
+  background: var(--paper);
+  color: #182650;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: inset 0 0 0 2.5px #182650;
+  transition: transform 90ms ease;
+}
+
+.ds-cancel svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ds-ok:active,
+.ds-cancel:active {
+  transform: scale(0.98);
+}
+
+.ds-ok:focus-visible,
+.ds-cancel:focus-visible {
+  outline: 3px solid #182650;
+  outline-offset: 3px;
+}
+
+/* Familie & Gruppe: im „Mein Tag“-Fenster ist die Überschrift orange */
+.modal-info #pane-day .day-title {
+  color: var(--sun);
+}
+
+/* Suchleiste oben: Navy-Rand wie der „Mein Tag“-Knopf daneben */
+.guest .search-box {
+  box-shadow: var(--shadow-2), inset 0 0 0 3px #182650;
+}

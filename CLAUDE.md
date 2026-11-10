@@ -60,6 +60,24 @@ Kartendaten aktuell: Skigebiet KitzSki (`data/skimap/kitzski.json`).
 - Alle drei Ansichten laufen mit Fake-Daten: **Gast** (`views/guest/`), **Bergbahn-Leitstand** (`views/staff/`),
   **Skischule** (`views/school/`)
 - **Gast-Ansicht ist fertig** (Stand 8.11.2026, vom Nutzer abgenommen) – nur noch Fehler beheben, nichts Großes umbauen
+- **10.11.2026 (Zweig `gast-modi`):** Gast-App war zu kompliziert → drei Ansichten nach dem Login
+  (Skifahrer klappt drei Boxen auf): **Solo-Fahrt** (Tracking vorn, keine Gruppe), **Familie & Gruppe**
+  (Gruppe vorn, „Mein Tag“ als Knopf oben neben der Suche), **Alles im Blick** (bisherige Ansicht, für Geübte).
+  Umschalten im Chip-Menü, Daten bleiben erhalten (`views/guest/guest-mode.js`, `mode.css`). Design sonst unverändert.
+  Nach Feedback: Skifahrer carvt von Box zu Box (Schnee am Schwung), gewähltes Symbol fliegt und wird zum Chip,
+  Umschalten mit Bestätigung in der Mitte. Radius-Hinweis („Auf wen soll der Alarm aufpassen?“) entfernt,
+  stattdessen gleich nach dem Einloggen oben „Tracking starten nicht vergessen“.
+  Tabs klappen beim Umschalten wie eine Anzeigetafel um. „Tiefenmeter“ heißt jetzt „Höhenmeter“.
+  Suche: „Alle Hütten“ mit Filter „Die 10 nächsten“.
+  **Tracking starten / Tag beenden** liegt ganz unten im Chip-Menü (Akku oben rechts), nicht mehr unten in „Mein Tag“
+  (dort nur eine navy Karte, die ins Menü führt). „Mein Tag“ hat keinen Vollbild-Modus mehr. Überall „Tracking starten“, nie „Tag starten“.
+  Nach dem Einloggen fliegt eine Info mit Pfeil auf den Chip-Knopf herein (`views/guest/day-coach.js`):
+  Jetzt starten / Jetzt nicht → „Später hier oben“; nach dem Start → „Am Abend hier beenden“.
+  „Test: alles zurücksetzen“ ist aus dem Menü raus (geht noch auf der Übersicht nach „Tag beenden“).
+  Neue Route: Karte zeigt sie 3 s (vorher 4).
+  **Tagesfilm** (MP4 für die Galerie, ~15–25 s): Fahrt mit Zahlen → Endkarte → „Ihr Tag im Detail“ scrollt automatisch
+  durch (Höhenprofil, Pisten nach Farbe, Hüttenpass, Abfahrten, Abzeichen, Lifte) → Ski Tag (`day-film.js`, `film-report.js`).
+- Bergbahn-Stand (Werkzeug-Look) liegt pausiert im `git stash` („Bergbahn WIP 10.11.2026“), Zweig `bergbahn-ansicht`
 - Lehre aus der Gast-Ansicht: keine Effekte, die dauernd laufen oder bei jedem Bild neu zeichnen (Akku/Lag am iPhone);
   Änderungen immer mit iPhone-Simulation + Touch testen, nicht nur mit Mausklicks
 - Fake-Server für Einsätze/Chips/Skikurs: `js/services/fake-ops.js` (Einsätze im localStorage → Tabs teilen sie)

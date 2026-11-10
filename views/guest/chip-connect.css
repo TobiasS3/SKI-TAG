@@ -224,3 +224,49 @@
     clip-path: circle(150vmax at 50% 50%);
   }
 }
+
+/* Aus der Ansicht-Wahl: das Symbol fliegt her und wird zum Chip (views/guest/guest-mode.js) */
+.cc-chip.is-awaiting {
+  opacity: 0;
+  animation: none;
+}
+
+.cc-chip.is-awaiting.is-landed {
+  opacity: 1;
+  animation: cc-land 620ms cubic-bezier(0.34, 1.5, 0.5, 1) both;
+}
+
+/* Symbol ist gelandet: Chip federt kurz nach und dreht sich leicht – deutlich sichtbar */
+@keyframes cc-land {
+  0% {
+    transform: scale(0.86) rotate(-6deg);
+  }
+  55% {
+    transform: scale(1.12) rotate(3deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Landung: ein heller Ring läuft einmal nach außen */
+.cc-stage.is-landed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  animation: cc-land-ring 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes cc-land-ring {
+  from {
+    transform: scale(0.45);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}

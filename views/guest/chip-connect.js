@@ -6,6 +6,7 @@ import { h, reducedMotion } from '../../js/utils/dom.js';
 import { t } from '../../js/core/i18n.js';
 import { load, save } from '../../js/core/storage.js';
 import { icon } from '../../js/components/icons.js';
+import { landChip } from './guest-mode.js';
 
 const STEP_MS = 380;      // Abstand zwischen den Statuszeilen
 const HOLD_MS = 650;      // „Verbunden“ kurz stehen lassen
@@ -16,7 +17,17 @@ const REVEAL_MS = 900;    // Karte öffnet sich
  * info()  = liefert beim Anzeigen die aktuellen Chip-Werte { pos, battery, group }
  */
 export function showChipConnect(page, session, info) {
-  if (load('connectedAt') === session.startedAt || reducedMotion()) return Promise.resolve();
+  // Nach der Ansicht-Wahl immer zeigen (Merker aus guest-mode.js), sonst einmal pro Einloggen
+  let marked = false;
+  try {
+    marked = sessionStorage.getItem('skitag.fromChoice') === '1';
+    sessionStorage.removeItem('skitag.fromChoice');
+  } catch { /* privat: egal */ }
+  const fromChoice = marked || !!document.querySelector('.mode-fly');
+  if ((load('connectedAt') === session.startedAt && !fromChoice) || reducedMotion()) {
+    landChip(null); // kam aus der Ansicht-Wahl → Symbol einfach ausblenden
+    return Promise.resolve();
+  }
   save('connectedAt', session.startedAt);
 
   page.classList.add('is-hidden-for-reveal');
@@ -34,6 +45,13 @@ export function showChipConnect(page, session, info) {
     lines,
   );
   document.body.append(overlay);
+  // Kommt aus der Ansicht-Wahl: das fliegende Symbol landet auf dem Chip und wird zu ihm
+  const chipEl = overlay.querySelector('.cc-chip');
+  // Fliegt das Symbol noch, landet es auf dem Chip; sonst springt der Chip mit seiner eigenen Animation ins Bild
+  if (document.querySelector('.mode-fly')) {
+    chipEl.classList.add('is-awaiting');
+    landChip(chipEl);
+  }
 
   const steps = () => {
     const i = info();

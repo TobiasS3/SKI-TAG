@@ -1,6 +1,8 @@
 // Gäste-Ansicht: Karte + Kopfleiste + Suche + Bereich mit Tabs (Mein Tag, Route, Gruppe),
 // dazu SOS-Knopf und Kartenfilter (alles / nur Route / nur gefahrene Strecke).
 // Lifte und Wetter öffnen sich als Fenster über die Knöpfe in der Kopfleiste.
+// Welche Tabs unten stehen, bestimmt die Ansicht (Solo-Fahrt / Familie & Gruppe / Alles im Blick,
+// siehe guest-mode.js). In „Familie & Gruppe“ ist „Mein Tag“ ein kleiner Knopf oben.
 
 import { h, reducedMotion, isWide } from '../../js/utils/dom.js';
 import { t, toggleLang, translate, getLang } from '../../js/core/i18n.js';
@@ -15,7 +17,7 @@ import { bearing, distance as geoDistance } from '../../js/map/geo.js';
 import { drawSkimap } from '../../js/map/layers.js';
 import { meMarker, meetMarker } from '../../js/map/markers.js';
 import { todayAt, now as clockNow } from '../../js/utils/time.js';
-import { temp } from '../../js/utils/format.js';
+import { temp, number } from '../../js/utils/format.js';
 import { config } from '../../js/config.js';
 import { icon, iconHTML, liftIcon } from '../../js/components/icons.js';
 import { createSheet } from '../../js/components/panel.js';
@@ -32,6 +34,8 @@ import { showChipConnect } from './chip-connect.js';
 import { showDayEnd } from './day-end.js';
 import { mountLastLift } from './last-lift.js';
 import { setMedia } from './place-media.js';
+import { getMode, setMode, MODE_TABS, modeSwitch, modeHud } from './guest-mode.js';
+import { mountDayCoach } from './day-coach.js';
 
 export async function mountGuest(root, session) {
   const cleanups = [];
@@ -61,6 +65,9 @@ export async function mountGuest(root, session) {
     ],
   });
 
+  // Nur in „Familie & Gruppe“: Mein Tag als Knopf oben rechts neben der Suche statt als Tab unten
+  // (in der Kopfleiste selbst ist am Handy kein Platz für einen fünften Knopf, ins Kartenbild soll er nicht)
+  const dayBtn = h('button', { class: 'day-top', type: 'button', hidden: true, onclick: () => openDay(dayBtn) });
   const locateBtn = h('button', { class: 'icon-btn locate-btn', 'data-i18n-label': 'map.locate', onclick: () => follow(true) }, icon('locate'));
   const focusBtn = h('button', { class: 'icon-btn style-btn focus-btn', 'aria-haspopup': 'menu', 'aria-expanded': 'false' },
     icon('eye'), h('span', { class: 'style-name' }));
@@ -93,10 +100,16 @@ export async function mountGuest(root, session) {
   );
   root.append(page);
 
+  // Ansicht: welche Tabs unten stehen (Daten laufen in jeder Ansicht weiter)
+  let mode = getMode();
+  page.dataset.mode = mode;
+  sheet.setTabs(MODE_TABS[mode]);
+  dayBtn.hidden = MODE_TABS[mode].includes('day');
+
   // Chip-Verbindung sofort zeigen – überdeckt auch die Ladezeit
   let groupName = null;
   let ctx = null;
-  const connecting = showChipConnect(page, session, () => ({ pos: ctx?.me.pos, battery: ctx?.me.battery, group: groupName }));
+  const connecting = showChipConnect(page, session, () => ({ pos: ctx?.me.pos, battery: ctx?.me.battery, group: mode === 'solo' ? null : groupName }));
 
   // --- Karte --------------------------------------------------------------------
   const map = createMap(mapEl, { painted: true });
@@ -174,6 +187,7 @@ export async function mountGuest(root, session) {
   let closeInfo = null;
   function openInfo(id, from) {
     closeInfo?.();
+    sheet.reclaim('day');
     closeInfo = infoModal({
       from,
       body: infoBodies[id],
@@ -183,6 +197,29 @@ export async function mountGuest(root, session) {
     });
   }
   cleanups.push(() => closeInfo?.());
+
+  /** „Mein Tag“ zeigen: als Tab, oder – wenn die Ansicht keinen hat – als Fenster aus dem Knopf oben */
+  function openDay(from = dayBtn) {
+    if (MODE_TABS[mode].includes('day')) {
+      sheet.open('day');
+      return;
+    }
+    closeInfo?.();
+    closeInfo = infoModal({
+      from,
+      body: sheet.lend('day'),
+      label: t('tab.day'),
+      closeLabel: t('close'),
+      // Zurück in den Bereich, sobald das Fenster eingeschrumpft ist (außer es ist schon wieder offen)
+      onClose: () => {
+        closeInfo = null;
+        dayOpen = false;
+        setTimeout(() => { if (!dayOpen) sheet.reclaim('day'); }, 420);
+      },
+    });
+    dayOpen = true;
+  }
+  let dayOpen = false;
 
   // Kartenfilter: alles / nur die Route / nur was ich heute gefahren bin
   const FOCUS = ['all', 'route', 'track'];
@@ -409,6 +446,7 @@ export async function mountGuest(root, session) {
   const rental = session.rental || (config.fakeData ? 'Hahnenkammbahn' : null);
   const search = createSearch({ onPick: choose, onShow: showFromSearch, onGroup: showGroup, getPos: () => ctx.me.pos, rental });
   page.querySelector('.topbar').after(search.el);
+  search.el.querySelector('.search-box').after(dayBtn);
   cleanups.push(() => search.destroy());
 
   // --- Eigener Chip ---------------------------------------------------------------
@@ -462,10 +500,23 @@ export async function mountGuest(root, session) {
   // --- Mein Tag: Vollbild und Tagesende ------------------------------------------------
   ctx.dayFullscreen = (on) => {
     if (page.classList.contains('day-full') === on) return;
+    if (on) {
+      closeInfo?.(); // „Mein Tag“ war im Fenster → zurück in den Bereich, dort groß
+      sheet.reclaim('day');
+    }
     page.classList.toggle('day-full', on);
-    if (on) sheet.select('day');
+    if (on) {
+      fullFromPeek = !sheet.isExpanded();
+      sheet.open('day'); // eingeklappt ist der Inhalt unsichtbar – also aufklappen
+    } else if (!MODE_TABS[mode].includes('day')) {
+      // Ansicht ohne Tab „Mein Tag“: danach wieder zum ersten eigenen Tab, so wie vorher
+      sheet.select(MODE_TABS[mode][0]);
+      if (fullFromPeek) sheet.collapse();
+    }
     emit('dayfull', on);
   };
+  let fullFromPeek = false;
+  ctx.openDay = () => openDay();
   let dayEnd = null;
   /** Tag beendet → ab jetzt nur noch die Übersicht */
   ctx.endDay = (day, { animate = false } = {}) => {
@@ -512,7 +563,7 @@ export async function mountGuest(root, session) {
     meetLayer?.remove();
     meetLayer = null;
     const m = ctx.meeting;
-    if (!m) return;
+    if (!m || mode === 'solo') return; // Solo-Fahrt: keine Gruppe, kein Treffpunkt
     meetLayer = meetMarker(m.pos, m.time ? `${t('meet.title')} · ${m.time}` : t('meet.title'))
       .on('click', () => show(ctx.meetingPlace()))
       .addTo(map);
@@ -531,13 +582,42 @@ export async function mountGuest(root, session) {
   drawMeeting();
   cleanups.push(() => meetLayer?.remove(), on('lang', drawMeeting));
   const weatherPanel = mountWeather(infoBodies.weather, weather);
-  const groupPanel = mountGroup(sheet.body('group'), ctx, group);
+  // Gruppe nur, wenn die Ansicht sie zeigt – Solo-Fahrt: keine Punkte, keine Alarme, keine Meldungen
+  let groupPanel = mode === 'solo' ? null : mountGroup(sheet.body('group'), ctx, group);
   const liftsPanel = mountLifts(infoBodies.lifts, ctx, liftStatus, pisteStatus);
   const lifts = liftList(skimap);
   const lastLift = mountLastLift(page, ctx, liftStatus);
   cleanups.push(() => liftsPanel.destroy(), () => lastLift.destroy());
   const sos = mountSOS(page, ctx);
-  cleanups.push(() => weatherPanel.destroy(), () => groupPanel.destroy(), () => sos.destroy());
+  cleanups.push(() => weatherPanel.destroy(), () => groupPanel?.destroy(), () => sos.destroy());
+
+  /** Ansicht wechseln: nur was vorne steht ändert sich, Tag und Gruppe laufen weiter */
+  function applyMode(next) {
+    if (next === mode) return;
+    if (page.classList.contains('day-full')) ctx.dayFullscreen(false);
+    closeInfo?.();
+    sheet.reclaim('day');
+    mode = next;
+    setMode(next);
+    page.dataset.mode = next;
+    dayBtn.hidden = MODE_TABS[next].includes('day');
+    if (!dayBtn.hidden && !reducedMotion()) {
+      dayBtn.animate([{ opacity: 0, transform: 'scale(0.6)' }, { opacity: 1, transform: 'none' }],
+        { duration: 480, delay: 200, easing: 'cubic-bezier(.34,1.4,.5,1)', fill: 'backwards' });
+    }
+    if (next === 'solo') {
+      groupPanel?.destroy();
+      groupPanel = null;
+    } else if (!groupPanel) {
+      groupPanel = mountGroup(sheet.body('group'), ctx, group);
+    }
+    drawMeeting();
+    sheet.setTabs(MODE_TABS[next], { animate: true });
+    sheet.select(MODE_TABS[next][0]); // das, worum es in dieser Ansicht geht
+    renderTop();
+    emit('guestmode', next);
+    modeHud(next); // kurze Bestätigung oben mit Haken
+  }
 
   // --- Kopfleiste: Restzeit, Lifte, Wetter + Lawinen ---------------------------------
   function renderTop() {
@@ -556,6 +636,19 @@ export async function mountGuest(root, session) {
       leftValue.replaceChildren(String(Math.max(1, Math.ceil(rest))), h('small', {}, ' min'));
     }
     timeBox.setAttribute('title', t('top.liftsUntil', { time: config.resort.liftsClose }));
+
+    // Mein Tag (nur „Familie & Gruppe“): läuft → grüner Punkt + km, sonst einfach „Mein Tag“
+    if (!dayBtn.hidden) {
+      const d = tracking.summary();
+      const running = d.status === 'running';
+      dayBtn.replaceChildren(
+        h('span', { class: 'pill-label' }, t('tab.day')),
+        h('span', { class: 'pill-row' },
+          running ? h('i', { class: 'day-top-rec', 'aria-hidden': 'true' }) : icon('play'),
+          running ? `${number(d.km, 1)} km` : t('daytop.start')));
+      dayBtn.setAttribute('aria-label', running ? `${t('tab.day')}: ${number(d.km, 1)} km` : t('tab.day'));
+      dayBtn.classList.toggle('is-running', running);
+    }
 
     // Lifte: wie viele laufen gerade – Routen meiden die, die zu sind
     // (kurz gestoppt wegen Wind zählt nicht als zu – der fährt gleich wieder)
@@ -592,6 +685,7 @@ export async function mountGuest(root, session) {
       + (lvl ? `${t('aval.title')}: ${lvl}, ${t(`aval.level.${lvl}`)}` : `${t('aval.title')}: ${t('aval.noReport')}`));
   }
   renderTop();
+  cleanups.push(on('daystatus', () => { renderTop(); renderChip(); }));
   const clockTimer = setInterval(renderTop, 10000);
   cleanups.push(() => clearInterval(clockTimer));
 
@@ -601,9 +695,14 @@ export async function mountGuest(root, session) {
     const bat = shownBattery;
     menuBtn.classList.toggle('is-low', bat != null && bat <= 20);
     // Nur die Batterie, ungefähr gefüllt – die genaue Zahl steht im Menü
-    menuBtn.replaceChildren(
+    // Tag läuft → kleiner grüner Punkt am Chip-Knopf (dort wird er auch beendet)
+    const rec = tracking?.status() === 'running';
+    menuBtn.classList.toggle('is-rec', rec);
+    menuBtn.replaceChildren(...[
       h('span', { class: 'bat', style: { '--lvl': String((bat ?? 0) / 100) }, 'aria-hidden': 'true' }),
-      icon('maximize', 'pill-more'));
+      rec ? h('i', { class: 'pill-rec-dot', 'aria-hidden': 'true' }) : null,
+      icon('maximize', 'pill-more'),
+    ].filter(Boolean));
     menuBtn.setAttribute('aria-label', t('top.chipAria', { bat: bat ?? '–' }));
     if (!menu.hidden) renderMenu();
   }
@@ -630,21 +729,63 @@ export async function mountGuest(root, session) {
         h('span', {},
           h('strong', {}, t('top.accessFor', { name: session.name })),
           h('small', {}, t('top.accessLeft', { h: Math.floor(left / 60), m: String(Math.floor(left % 60)).padStart(2, '0') })))),
+      modeSwitch(mode, (next) => { closeMenu(); applyMode(next); }),
       h('div', { class: 'menu-lang', role: 'group', 'aria-label': t('top.language') },
         ['de', 'en'].map((code) => h('button', {
           class: 'menu-lang-btn',
           'aria-pressed': String(getLang() === code),
           onclick: () => { if (getLang() !== code) toggleLang(); renderMenu(); },
         }, code === 'de' ? 'Deutsch' : 'English'))),
-      // Nur im Test-Modus: aufgezeichneten Tag löschen, um alles nochmal auszuprobieren
-      config.fakeData ? h('button', { class: 'menu-item menu-test', role: 'menuitem', onclick: resetDay }, icon('today'), t('test.resetDay')) : null,
+      dayBar(),
     );
+  }
+
+  /**
+   * Ganz unten im Chip-Menü: „Tracking starten“ (orange Leiste) oder – wenn er läuft – Status
+   * „Aufzeichnung läuft“ mit dem weißen Knopf „Tag beenden“. Nur hier wird der Tag beendet.
+   */
+  function dayBar() {
+    const d = tracking.summary();
+    if (d.status === 'done') return null;
+    const act = (e) => {
+      e.stopPropagation();
+      closeMenu();
+      if (d.status === 'running') tracking.stop();
+      else tracking.requestStart();
+    };
+    if (d.status !== 'running') {
+      return h('button', { class: 'menu-day is-start', type: 'button', onclick: act },
+        h('span', { class: 'menu-day-icon' }, icon('play')),
+        h('span', { class: 'menu-day-text' }, h('strong', {}, t('menu.dayStart')), h('small', {}, t('menu.dayStartSub'))),
+        icon('chevron'));
+    }
+    const since = d.startedAt ? new Date(d.startedAt).toTimeString().slice(0, 5) : '–';
+    return h('div', { class: 'menu-day-run' },
+      h('p', { class: 'menu-day-status' },
+        h('i', { 'aria-hidden': 'true' }),
+        h('span', {},
+          h('strong', {}, t('day.started')),
+          h('small', { class: 'num' }, t('menu.dayRunning', { time: since, km: number(d.km, 1) })))),
+      h('button', { class: 'menu-day-stop', type: 'button', onclick: act },
+        h('span', { class: 'menu-day-stop-icon' }, icon('stop')), t('day.stop')));
   }
   menuReady = true;
   renderChip();
+  const coach = mountDayCoach(ctx, { anchor: menuBtn, tracking });
+  cleanups.push(() => coach.destroy());
   const closeMenu = () => {
     menu.hidden = true;
     menuBtn.setAttribute('aria-expanded', 'false');
+  };
+  // Von „Mein Tag“ aus: Menü öffnen, damit man „Tag beenden“ gleich sieht
+  ctx.openChipMenu = () => {
+    closeInfo?.();
+    setTimeout(() => {
+      renderMenu();
+      menu.hidden = false;
+      menuBtn.setAttribute('aria-expanded', 'true');
+      menu.querySelector('.menu-day-run, .menu-day')?.scrollIntoView({ block: 'nearest' });
+    }, 0);
   };
   menuBtn.addEventListener('click', (e) => {
     e.stopPropagation();

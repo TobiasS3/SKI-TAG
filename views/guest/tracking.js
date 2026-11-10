@@ -9,18 +9,16 @@ import { duration, number } from '../../js/utils/format.js';
 import { isoDay, todayAt, now as clockNow } from '../../js/utils/time.js';
 import { config } from '../../js/config.js';
 import { icon } from '../../js/components/icons.js';
-import { confirmModal } from '../../js/components/modal.js';
 import { toast } from '../../js/components/toast.js';
 import { skimap } from '../../js/services/slopes.js';
 import { pisteName } from './slopes-panel.js';
 import { renderSummary } from './day-summary.js';
 import { emptyDay, addPoint, altitudeChart, difficultyBar, runList, badgeRow } from './day-stats.js';
 import { playDayStart } from './day-start.js';
-import { topNote } from './top-note.js';
+import { confirmDayStop } from './day-stop.js';
 import { checkChallenges, challengeCard, compareCard, explorerCard, hutPassCard, familyCard } from './day-challenges.js';
 
 const KEY = () => `day-${isoDay()}`;
-const REMIND_MS = 2 * 60 * 1000; // so lange nach dem Einloggen ohne „Tag starten“ → Erinnerung oben
 
 export function mountTracking(el, ctx) {
   let day = { ...emptyDay(), ...load(KEY(), {}) };
@@ -73,12 +71,10 @@ export function mountTracking(el, ctx) {
       justEnded = false;
       return;
     }
-    const full = ctx.page.classList.contains('day-full');
+    // Kein Vollbild-Knopf mehr (Wunsch Nutzer 10.11.2026) – nur die Überschrift
     replace(el,
       h('div', { class: 'day-bar' },
-        h('h2', { class: 'title day-title' }, t('tab.day')),
-        h('button', { class: 'btn btn-quiet btn-small', onclick: () => ctx.dayFullscreen?.(!full) },
-          icon(full ? 'close' : 'expand'), t(full ? 'day.fullClose' : 'day.full'))),
+        h('h2', { class: 'title day-title' }, t('tab.day'))),
       h('div', { class: 'day-live' },
         h('section', { class: 'day-panel' },
           h('span', { class: 'day-rec' }, h('i'), t('day.started')),
@@ -86,7 +82,16 @@ export function mountTracking(el, ctx) {
           h('dl', { class: 'day-smalls' }, stats.km.el, stats.lifts.el, stats.time.el),
           now),
         extras,
-        h('button', { class: 'btn btn-big btn-block day-stop', onclick: stop }, icon('stop'), t('day.stop')),
+        // „Tag beenden“ steht im Chip-Menü oben rechts (guest-view.js) – diese Karte führt direkt hin
+        h('button', { class: 'day-stop-where', type: 'button', onclick: () => ctx.openChipMenu?.() },
+          h('span', { class: 'dsw-chip', 'aria-hidden': 'true' },
+            h('span', { class: 'bat', style: { '--lvl': '0.9' } }),
+            h('i', { class: 'dsw-rec' }),
+            icon('maximize', 'dsw-arrow')),
+          h('span', { class: 'dsw-text' },
+            h('strong', {}, t('day.stop')),
+            h('small', {}, t('day.stopWhere'))),
+          icon('chevron', 'dsw-go')),
         liftsLeft,
       ));
     updateLive();
@@ -162,31 +167,24 @@ export function mountTracking(el, ctx) {
     if (fresh.length || challenged || extrasTick % 6 === 0) renderExtras();
   }
 
-  // --- Erinnerung: 2 Minuten nach dem Einloggen noch nicht gestartet? ----------------------
-  const remindKey = `dayremind-${ctx.session.startedAt}`;
-  let reminder = null;
-  const remindTimer = setTimeout(() => {
-    if (day.status !== 'idle' || load(remindKey, false)) return;
-    save(remindKey, true); // pro Einloggen nur einmal
-    reminder = topNote(ctx.page, {
-      lead: icon('play'),
-      title: t('dayremind.title'),
-      text: t('dayremind.text'),
-      action: t('day.start'),
-      onAction: () => {
-        // „Mein Tag“ öffnen und den echten Knopf drücken → Drehkreuz-Moment läuft wie gewohnt
-        ctx.sheet.open('day');
-        requestAnimationFrame(() => {
-          const btn = el.querySelector('.day-start');
-          btn?.scrollIntoView({ block: 'center' });
-          btn?.click();
-        });
-      },
-    });
-  }, Math.max(1500, ctx.session.startedAt + REMIND_MS - Date.now()));
+  /**
+   * Von außen starten (Chip-Menü, Info am Anfang): „Mein Tag“ öffnen und den echten Knopf
+   * drücken → der Drehkreuz-Moment läuft wie gewohnt
+   */
+  function requestStart() {
+    if (day.status !== 'idle') return;
+    if (ctx.openDay) ctx.openDay();
+    else ctx.sheet.open('day');
+    // Ganz nach oben (dort steht der Knopf, darunter läuft die Animation) und erst drücken,
+    // wenn der Bereich bzw. das Fenster aufgeklappt ist – sonst sieht man den Drehkreuz-Moment nicht
+    el.closest('.sheet-content, .modal')?.scrollTo({ top: 0 });
+    setTimeout(() => {
+      el.closest('.sheet-content, .modal')?.scrollTo({ top: 0 });
+      el.querySelector('.day-start')?.click();
+    }, reducedMotion() ? 0 : 520);
+  }
 
   async function start(e) {
-    reminder?.close();
     day = { ...emptyDay(), status: 'running', startedAt: ctx.me.time || Date.now() };
     track.clear();
     ridden.clear();
@@ -229,9 +227,7 @@ export function mountTracking(el, ctx) {
   let justEnded = false;
 
   async function stop() {
-    const ok = await confirmModal({
-      title: t('day.stop.title'), text: t('day.stop.text'), ok: t('day.stop'), cancel: t('cancel'),
-    });
+    const ok = await confirmDayStop(day); // eigene Rückfrage mit den Zahlen des Tages
     if (!ok) return;
     day.status = 'done';
     day.endedAt = ctx.me.time || Date.now();
@@ -243,7 +239,7 @@ export function mountTracking(el, ctx) {
     emit('daystatus', day.status);
   }
 
-  const offs = [on('me', onPosition), on('lang', render), on('dayfull', () => day.status === 'running' && render())];
+  const offs = [on('me', onPosition), on('lang', render)];
   const timer = setInterval(updateLiftsLeft, 60000);
   render();
 
@@ -252,11 +248,13 @@ export function mountTracking(el, ctx) {
     /** Bereich der heutigen Spur (für den Filter „Gefahren“) */
     bounds: () => (day.points.length ? L.latLngBounds(day.points.map((p) => [p.lat, p.lng])) : null),
     status: () => day.status,
+    requestStart,
+    stop,
+    /** Kurz für den Knopf oben (Ansicht „Familie & Gruppe“) */
+    summary: () => ({ status: day.status, km: day.km || 0, runs: day.runs.length, startedAt: day.startedAt }),
     destroy() {
       offs.forEach((off) => off());
       clearInterval(timer);
-      clearTimeout(remindTimer);
-      reminder?.close();
       save(KEY(), day);
       track.remove();
       ridden.remove();

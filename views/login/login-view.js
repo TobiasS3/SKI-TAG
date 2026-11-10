@@ -10,6 +10,7 @@ import { api } from '../../js/services/api.js';
 import { config } from '../../js/config.js';
 import { icon } from '../../js/components/icons.js';
 import { temp } from '../../js/utils/format.js';
+import { showModeChoice } from '../guest/guest-mode.js';
 
 
 export async function mountLogin(root) {
@@ -139,14 +140,22 @@ export async function mountLogin(root) {
     (nameError ? nameInput : input).focus();
   }
 
-  /** Erfolg: Felder werden grün, Karte fliegt weg, Skifahrer carvt durchs Bild, Schwarz-Blende. */
+  /**
+   * Erfolg: Felder werden grün, Karte fliegt weg, Skifahrer carvt durchs Bild, Schwarz-Blende.
+   * Gäste: unterwegs klappt der Skifahrer die drei Ansichten auf (Solo-Fahrt, Familie & Gruppe,
+   * Alles im Blick) – erst nach der Wahl geht es weiter.
+   */
   function celebrate(role) {
     input.blur();
     nameInput.blur();
     submitLabel.textContent = t('login.welcome');
     navigator.vibrate?.(30);
+    const choose = role === 'guest';
     if (reducedMotion()) {
-      go(role);
+      if (choose) {
+        page.classList.add('is-choosing');
+        showModeChoice(page, { onPick: () => go(role) });
+      } else go(role);
       return;
     }
     // Schwarzer Kreis startet am Knopf
@@ -154,6 +163,24 @@ export async function mountLogin(root) {
     page.style.setProperty('--iris-x', `${r.left + r.width / 2}px`);
     page.style.setProperty('--iris-y', `${r.top + r.height / 2}px`);
     page.classList.add('is-success');
+    if (choose) {
+      // iPhone: beim Tippen hat die Tastatur die Seite nach oben geschoben – zurück nach ganz oben,
+      // sonst beginnt die Auswahl mitten im Bild
+      const toTop = () => {
+        page.scrollTop = 0;
+        window.scrollTo(0, 0);
+        if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+      };
+      toTop();
+      // Bild wird dunkel, dann carvt der Skifahrer von Box zu Box und klappt sie auf
+      setTimeout(() => page.classList.add('is-leaving'), 250);
+      keyboardGone().then(() => {
+        toTop();
+        page.classList.add('is-choosing');
+        showModeChoice(page, { skierSVG: SKIER, onPick: () => go(role) });
+      });
+      return;
+    }
     setTimeout(() => skier(page), 250);
     setTimeout(() => page.classList.add('is-leaving'), 900);
     setTimeout(() => go(role), 2400);
@@ -223,6 +250,28 @@ const SKIER = `<svg viewBox="0 0 64 64" width="64" height="64">
     <rect x="15.5" y="10" width="7" height="3" rx="1.5" fill="#0e0e10"/>
   </g>
 </svg>`;
+
+/**
+ * Wartet, bis die Bildschirm-Tastatur zu ist (Höhe des sichtbaren Bereichs ändert sich nicht mehr),
+ * mindestens 650 ms (Schwarz-Blende), höchstens 1,4 s.
+ */
+function keyboardGone() {
+  return new Promise((resolve) => {
+    const vv = window.visualViewport;
+    const t0 = performance.now();
+    let last = vv ? vv.height : innerHeight;
+    let still = 0;
+    (function check() {
+      const now = performance.now();
+      const hgt = vv ? vv.height : innerHeight;
+      still = Math.abs(hgt - last) < 1 ? still + 1 : 0;
+      last = hgt;
+      const closed = !vv || hgt >= innerHeight - 4;
+      if ((now - t0 > 650 && closed && still > 4) || now - t0 > 1400) resolve();
+      else requestAnimationFrame(check);
+    })();
+  });
+}
 
 function boardCell(key, value) {
   return h('div', { class: 'board-cell' },

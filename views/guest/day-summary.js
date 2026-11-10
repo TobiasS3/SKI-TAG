@@ -123,7 +123,7 @@ export function traceSVG(points, { loop = false } = {}) {
 
 /**
  * „Übersicht downloaden“ + darunter klein Format und Dateiname, daneben „Teilen“.
- * Das Video wird beim ersten Tipp erstellt (~9 s) und dann gemerkt.
+ * Das Video wird beim ersten Tipp erstellt (so lang wie der Film, ~15–25 s) und dann gemerkt.
  * iPhone: Nach dem Erstellen ist der Tipp „verbraucht“ – dann steht „Jetzt speichern“ da und
  * ein zweiter Tipp öffnet das Teilen-Menü („Video sichern“). Android/PC: lädt gleich herunter.
  */

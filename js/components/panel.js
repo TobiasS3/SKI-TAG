@@ -10,7 +10,7 @@
 // Die aktuelle Höhe steht als CSS-Variable --sheet-h am Eltern-Element – SOS- und Kartenknöpfe
 // gleiten damit mit, höchstens bis --sheet-cap (= offen).
 
-import { h, isWide, slideIn } from '../utils/dom.js';
+import { h, isWide, slideIn, reducedMotion } from '../utils/dom.js';
 import { icon } from './icons.js';
 import { emit } from '../core/events.js';
 
@@ -23,6 +23,7 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
   let stage = 'peek';
   let heights = { peek: 96, half: 96 };
   let suppressClick = false; // nach einem Ziehen an der Tab-Leiste keinen Tab auslösen
+  let order = tabs.map((tab) => tab.id); // sichtbare Tabs in ihrer Reihenfolge (setTabs)
 
   const tabBar = h('div', { class: 'sheet-tabs', role: 'tablist' },
     tabs.map((tab) => {
@@ -51,6 +52,7 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
     }),
   );
 
+  const ink = tabBar.querySelector('.sheet-tab-ink');
   const handle = h('button', { class: 'sheet-handle', 'data-i18n-label': 'sheet.toggle' }, h('span'));
   const top = h('div', { class: 'sheet-top', hidden: true });
   const el = h('aside', { class: 'sheet', style: { '--tabs': tabs.length } }, handle, top, tabBar, content);
@@ -87,15 +89,17 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
 
   function select(id) {
     if (current === id) return;
-    const from = tabs.findIndex((x) => x.id === current);
-    const to = tabs.findIndex((x) => x.id === id);
+    const from = order.indexOf(current);
+    const to = order.indexOf(id);
+    const first = current === null;
     current = id;
-    if (from >= 0) slideIn(bodies[id], to > from ? 1 : -1); // Tab rechts → kommt von rechts
-    tabs.forEach((tab, i) => {
+    // Tab rechts → kommt von rechts; kam der alte Tab weg (andere Ansicht) → sanft von unten
+    if (to >= 0 && !first) slideIn(bodies[id], from >= 0 ? (to > from ? 1 : -1) : 0);
+    tabs.forEach((tab) => {
       const active = tab.id === id;
       buttons[tab.id].setAttribute('aria-selected', String(active));
-      bodies[tab.id].hidden = !active;
-      if (active) el.style.setProperty('--tab-index', i);
+      if (bodies[tab.id].parentElement === content) bodies[tab.id].hidden = !active; // ausgeliehen → nicht anfassen
+      if (active) el.style.setProperty('--tab-index', Math.max(0, to));
     });
     content.scrollTop = 0;
     emit('sheet:tab', id);
@@ -254,6 +258,67 @@ export function createSheet({ tabs, initial = tabs[0].id, openHeight = () => Mat
       show(heights[stage]);
     },
     destroy,
+    /**
+     * Nur diese Tabs zeigen, in dieser Reihenfolge (z. B. ['group', 'route']).
+     * Ist der aktuelle Tab nicht mehr dabei, kommt der erste.
+     */
+    setTabs(ids, { animate = false } = {}) {
+      // Für den Effekt: die alten Tabs als Kopie an ihrer alten Stelle festhalten
+      const flip = animate && !reducedMotion() && tabBar.animate;
+      const bar = tabBar.getBoundingClientRect();
+      const old = flip ? order.map((id) => {
+        const r = buttons[id].getBoundingClientRect();
+        const ghost = buttons[id].cloneNode(true);
+        ghost.removeAttribute('id');
+        ghost.setAttribute('aria-hidden', 'true');
+        ghost.classList.add('sheet-tab-ghost');
+        Object.assign(ghost.style, {
+          position: 'absolute', left: `${r.left - bar.left}px`, top: `${r.top - bar.top}px`,
+          width: `${r.width}px`, height: `${r.height}px`, margin: '0', pointerEvents: 'none',
+        });
+        return ghost;
+      }) : [];
+      order = ids.filter((id) => buttons[id]);
+      tabs.forEach((tab) => { buttons[tab.id].hidden = !order.includes(tab.id); });
+      order.forEach((id) => tabBar.insertBefore(buttons[id], ink));
+      el.style.setProperty('--tabs', order.length);
+      if (!order.includes(current)) select(order[0]);
+      else el.style.setProperty('--tab-index', order.indexOf(current));
+      requestAnimationFrame(() => {
+        measure();
+        show(heights[stage]);
+      });
+      // Ansicht gewechselt – wie eine Anzeigetafel: die alten Tabs klappen nach hinten weg,
+      // die neuen klappen von unten hoch (z. B. „Mein Tag“ wird zu „Gruppe“)
+      if (flip) {
+        if (getComputedStyle(tabBar).position === 'static') tabBar.style.position = 'relative';
+        const ease = 'cubic-bezier(.2,.8,.2,1)';
+        old.forEach((ghost, i) => {
+          tabBar.append(ghost);
+          ghost.animate([
+            { transform: 'perspective(500px) rotateX(0deg)', opacity: 1 },
+            { transform: 'perspective(500px) rotateX(88deg)', opacity: 0 },
+          ], { duration: 260, delay: i * 50, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' })
+            .onfinish = () => ghost.remove();
+        });
+        order.forEach((id, i) => buttons[id].animate([
+          { transform: 'perspective(500px) rotateX(-88deg)', opacity: 0 },
+          { transform: 'perspective(500px) rotateX(8deg)', opacity: 1, offset: 0.7 },
+          { transform: 'none', opacity: 1 },
+        ], { duration: 460, delay: 230 + i * 70, easing: ease, fill: 'backwards' }));
+        ink.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 260, fill: 'backwards' });
+      }
+    },
+    /** Inhalt eines Tabs woanders zeigen (z. B. in einem Fenster) – bis reclaim(id) */
+    lend(id) {
+      bodies[id].hidden = false;
+      return bodies[id];
+    },
+    /** Ausgeliehenen Inhalt zurückholen */
+    reclaim(id) {
+      if (bodies[id].parentElement !== content) content.append(bodies[id]);
+      bodies[id].hidden = current !== id;
+    },
     /** Kleiner Punkt am Tab (z. B. „Aufzeichnung läuft“) */
     badge(id, on) {
       const dot = buttons[id].querySelector('.sheet-badge');

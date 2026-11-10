@@ -24,7 +24,7 @@ const CHALLENGES = [
   { id: 'valley', icon: 'flag', goal: 1, value: (d) => (d.runs.some((r) => r.minAlt <= 950 && r.drop >= 400) ? 1 : 0), single: true },
 ];
 
-// Bekannte Höhen in Metern: So fühlen sich Tiefenmeter nach etwas an
+// Bekannte Höhen in Metern: So fühlen sich Höhenmeter nach etwas an
 const LANDMARKS = [
   ['Stephansdom', 136],
   ['Eiffelturm', 330],

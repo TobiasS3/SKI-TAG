@@ -17,7 +17,6 @@ import { toast } from '../../js/components/toast.js';
 import { pisteName } from './slopes-panel.js';
 import { mountRace } from './group-race.js';
 import { mountRangeAlarm } from './range-alarm.js';
-import { mountGroupCheck } from './group-check.js';
 
 const TRAIL = 50;             // so viele Punkte Spur pro Person
 const STALE_S = 60;           // kein Signal seit … Sekunden → „kein Signal“
@@ -43,17 +42,7 @@ export function mountGroup(el, ctx, group) {
   // --- Positionen empfangen ---------------------------------------------------------
   const race = mountRace(ctx, session.group, members);
   const alarm = mountRangeAlarm(session.group, session.chip, others, {
-    onChange: () => {
-      groupCheck.update();
-      schedule();
-    },
-  });
-  // Meldung oben: „Passt Ihre Gruppe?“ → Gruppe beim Reichweiten-Alarm öffnen
-  const groupCheck = mountGroupCheck(ctx, others, alarm, {
-    onCheck: () => {
-      ctx.sheet.open('group');
-      requestAnimationFrame(() => alarm.el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    },
+    onChange: () => schedule(),
   });
   const stops = others.map((m) => watch(m));
 
@@ -466,7 +455,14 @@ export function mountGroup(el, ctx, group) {
   function renderMeeting() {
     const m = ctx.meeting;
     if (!m) {
-      replace(meetCard, h('p', { class: 'meet-empty' }, icon('flag'), h('span', {}, t('meet.hint'))));
+      // Noch kein Treffpunkt: deutlicher Knopf, öffnet gleich die Suche oben
+      replace(meetCard, h('button', {
+        class: 'meet-empty',
+        type: 'button',
+        onclick: () => ctx.page.querySelector('.search-input')?.focus(),
+      }, h('span', { class: 'meet-empty-icon' }, icon('flag')),
+      h('span', { class: 'meet-empty-text' }, h('strong', {}, t('meet.emptyTitle')), h('small', {}, t('meet.hint'))),
+      icon('chevron')));
       meetCard.classList.remove('is-set');
       placeMeeting(race.el);
       return;
@@ -612,8 +608,8 @@ export function mountGroup(el, ctx, group) {
 
   return {
     destroy() {
+      hideCard(); // Ansicht ohne Gruppe: Personenkarte über den Tabs mit weg
       race.destroy();
-      groupCheck.destroy();
       stops.forEach((stop) => stop());
       offs.forEach((off) => off());
       clearInterval(ticker);

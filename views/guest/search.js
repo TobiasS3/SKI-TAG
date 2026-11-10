@@ -92,7 +92,9 @@ function buildSuggestions(items, getPos, rental) {
   const streifRaw = pistes.find((x) => /^streif-rennstrecke$/i.test(x.name));
   const streifBase = streifRaw && { ...streifRaw, ...streifCourse() };
   const huts = items.filter((x) => x.type === 'hut');
-  const nearHuts = me ? [...huts].sort((a, b) => geoDistance(me, a.pos) - geoDistance(me, b.pos)).slice(0, 6) : [];
+  // Alle Hütten, die nächsten zuerst; Filter „Die 10 nächsten“, sobald der Chip eine Position hat
+  const hutsByDist = me ? [...huts].sort((a, b) => geoDistance(me, a.pos) - geoDistance(me, b.pos)) : huts;
+  const nearHuts = new Set(me ? hutsByDist.slice(0, 10) : []);
   const flying = items.find((x) => x.type === 'lift' && /^3S/i.test(x.name));
   const liftNamed = (re) => items.find((x) => x.type === 'lift' && re.test(x.name));
   // Starthaus der Streif: oben am Förderband, dort steht das Starthaus
@@ -181,7 +183,13 @@ function buildSuggestions(items, getPos, rental) {
         ...[...new Set(parking.map((x) => x.parking.town))].map((town) => ({ id: `town-${town}`, label: town, test: (x) => x.parking.town === town })),
       ],
     },
-    nearHuts.length && { id: 'huts', icon: 'hut', items: nearHuts },
+    huts.length && {
+      id: 'huts', icon: 'hut', items: hutsByDist,
+      filters: [
+        { id: 'all', test: () => true },
+        nearHuts.size && { id: 'near', test: (x) => nearHuts.has(x) },
+      ].filter(Boolean),
+    },
   ].filter(Boolean);
   return { groups, singles };
 }

@@ -1,4 +1,4 @@
-// Auswertung eines Skitags: Abfahrten erkennen, Tiefenmeter, Pisten nach Farbe, Abzeichen.
+// Auswertung eines Skitags: Abfahrten erkennen, Höhenmeter, Pisten nach Farbe, Abzeichen.
 // Plus kleine Bausteine zum Anzeigen (Höhenprofil, Farbbalken, Abfahrtsliste, Abzeichen).
 
 import { h } from '../../js/utils/dom.js';
@@ -16,7 +16,7 @@ export const emptyDay = () => ({
   lifts: 0,
   top: 0,
   elapsed: 0,       // Sekunden unterwegs
-  descent: 0,       // Tiefenmeter auf der Piste
+  descent: 0,       // Höhenmeter bergab auf der Piste
   ascent: 0,        // Höhenmeter mit dem Lift
   maxAlt: 0,
   kmByDiff: { easy: 0, intermediate: 0, advanced: 0, freeride: 0 },

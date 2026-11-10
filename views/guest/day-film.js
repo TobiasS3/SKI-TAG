@@ -1,5 +1,7 @@
-// Tagesfilm: 9 Sekunden Hochformat-Video (für Storys) aus deinem Tag.
-//   Titel → ein Punkt fährt deinen Tag ab und zieht die Spur hinter sich her, Zahlen zählen mit → Endkarte.
+// Tagesfilm: Hochformat-Video (für Storys und die Galerie) aus deinem Tag, je nach Tag ~15–25 s.
+//   Titel → ein Punkt fährt deinen Tag ab und zieht die Spur hinter sich her, Zahlen zählen mit → Endkarte
+//   → „Ihr Tag im Detail“ scrollt automatisch durch (Höhenprofil, Pisten nach Farbe, Hüttenpass,
+//   Abfahrten, Abzeichen, Lieblingslifte – views/guest/film-report.js) → Schluss mit Ski Tag.
 //   Im Hintergrund die vorgemalte Winterkarte (wie in der App), nachtblau abgedunkelt, damit Spur und Zahlen leuchten.
 //
 // Gezeichnet wird auf ein <canvas>. Zum Speichern nimmt MediaRecorder das Canvas als Video auf
@@ -13,10 +15,14 @@ import { config } from '../../js/config.js';
 import { icon } from '../../js/components/icons.js';
 import { toast } from '../../js/components/toast.js';
 import { TRACK_COLOR } from '../../js/map/layers.js';
+import { buildReport } from './film-report.js';
 
 const W = 720;
 const H = 1280;
-const LENGTH = 9; // Sekunden
+// Ablauf in Sekunden: Fahrt 0–7,8 · Bericht schiebt sich 7,8–8,5 hoch · scrollt ab 8,8 · Schluss danach
+const T_IN = 7.8;
+const T_SCROLL = 8.8;
+const OUTRO = 1.8;
 
 /**
  * Welche Datei dieses Gerät aufnehmen kann. MP4 zuerst – läuft auf iPhone, Samsung und jedem PC.
@@ -189,7 +195,55 @@ function createFilm(canvas, day, skimap) {
   const ease = (x) => 1 - (1 - Math.min(1, Math.max(0, x))) ** 3;
   const fade = (t, a, b) => Math.min(1, Math.max(0, (t - a) / (b - a)));
 
+  // --- Bericht „Ihr Tag im Detail“: einmal zeichnen, dann im Film nach oben schieben -----------
+  const report = buildReport(day, W);
+  const scrollPx = Math.max(0, report.height - H);
+  const scrollS = Math.min(14, Math.max(3, scrollPx / 260)); // ruhig lesbar, nicht zu lang
+  const T_OUT = T_SCROLL + scrollS + 0.8;
+  const LEN = T_OUT + OUTRO;
+  const easeInOut = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
+
   function draw(time) {
+    if (time < T_IN + 0.8) drawRide(time);
+    // Bericht schiebt sich wie eine Seite von unten über die Endkarte und scrollt dann durch
+    if (time >= T_IN) {
+      const a = easeInOut(fade(time, T_IN, T_IN + 0.7));
+      const s = easeInOut(fade(time, T_SCROLL, T_SCROLL + scrollS));
+      const y = -s * scrollPx + (1 - a) * H;
+      if (a < 1) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 40;
+        ctx.shadowOffsetY = -10;
+        ctx.fillStyle = '#0b1226';
+        ctx.fillRect(0, y, W, H);
+        ctx.restore();
+      }
+      ctx.drawImage(report, 0, y);
+    }
+    // Schluss: Navy, Logo, Ski Tag, Datum
+    if (time >= T_OUT) {
+      const o = ease(fade(time, T_OUT, T_OUT + 0.6));
+      ctx.globalAlpha = o;
+      const eg = ctx.createLinearGradient(0, 0, W, H);
+      eg.addColorStop(0, '#0b1226');
+      eg.addColorStop(1, '#182650');
+      ctx.fillStyle = eg;
+      ctx.fillRect(0, 0, W, H);
+      if (logo.complete && logo.naturalWidth) ctx.drawImage(logo, W / 2 - 70, H / 2 - 200, 140, 140);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.font = '800 72px -apple-system, Helvetica, Arial, sans-serif';
+      ctx.fillText('Ski Tag', W / 2, H / 2 + 30);
+      ctx.fillStyle = '#b9c6e4';
+      ctx.font = '600 30px -apple-system, Helvetica, Arial, sans-serif';
+      ctx.fillText(`${config.resort.name} · ${date}`, W / 2, H / 2 + 85);
+      ctx.textAlign = 'left';
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawRide(time) {
     const drawP = ease(fade(time, 0.8, 5.8));        // Spur
     const endCard = fade(time, 6.4, 7.0);            // Endkarte blendet ein
 
@@ -342,7 +396,7 @@ function createFilm(canvas, day, skimap) {
     stop();
     start = performance.now();
     const tick = (now) => {
-      draw(((now - start) / 1000) % (LENGTH + 1)); // 1 s Pause am Ende
+      draw(((now - start) / 1000) % (LEN + 1)); // 1 s Pause am Ende
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -357,7 +411,7 @@ function createFilm(canvas, day, skimap) {
     const name = filmName(day);
     const { type, ext, video } = filmFormat();
     if (!video) {
-      draw(LENGTH - 0.5);
+      draw(7.2); // Standbild: Endkarte mit den großen Zahlen
       return new Promise((resolve) => canvas.toBlob((b) => resolve(new File([b], `${name}.png`, { type: 'image/png' })), 'image/png'));
     }
     stop();
@@ -374,14 +428,14 @@ function createFilm(canvas, day, skimap) {
       const t0 = performance.now();
       const tick = (now) => {
         const s = (now - t0) / 1000;
-        draw(Math.min(s, LENGTH));
-        onProgress?.(Math.min(1, s / LENGTH));
-        if (s < LENGTH) frame = requestAnimationFrame(tick);
+        draw(Math.min(s, LEN));
+        onProgress?.(Math.min(1, s / LEN));
+        if (s < LEN) frame = requestAnimationFrame(tick);
         else rec.stop();
       };
       frame = requestAnimationFrame(tick);
     });
   }
 
-  return { loop, stop, record };
+  return { loop, stop, record, length: LEN };
 }

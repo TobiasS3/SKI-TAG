@@ -1,4 +1,4 @@
-// Gruppe: Rangliste des Tages (Abfahrten, Tiefenmeter, Pisten-km) und Gruppen-Rekorde.
+// Gruppe: Rangliste des Tages (Abfahrten, Höhenmeter, Pisten-km) und Gruppen-Rekorde.
 // Bewusst ohne Tempo: Ski Tag steht für Sicherheit, auch Kinder stehen in dieser Liste.
 // Gezählt wird insgesamt über den Tag, nicht pro Piste.
 //
